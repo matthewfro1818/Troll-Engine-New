@@ -1,0 +1,146 @@
+importClass ("flixel.group.FlxGroup.FlxTypedGroup");
+
+var tankWatchtower:BGSprite;
+var tankGround:BGSprite;
+var tankmanRun:FlxTypedGroup<TankmenBG>;
+
+var offsetX:Float = 400;
+var offsetY:Float = 1300;
+var tankSpeed:Float = 0;
+var tankAngle:Float = 0;
+
+var animationNotes:Array<Dynamic> = [];
+var runSpeed:Float;
+var endingOffset:Float;
+var goingRight:Bool;
+var strumTime:Float;
+
+var foreBG:BGSprite;
+var foreBG1:BGSprite;
+var foreBG2:BGSprite;
+var foreBG3:BGSprite;
+var foreBG4:BGSprite;
+var foreBG5:BGSprite;
+
+function onLoad(stage, foreground)
+{
+    var add = function(o){
+		return stage.add(o);
+	}
+
+    var sky:BGSprite = new BGSprite('tank/tankSky', -400, -400, 0, 0);
+	add(sky);
+
+    if(!ClientPrefs.lowQuality)
+	{
+		var clouds:BGSprite = new BGSprite('tank/tankClouds', FlxG.random.int(-700, -100), FlxG.random.int(-20, 20), 0.1, 0.1);
+		clouds.active = true;
+		clouds.velocity.x = FlxG.random.float(5, 15);
+		add(clouds);
+
+		var mountains:BGSprite = new BGSprite('tank/tankMountains', -300, -20, 0.2, 0.2);
+		mountains.setGraphicSize(Std.int(1.2 * mountains.width));
+		mountains.updateHitbox();
+		add(mountains);
+
+		var buildings:BGSprite = new BGSprite('tank/tankBuildings', -200, 0, 0.3, 0.3);
+		buildings.setGraphicSize(Std.int(1.1 * buildings.width));
+		buildings.updateHitbox();
+		add(buildings);
+	}
+
+    var ruins:BGSprite = new BGSprite('tank/tankRuins',-200,0,.35,.35);
+	ruins.setGraphicSize(Std.int(1.1 * ruins.width));
+	ruins.updateHitbox();
+	add(ruins);
+
+	if(!ClientPrefs.lowQuality)
+	{
+		var smokeLeft:BGSprite = new BGSprite('tank/smokeLeft', -200, -100, 0.4, 0.4, ['SmokeBlurLeft'], true);
+		add(smokeLeft);
+		var smokeRight:BGSprite = new BGSprite('tank/smokeRight', 1100, -100, 0.4, 0.4, ['SmokeRight'], true);
+		add(smokeRight);
+
+		tankWatchtower = new BGSprite('tank/tankWatchtower', 100, 50, 0.5, 0.5, ['watchtower gradient color']);
+		add(tankWatchtower);
+	}
+
+    tankGround = new BGSprite('tank/tankRolling', 0, 0, 0.5, 0.5, ['BG tank w lighting'], true);
+	add(tankGround);
+
+    tankSpeed = FlxG.random.float(5, 7);
+	tankAngle = FlxG.random.float(-90, 45);
+
+	//tankmanRun = new FlxTypedGroup<TankmenBG>();
+	//add(tankmanRun);
+
+    var ground:BGSprite = new BGSprite('tank/tankGround', -420, -150);
+	ground.setGraphicSize(Std.int(1.15 * ground.width));
+	ground.updateHitbox();
+	add(ground);
+
+	foreBG = new BGSprite('tank/tank0', -500, 650, 1.7, 1.5, ['fg']);
+	if(!ClientPrefs.lowQuality) foreBG1 = new BGSprite('tank/tank1', -300, 750, 2, 0.2, ['fg']);
+	foreBG2 = new BGSprite('tank/tank2', 450, 940, 1.5, 1.5, ['foreground']);
+	if(!ClientPrefs.lowQuality) foreBG4 = new BGSprite('tank/tank4', 1300, 900, 1.5, 1.5, ['fg']);
+	foreBG5 = new BGSprite('tank/tank5', 1620, 700, 1.5, 1.5, ['fg']);
+	if(!ClientPrefs.lowQuality) foreBG3 = new BGSprite('tank/tank3', 1300, 1200, 3.5, 2.5, ['fg']);
+
+    foreground.add(foreBG);
+    foreground.add(foreBG1);
+    foreground.add(foreBG2);
+    foreground.add(foreBG4);
+    foreground.add(foreBG5);
+    foreground.add(foreBG3);
+}
+
+function onUpdate(elapsed)
+{
+    tankAngle += elapsed * tankSpeed;
+	tankGround.angle = tankAngle - 90 + 15;
+	tankGround.x = offsetX + 1500 * Math.cos(Math.PI / 180 * (tankAngle + 180));
+	tankGround.y = offsetY + 1100 * Math.sin(Math.PI / 180 * (tankAngle + 180));
+}
+
+function onCreatePost()
+{
+    /*if(!ClientPrefs.lowQuality)
+	{
+		for (daGf in game.gfGroup)
+		{
+			var gf:Character = cast daGf;
+			if(gf.curCharacter == 'pico-speaker')
+			{
+				var firstTank:FlxSprite = new FlxSprite(20, 500, true);
+				firstTank.resetShit(20, 600, true);
+				firstTank.strumTime = 10;
+				firstTank.visible = false;
+				tankmanRun.add(firstTank);
+
+				for (i in 0...TankmenBG.animationNotes.length)
+				{
+					if(FlxG.random.bool(16)) {
+			    		var tankBih = tankmanRun.recycle(TankmenBG);
+						tankBih.strumTime = TankmenBG.animationNotes[i][0];
+						tankBih.resetShit(500, 200 + FlxG.random.int(50, 100), TankmenBG.animationNotes[i][1] < 2);
+						tankmanRun.add(tankBih);
+					}
+				}
+				break;
+			}
+		}
+	}*/
+}
+
+function onBeatHit() everyoneDance();
+
+function everyoneDance()
+{
+	if(!ClientPrefs.lowQuality) tankWatchtower.dance();
+    foreBG.dance();
+    foreBG1.dance();
+    foreBG2.dance();
+    foreBG3.dance();
+    foreBG4.dance();
+    foreBG5.dance();
+}

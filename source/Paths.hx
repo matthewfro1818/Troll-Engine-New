@@ -14,6 +14,7 @@ import openfl.geom.Rectangle;
 import openfl.system.System;
 import openfl.utils.AssetType;
 import openfl.utils.Assets as Assets;
+import openfl.utils.Assets as OpenFlAssets;
 import haxe.CallStack;
 
 using StringTools;
@@ -370,6 +371,20 @@ class Paths
 		#end
 
 		return Paths.exists(getPath(key, type));
+	}
+
+	// less optimized but automatic handling
+	static public function getAtlas(key:String, ?library:String):FlxAtlasFrames
+	{
+		#if MODS_ALLOWED
+		if(FileSystem.exists(modsXml(key)) || OpenFlAssets.exists(getPath('images/$key.xml',TEXT, library), TEXT))
+		#else
+		if(OpenFlAssets.exists(getPath('images/$key.xml',TEXT, library)))
+		#end
+		{
+			return getSparrowAtlas(key, library);
+		}
+		return getPackerAtlas(key, library);
 	}
 
 	inline static public function getSparrowAtlas(key:String, ?library:String):FlxAtlasFrames

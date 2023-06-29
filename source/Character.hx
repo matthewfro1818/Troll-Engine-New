@@ -175,21 +175,7 @@ class Character extends FlxSprite
 				deathName = json.death_name != null ? json.death_name : curCharacter;
 				scriptName = json.script_name != null ? json.script_name : curCharacter;
 
-				var spriteType = "sparrow";
-				//sparrow
-				//packer
-				//texture
-				#if MODS_ALLOWED
-				var modTxtToFind:String = Paths.modsTxt(json.image);
-				var txtToFind:String = Paths.getPath('images/' + json.image + '.txt', TEXT);
-
-				if (Paths.exists(modTxtToFind) || Paths.exists(txtToFind))
-				#else
-				if (Paths.exists(Paths.getPath('images/' + json.image + '.txt', TEXT)))
-				#end
-				{
-					spriteType = "packer";
-				}
+				var useAtlas:Bool = false;
 
 				#if MODS_ALLOWED
 				var modAnimToFind:String = Paths.modFolders('images/' + json.image + '/Animation.json');
@@ -200,20 +186,13 @@ class Character extends FlxSprite
 				if (Paths.exists(Paths.getPath('images/' + json.image + '/Animation.json', TEXT)))
 				#end
 				{
-					spriteType = "texture";
+					useAtlas = true;
 				}
 
-				switch (spriteType)
-				{
-					case "packer":
-						frames = Paths.getPackerAtlas(json.image);
-
-					case "sparrow":
-						frames = Paths.getSparrowAtlas(json.image);
-
-					case "texture":
-						frames = AtlasFrameMaker.construct(json.image);
-				}
+				if(!useAtlas)
+					frames = Paths.getAtlas(json.image);
+				else
+					frames = AtlasFrameMaker.construct(json.image);
 				imageFile = json.image;
 
 				jsonScale = json.scale;
