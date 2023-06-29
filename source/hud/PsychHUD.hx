@@ -26,9 +26,11 @@ class PsychHUD extends BaseHUD {
 	var scoreTxtTween:FlxTween;
 
 	var songHighscore:Int = 0;
-	override public function new(iP1:String, iP2:String, songName:String)
+	override public function new(iP1:String, iP2:String, songName:String, stats:Stats)
 	{
-		super(iP1, iP2, songName);
+		super(iP1, iP2, songName, stats);
+
+		stats.changedEvent.add(statChanged);
 
 		add(healthBarBG);
 		add(healthBar);
@@ -192,31 +194,6 @@ class PsychHUD extends BaseHUD {
 		songNameTxt.screenCenter(X);
 	}
 
-	override function set_misses(val:Int)
-	{
-		if (misses != val)
-		{
-			misses = val;
-			var judgeName = judgeNames.get('miss');
-			var judgeTxt = judgeTexts.get('miss');
-			if (judgeName != null)
-			{
-				FlxTween.cancelTweensOf(judgeName.scale);
-				judgeName.scale.set(1.075, 1.075);
-				FlxTween.tween(judgeName.scale, {x: 1, y: 1}, 0.2);
-			}
-			if (judgeTxt != null)
-			{
-				FlxTween.cancelTweensOf(judgeTxt.scale);
-				judgeTxt.scale.set(1.075, 1.075);
-				FlxTween.tween(judgeTxt.scale, {x: 1, y: 1}, 0.2);
-				
-				judgeTxt.text = Std.string(val);
-			}
-		}
-		return misses;
-	}
-
 	override function noteJudged(judge:JudgmentData, ?note:Note, ?field:PlayField)
 	{
 		var hitTime = note.strumTime - Conductor.songPosition + ClientPrefs.ratingOffset;
@@ -253,6 +230,31 @@ class PsychHUD extends BaseHUD {
 			});
 		}
 	}
+
+	function statChanged(stat:String, val:Dynamic)
+		{
+			switch (stat)
+			{
+				case 'misses':
+					misses = val;
+					var judgeName = judgeNames.get('miss');
+					var judgeTxt = judgeTexts.get('miss');
+					if (judgeName != null)
+					{
+						FlxTween.cancelTweensOf(judgeName.scale);
+						judgeName.scale.set(1.075, 1.075);
+						FlxTween.tween(judgeName.scale, {x: 1, y: 1}, 0.2);
+					}
+					if (judgeTxt != null)
+					{
+						FlxTween.cancelTweensOf(judgeTxt.scale);
+						judgeTxt.scale.set(1.075, 1.075);
+						FlxTween.tween(judgeTxt.scale, {x: 1, y: 1}, 0.2);
+	
+						judgeTxt.text = Std.string(val);
+					}
+			}
+		}
 
 	override public function beatHit(beat:Int){
 		if (hitbar != null)

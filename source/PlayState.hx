@@ -155,6 +155,7 @@ class Wife3
 }
 class PlayState extends MusicBeatState
 {
+	public var stats:Stats = new Stats();
 	var midScroll = false;
 	public var botplaySine:Float = 0;
 	public var botplayTxt:FlxText;
@@ -197,19 +198,6 @@ class PlayState extends MusicBeatState
 	public var gameFontBold:String = 'Bold Normal Text.ttf';
 
 	public var ratingStuff:Array<Array<Dynamic>> = Highscore.grades.get(ClientPrefs.gradeSet);
-	
-/* 	public static var ratingStuff:Array<Array<Dynamic>> = [
-		['You Suck!', 0.2], //From 0% to 19%
-		['Shit', 0.4], //From 20% to 39%
-		['Bad', 0.5], //From 40% to 49%
-		['Bruh', 0.6], //From 50% to 59%
-		['Meh', 0.69], //From 60% to 68%
-		['Nice', 0.7], //69%
-		['Good', 0.8], //From 70% to 79%
-		['Great', 0.9], //From 80% to 89%
-		['Sick!', 1], //From 90% to 99%
-		['Perfect!!', 1] //The value on this one isn't used actually, since Perfect is always "1"
-	]; */
 	
 	public var scoreTxt:FlxText = new FlxText(); // just so psych mods n shit dont error
 	public var modchartTweens:Map<String, FlxTween> = new Map<String, FlxTween>();
@@ -310,17 +298,40 @@ class PlayState extends MusicBeatState
 		return health;
 	}
 
-	public var combo:Int = 0;
-	public var cbCombo:Int = 0;
+	@:isVar
+	public var songScore(get, set):Int = 0;
+	@:isVar
+	public var totalPlayed(get, set):Float = 0;
+	@:isVar
+	public var totalNotesHit(get, set):Float = 0.0;
+	@:isVar
+	public var combo(get, set):Int = 0;
+	@:isVar
+	public var cbCombo(get, set):Int = 0;
+	@:isVar
+	public var ratingName(get, set):String = '?';
+	@:isVar
+	public var ratingPercent(get, set):Float;
+	@:isVar
+	public var ratingFC(get, set):String;
 
-	public var comboBreaks:Int = 0; 
-	public var judges:Map<String, Int> = [
-		"epic" => 0,
-		"sick" => 0,
-		"good" => 0,
-		"bad" => 0,
-		"shit" => 0
-	];
+	public inline function get_songScore()return stats.score;
+	public inline function get_totalPlayed()return stats.totalPlayed;
+	public inline function get_totalNotesHit()return stats.totalNotesHit;
+	public inline function get_combo()return stats.combo;
+	public inline function get_cbCombo()return stats.cbCombo;
+	public inline function get_ratingName()return stats.grade;
+	public inline function get_ratingPercent()return stats.ratingPercent;
+	public inline function get_ratingFC()return stats.clearType;
+
+	public inline function set_songScore(val:Int)return stats.score = val;
+	public inline function set_totalPlayed(val:Float)return stats.totalPlayed = val;
+	public inline function set_totalNotesHit(val:Float)return stats.totalNotesHit = val;
+	public inline function set_combo(val:Int)return stats.combo = val;
+	public inline function set_cbCombo(val:Int)return stats.cbCombo = val;
+	public inline function set_ratingName(val:String)return stats.grade = val;
+	public inline function set_ratingPercent(val:Float)return stats.ratingPercent = val;
+	public inline function set_ratingFC(val:String)return stats.clearType = val;
 
 	private var generatedMusic:Bool = false;
 	public var endingSong:Bool = false;
@@ -402,7 +413,6 @@ class PlayState extends MusicBeatState
 	var stageData:StageFile;
 	public var songName:String = "";
 
-	public var songScore:Int = 0;
 	public var songHits:Int = 0;
 	public var songMisses:Int = 0;
 
@@ -679,16 +689,8 @@ class PlayState extends MusicBeatState
 			shitToLoad.push({path: "timeBar"});
 
 		////
-		/*if (ClientPrefs.noteSkin == 'Quants'){
-			shitToLoad.push({path: 'noteSkin/QUANT$arrowSkin'});
-			shitToLoad.push({path: 'noteSplash/QUANT$splashSkin'});
-		}else{
-			shitToLoad.push({path: 'noteSkin/$arrowSkin'});
-			shitToLoad.push({path: 'noteSkin/$splashSkin'});
-		}*/
-
-		shitToLoad.push({path: 'noteSkin/QUANT$arrowSkin'});
-		shitToLoad.push({path: 'noteSplash/QUANT$splashSkin'});
+		shitToLoad.push({path: 'noteSkin/$arrowSkin'});
+		shitToLoad.push({path: 'noteSplash/$splashSkin'});
 
 		////
 		if (stageData.preloadStrings != null)
@@ -814,11 +816,13 @@ class PlayState extends MusicBeatState
 		
 		switch(ClientPrefs.etternaHUD){
 			case 'Advanced':
-				hud = new AdvancedHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song);
+				hud = new AdvancedHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
 			default:
-				hud = new PsychHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song);
+				hud = new PsychHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
 		}
 		
+		// TODO: remove all dependencies on healthbar in here
+		// aka make the HUD handle all of this (so that you can make custom HP bars, etc)
 		healthBar = hud.healthBar;
 		healthBarBG = healthBar.healthBarBG;
 		iconP1 = healthBar.iconP1;
@@ -2860,9 +2864,9 @@ class PlayState extends MusicBeatState
 
 		nps = Math.floor(noteHits.length / 2);
 		FlxG.watch.addQuick("notes per second", nps);
-		hud.nps = nps;
-		if(hud.npsPeak < nps)
-			hud.npsPeak = nps;
+		stats.nps = nps;
+		if(stats.npsPeak < nps)
+			stats.npsPeak = nps;
 
 		if (chartingMode)
 			Overlay.offset.y = 50;
@@ -3547,12 +3551,15 @@ class PlayState extends MusicBeatState
 		if(ret != Globals.Function_Stop && !transitioning) {
 			// Save song score and rating.
 			if (SONG.validScore){
-				var percent:Float = ratingPercent;
+				var percent:Float = stats.ratingPercent;
 
 				if(Math.isNaN(percent)) percent = 0;
 
+				// TODO: different score saving for Wife3
+				// TODO: Save more stats?
+
 				if (!playOpponent && saveScore && ratingFC!='Fail')
-					Highscore.saveScore(SONG.song, songScore, percent);
+					Highscore.saveScore(SONG.song, stats.score, percent);
 			}
 
 
@@ -3569,7 +3576,7 @@ class PlayState extends MusicBeatState
 				// TODO: add a modcharted variable which songs w/ modcharts should set to true, then make it so if modcharts are disabled the score wont get added
 				// same check should be in the saveScore check above too
 				if (ratingFC != 'Fail')
-					campaignScore += songScore;
+					campaignScore += stats.score;
 				campaignMisses += songMisses;
 
 				storyPlaylist.remove(storyPlaylist[0]);
@@ -3677,9 +3684,6 @@ class PlayState extends MusicBeatState
 		eventNotes = [];
 	}
 
-	public var totalPlayed:Float = 0;
-	public var totalNotesHit:Float = 0.0;
-
 	var lastJudge:RatingSprite;
 	var lastCombos:Array<RatingSprite> = [];
 
@@ -3756,7 +3760,7 @@ class PlayState extends MusicBeatState
 	var comboColor = 0xFFFFFFFF;
 
 	private function displayCombo(?combo:Int){
-		if(combo==null)combo=this.combo;
+		if(combo==null)combo=stats.combo;
 		if (ClientPrefs.simpleJudge)
 		{
 			for (prevCombo in lastCombos)
@@ -3839,48 +3843,55 @@ class PlayState extends MusicBeatState
 			trace("you didnt give a valid JudgmentData to applyJudgmentData!");
 			return;
 		}
-		if (!bot)songScore += Math.floor(judgeData.score * playbackRate);
+		if (!bot)stats.score += Math.floor(judgeData.score * playbackRate);
 		health += (judgeData.health * 0.02) * (judgeData.health < 0 ? healthLoss : healthGain);
 		songHits++;
 
 
 		if(ClientPrefs.wife3){
 			if (judgeData.wifePoints == null)
-				totalNotesHit += Wife3.getAcc(diff);
+				stats.totalNotesHit += Wife3.getAcc(diff);
 			else
-				totalNotesHit += judgeData.wifePoints;
-			totalPlayed += 2;
+				stats.totalNotesHit += judgeData.wifePoints;
+			stats.totalPlayed += 2;
 		}else{
-			totalNotesHit += judgeData.accuracy * 0.01;
-			totalPlayed++;
+			stats.totalNotesHit += judgeData.accuracy * 0.01;
+			stats.totalPlayed++;
 		}
-
-		if (!hud.judgements.exists(judgeData.internalName))
-			hud.judgements.set(judgeData.internalName, 0);
-		
-		hud.judgements.set(judgeData.internalName, hud.judgements.get(judgeData.internalName) + 1);
 
 		switch(judgeData.comboBehaviour){
 			default:
-				cbCombo = 0;
-				combo++;
+				stats.cbCombo = 0;
+				stats.combo++;
 			case BREAK:
 				breakCombo();
 			case IGNORE:
 		}
 
-		if (!judges.exists(judgeData.internalName))
-			judges.set(judgeData.internalName, 0);
+		if (!stats.judgements.exists(judgeData.internalName))
+			stats.judgements.set(judgeData.internalName, 0);
 
-		judges.set(judgeData.internalName, judges.get(judgeData.internalName) + 1);
+		stats.judgements.set(judgeData.internalName, stats.judgements.get(judgeData.internalName) + 1);
 		
 		RecalculateRating();
+
+		if (ClientPrefs.coloredCombos)
+			{
+				if (stats.judgements.get("bad") > 0 || stats.judgements.get("shit") > 0 || stats.comboBreaks > 0)
+					comboColor = 0xFFFFFFFF;
+				else if (stats.judgements.get("good") > 0)
+					comboColor = hud.judgeColours.get("good");
+				else if (stats.judgements.get("sick") > 0)
+					comboColor = hud.judgeColours.get("sick");
+				else if (stats.judgements.get("epic") > 0)
+					comboColor = hud.judgeColours.get("epic");
+			}
 
 		if(show){
 			if(judgeData.hideJudge!=true)
 				displayJudgment(judgeData.internalName);
 			if(judgeData.comboBehaviour != IGNORE)
-				displayCombo(judgeData.comboBehaviour == BREAK ? (cbCombo > 1 ? -cbCombo : 0) : combo);
+				displayCombo(judgeData.comboBehaviour == BREAK ? (stats.cbCombo > 1 ? -stats.cbCombo : 0) : stats.combo);
 		}
 	}
 
@@ -4120,9 +4131,9 @@ class PlayState extends MusicBeatState
 	}
 
 	function breakCombo(){
-		comboBreaks++;
-		cbCombo++;
-		combo = 0;
+		stats.comboBreaks++;
+		stats.cbCombo++;
+		stats.combo = 0;
 		while (lastCombos.length > 0)
 			lastCombos.shift().kill();
 		RecalculateRating();
@@ -4190,7 +4201,7 @@ class PlayState extends MusicBeatState
 			else if (chars.length == 0)
 				chars = field.characters;
 
-			if (combo > 10 && gf!=null && chars.contains(gf) == false && gf.animOffsets.exists('sad'))
+			if (stats.combo > 10 && gf!=null && chars.contains(gf) == false && gf.animOffsets.exists('sad'))
 			{
 				gf.playAnim('sad');
 				gf.specialAnim = true;
@@ -4287,7 +4298,7 @@ class PlayState extends MusicBeatState
 			doDeathCheck(true);
 		}
 
-		if (combo > 10 && gf != null && gf.animOffsets.exists('sad')){
+		if (stats.combo > 10 && gf != null && gf.animOffsets.exists('sad')) {
 			gf.playAnim('sad');
 			gf.specialAnim = true;
 		}
@@ -4297,7 +4308,7 @@ class PlayState extends MusicBeatState
 			lastCombos.shift().kill(); */
 		breakCombo();
 
-		if(!practiceMode) songScore -= 10;
+		if(!practiceMode) stats.score -= 10;
 		if(!endingSong) songMisses++;
 		
 		// i dont think this should reduce acc lol
@@ -4656,6 +4667,9 @@ class PlayState extends MusicBeatState
 			total;
 		});*/
 
+		stats.changedEvent.removeAll();
+		stats.changedEvent = null;
+
 		preventLuaRemove = true;
 
 		for(script in funkyScripts){
@@ -4906,27 +4920,14 @@ class PlayState extends MusicBeatState
 			spr.resetAnim = time;
 		}
 	}
-
-	public var ratingName:String = '?';
-	public var ratingPercent(default,set):Float;
-	public var ratingFC:String;
-
-	function set_ratingPercent(val:Float){
-		if(perfectMode && val<1){
-			health = -100;
-			doDeathCheck(true);
-		}
-		return ratingPercent = val;
-	}
-
 	public function getClearType(){
 		var clear = 'Clear';
 
-		if (comboBreaks <= 0)
+		if (stats.comboBreaks <= 0)
 		{
-			var goods = judges.get("good");
-			var sicks = judges.get("sick");
-			var epics = judges.get("epic");
+			var goods = stats.judgements.get("good");
+			var sicks = stats.judgements.get("sick");
+			var epics = stats.judgements.get("epic");
 
 			if (totalPlayed == 0){
 				clear = 'No Play'; // Havent played anything yet
@@ -4960,11 +4961,11 @@ class PlayState extends MusicBeatState
 		}
 		else
 		{
-			if (ClientPrefs.gradeSet == 'Etterna' && comboBreaks == 1)
+			if (ClientPrefs.gradeSet == 'Etterna' && stats.comboBreaks == 1)
 				clear = 'MF'; // Miss Flag (Any FC missed by 1 CB)
-			else if (comboBreaks < 10 && songScore >= 0)
+			else if (stats.comboBreaks < 10 && stats.score >= 0)
 				clear = "SDCB"; // Single Digit Combo Break
-			else if (songScore < 0 || comboBreaks >= 10 && ratingPercent <= 0)
+			else if (stats.score < 0 || stats.comboBreaks >= 10 && stats.ratingPercent <= 0)
 				clear = "Fail"; // Fail
 		}
 
@@ -4972,14 +4973,14 @@ class PlayState extends MusicBeatState
 	}
 
 	public function RecalculateRating() {
-		setOnScripts('score', songScore);
+		setOnScripts('score', stats.score);
 		setOnScripts('misses', songMisses);
-		setOnScripts('comboBreaks', comboBreaks);
+		setOnScripts('comboBreaks', stats.comboBreaks);
 		setOnScripts('hits', songHits);
 
 		var ret:Dynamic = callOnScripts('onRecalculateRating');
 		
-		if(ret != Globals.Function_Stop)
+/* 		if(ret != Globals.Function_Stop)
 		{
 			if(totalPlayed < 1) //Prevent divide by 0
 				ratingName = '?';
@@ -5011,32 +5012,19 @@ class PlayState extends MusicBeatState
 
 			// Rating FC
 			ratingFC = getClearType();
+		}*/
 
-			if (ClientPrefs.coloredCombos){
-				if (judges.get("bad") > 0 || judges.get("shit") > 0 || comboBreaks > 0)
-					comboColor = 0xFFFFFFFF;
-				else if (judges.get("good") > 0)
-					comboColor = hud.judgeColours.get("good");
-				else if (judges.get("sick") > 0)
-					comboColor = hud.judgeColours.get("sick");
-				else if (judges.get("epic") > 0)
-					comboColor = hud.judgeColours.get("epic");
-			}
-		}
-
+		stats.updateVariables();
 
 		// maybe move all of this to a stats class that I can easily give to objects?
-		hud.ratingFC = ratingFC;
+/* 		hud.ratingFC = ratingFC;
 		hud.grade = ratingName;
 		hud.ratingPercent = ratingPercent;
 		hud.misses = songMisses;
 		hud.combo = combo;
-		hud.comboBreaks = comboBreaks;
-		hud.judgements.set("miss", songMisses);
-		hud.judgements.set("cb", comboBreaks);
 		hud.totalNotesHit = totalNotesHit;
 		hud.totalPlayed = totalPlayed;
-		hud.score = songScore;
+		hud.score = songScore;*/
 		
 		hud.recalculateRating();
 
