@@ -105,6 +105,6 @@ function onEvent(eventName, value1, value2)
     switch (eventName)
     {
         case "BG Freaks Expression":
-			if(bgGirls != null) bgGirls.swapDanceType();
+			if(bgGirls != null) {swapDanceType();}
     }
 }

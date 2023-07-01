@@ -21,7 +21,7 @@ class OptionsState extends MusicBeatState {
 		daSubstate.goBack = (function(changedOptions:Array<String>){
             MusicBeatState.switchState(new MainMenuState());
         }); 
- 		bg = new FlxSprite().loadGraphic(Paths.image('newmenuu/optionsbg'));
+ 		bg = new FlxSprite().loadGraphic(Paths.image('menuBGDesat'));
 		bg.screenCenter(XY);
 		add(bg);
         

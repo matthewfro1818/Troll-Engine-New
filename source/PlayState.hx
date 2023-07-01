@@ -413,6 +413,7 @@ class PlayState extends MusicBeatState
 	var stageData:StageFile;
 	public var songName:String = "";
 
+	//public var songScore:Int = 0;
 	public var songHits:Int = 0;
 	public var songMisses:Int = 0;
 
@@ -656,14 +657,17 @@ class PlayState extends MusicBeatState
 
 		//// Asset precaching start
 		//// this could be moved to the loadingstate probably
-		var shitToLoad:Array<AssetPreload> = [
-			{path: "sick"},
+		var shitToLoad:Array<AssetPreload> = [];
+			/*{path: "sick"},
 			{path: "good"},
 			{path: "bad"},
 			{path: "shit"},
 			{path: "healthBar"}
 			//,{path: "combo"}
-		];
+		];*/
+
+		for (judgeData in judgeManager.judgmentData)
+			shitToLoad.push({path: judgeData.internalName});
 
 		for (number in 0...10)
 			shitToLoad.push({path: 'num$number'});
@@ -816,8 +820,10 @@ class PlayState extends MusicBeatState
 		
 		switch(ClientPrefs.etternaHUD){
 			case 'Advanced':
+				//hud = new AdvancedHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song);
 				hud = new AdvancedHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
 			default:
+				//hud = new PsychHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song);
 				hud = new PsychHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
 		}
 		
@@ -1440,11 +1446,9 @@ class PlayState extends MusicBeatState
 
 		inCutscene = false;
 
-		var startCntdown = callOnScripts('onStartCountdown');
-		if(startCntdown == Globals.Function_Stop){
+		if (callOnScripts('onStartCountdown') == Globals.Function_Stop){
 			return;
 		}
-
 		if (skipCountdown || startOnTime > 0)
 			skipArrowStartTween = true;
 
@@ -1549,7 +1553,6 @@ class PlayState extends MusicBeatState
 				countdownSpr.cameras = [camHUD];
 
 				countdownSpr.screenCenter();
-				countdownSpr.antialiasing = ClientPrefs.globalAntialiasing;
 
 				insert(members.indexOf(notes), countdownSpr);
 
@@ -1559,30 +1562,26 @@ class PlayState extends MusicBeatState
 						countdownTwn.destroy();
 						countdownTwn = null;
 						remove(countdownSpr).destroy();
+						countdownSpr = null;
 					}
 				});
 			}
 
-			var sound = '';
-			switch (swagCounter){
-				case 0:
-					sound = 'intro3' + introSoundsSuffix;
-				case 1:
-					sound = 'intro2' + introSoundsSuffix;
-				case 2:
-					sound = 'intro1' + introSoundsSuffix;
-				case 3:
-					sound = 'introGo' + introSoundsSuffix;
-			}
-			if(sound != ''){
+			var sound = switch (swagCounter){
+				case 0: 'intro3' + introSoundsSuffix;
+				case 1: 'intro2' + introSoundsSuffix;
+				case 2: 'intro1' + introSoundsSuffix;
+				case 3: 'introGo' + introSoundsSuffix;
+				default: null;
+			};
+			if(sound != null){
 				var snd = FlxG.sound.play(Paths.sound(sound), 0.6);
 				snd.endTime = snd.length;
-				snd.effect = ClientPrefs.ruin?sndEffect:null;
-				snd.onComplete = function(){
-					snd.volume = 0;
-				}
+				snd.effect = ClientPrefs.ruin ? sndEffect : null;
+				snd.onComplete = ()->{ snd.volume = 0; }
 			}
-/* 			notes.forEachAlive(function(note:Note) {
+			/*
+				notes.forEachAlive(function(note:Note) {
 				if(ClientPrefs.opponentStrums || note.mustPress)
 				{
 					note.copyAlpha = false;
@@ -1591,7 +1590,8 @@ class PlayState extends MusicBeatState
 						note.alpha *= 0.35;
 					}
 				}
-			}); */
+			}); 
+			*/
 
 			callOnHScripts('onCountdownTick', [swagCounter, tmr]);
 			#if LUA_ALLOWED
@@ -5022,6 +5022,9 @@ class PlayState extends MusicBeatState
 		hud.ratingPercent = ratingPercent;
 		hud.misses = songMisses;
 		hud.combo = combo;
+		//hud.comboBreaks = comboBreaks;
+		//hud.judgements.set("miss", songMisses);
+		//hud.judgements.set("cb", comboBreaks);
 		hud.totalNotesHit = totalNotesHit;
 		hud.totalPlayed = totalPlayed;
 		hud.score = songScore;*/
@@ -5173,9 +5176,9 @@ class FNFHealthBar extends FlxBar{
 	{
 		//
 		healthBarBG = new FlxSprite(0, FlxG.height * (ClientPrefs.downScroll ? 0.11 : 0.89));
-		//healthBarBG.loadGraphic(Paths.image('healthBar'));
-		healthBarBG.makeGraphic(600, 18);
-		healthBarBG.color = 0xFF000000;
+		healthBarBG.loadGraphic(Paths.image('healthBar'));
+		//healthBarBG.makeGraphic(600, 18);
+		//healthBarBG.color = 0xFF000000;
 		healthBarBG.screenCenter(X);
 		healthBarBG.scrollFactor.set();
 		healthBarBG.antialiasing = false;

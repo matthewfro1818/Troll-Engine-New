@@ -226,7 +226,7 @@ class OldMainMenuState extends MusicBeatState
 			else if (FlxG.keys.anyJustPressed(debugKeys))
 			{
 				selectedSomethin = true;
-				MusicBeatState.switchState(new MasterEditorMenu());
+				MusicBeatState.switchState(new editors.MasterEditorMenu());
 			}
 			#end
 		}

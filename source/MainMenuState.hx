@@ -91,7 +91,7 @@ class MainMenuState extends MusicBeatState {
 		FlxG.camera.bgColor = FlxColor.BLACK;
 
 		////
-		var bg:ZSprite = cast new ZSprite().loadGraphic(Paths.image('newmenuu/mainmenu/menuBG'));
+		var bg:ZSprite = cast new ZSprite().loadGraphic(Paths.image('menuBG'));
 		bg.scrollFactor.set();
 		bg.setGraphicSize(0, FlxG.height);
 		bg.updateHitbox();
@@ -123,6 +123,7 @@ class MainMenuState extends MusicBeatState {
 			var art = new ZSprite();
 			art.loadGraphic(Paths.image("newmenuu/mainmenu/cover_" + option));
 			art.scrollFactor.set();
+			art.visible = false;
 			art.ID = artBoxes.length;
 
 			var butt = new ZSprite();
@@ -134,7 +135,7 @@ class MainMenuState extends MusicBeatState {
 			buttons.push(butt);
 
 			menuItems.add(butt);
-            menuItems.add(art);
+            //menuItems.add(art);
         }
 		add(menuItems);
 
@@ -324,23 +325,6 @@ class MainMenuState extends MusicBeatState {
 
 		for (spr in menuItems){
 			if (spr.ID == curSelected && FlxG.mouse.overlaps(spr)){
-	
-				//// Kirb BF
-				if (spr.ID == optionShit.indexOf("freeplay") && artBoxes.contains(spr))
-				{
-					var clickPos = FlxG.mouse.getPositionInCameraView();
-
-					if (clickPos.x >= spr.x + 26 && 
-						clickPos.x <= spr.x + 132 &&
-						clickPos.y >= spr.y + 4 &&  
-						clickPos.y <= spr.y + 58
-					){
-						kirbfSqueak(spr);
-						return;
-					}
-				}
-
-				////
 				return onSelected();
 			}	
 		}
@@ -495,7 +479,7 @@ class MainMenuState extends MusicBeatState {
 			{
 				but.order = obj.order + 1;
 				but.alpha = obj.alpha;
-				but.visible = obj.visible;
+				//but.visible = obj.visible;
 				
 				var scaleX = FlxMath.lerp(but.scale.x, shit, lerpVal);
 				var scaleY = FlxMath.lerp(but.scale.y, shit, lerpVal);
@@ -503,7 +487,7 @@ class MainMenuState extends MusicBeatState {
 				but.scale.set(scaleX, scaleY);
 				but.updateHitbox();
 				but.x = (obj.x - (but.width - obj.width) * 0.5);
-				but.y = (obj.y + (415 * scaleX));
+				but.y = (obj.y + (415 * scaleX) - 150);
 			}
 		}
 
