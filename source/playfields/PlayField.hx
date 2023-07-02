@@ -310,11 +310,15 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 	var sploosh:NoteSplash;
 	public function spawnSplash(x:Float,y:Float,data:Int, ?note:Note){
 		var RedColor:FlxColor = 0;
+		var GreenColor:FlxColor = 0;
+		var BlueColor:FlxColor = 0;
 		if(note != null)
 		{
 			RedColor = note.rgbShader.r;
+			GreenColor = note.rgbShader.r;
+			BlueColor = note.rgbShader.r;
 		}
-		sploosh = new NoteSplash(x, y, note.noteType, data, RedColor);
+		sploosh = new NoteSplash(x, y, note.noteType, data, RedColor,GreenColor,BlueColor);
 		sploosh.playStatePlay();
 		sploosh.cameras = cameras;
 		grpNoteSplashes.add(sploosh);

@@ -689,9 +689,6 @@ class PlayState extends MusicBeatState
 		*/
 		shitToLoad.push({path: "breakfast", type: 'MUSIC'}); 
 
-		if (ClientPrefs.timeBarType != 'Disabled')
-			shitToLoad.push({path: "timeBar"});
-
 		////
 		shitToLoad.push({path: 'noteSkin/$arrowSkin'});
 		shitToLoad.push({path: 'noteSplash/$splashSkin'});

@@ -16,7 +16,7 @@ class NoteSplash extends NoteObject
 	public var rgbShader:RGBPalette = null;
 	public var vec3Cache:Vector3 = new Vector3();
 
-	public function new(x:Float = 0, y:Float = 0, type:String, data:Int, brtColor:Float = 0, redColor:FlxColor = 0)
+	public function new(x:Float = 0, y:Float = 0, type:String, data:Int, redColor:FlxColor = 0, greenColor:FlxColor = 0, blueColor:FlxColor = 0)
 	{
 		super(x, y);
 		#if (haxe >= "4.0.0")
@@ -28,7 +28,10 @@ class NoteSplash extends NoteObject
 		noteType = type;
 		noteData = data;
 		rgbShader = new RGBPalette();
-		shader = rgbShader.shader;
+		rgbShader.enabled = true;
+		rgbShader.r = redColor;
+		rgbShader.g = 0xffffff;
+		rgbShader.b = 0xffffff;
 
 		switch (noteType)
 		{
@@ -44,6 +47,8 @@ class NoteSplash extends NoteObject
 							animation.addByPrefix("note0-" + i, "note splash purple " + i, 24, false);
 							animation.addByPrefix("note3-" + i, "note splash red " + i, 24, false);
 						}
+
+						rgbShader.enabled = false;
 
 						scale.set(0.8, 0.8);
 						updateHitbox();
@@ -66,11 +71,7 @@ class NoteSplash extends NoteObject
 				}
 		}
 
-		rgbShader.enabled = true;
-		rgbShader.r = redColor;
-		rgbShader.g = 0xffffff;
-		rgbShader.b = 0xffffff;
-
+		shader = rgbShader.shader;
 		antialiasing = true;
 		alpha = 0.6;
 	}
