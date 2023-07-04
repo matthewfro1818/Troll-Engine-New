@@ -37,7 +37,7 @@ class PsychHUD extends BaseHUD {
 		add(iconP1);
 		add(iconP2);
 		
-		songHighscore = Highscore.getScore(songName);
+		songHighscore = Highscore.getScore(songName,PlayState.difficulty);
 
 		scoreTxt = new FlxText(0, healthBarBG.y + 48, FlxG.width, "", 20);
 		scoreTxt.setFormat(Paths.font(gameFont), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);

@@ -9,18 +9,20 @@ class ResetScoreSubState extends MusicBeatSubstate
 {
 	var bg:FlxSprite;
 	var alphabetArray:Array<Alphabet> = [];
-	// var icon:HealthIcon;
+	var icon:HealthIcon;
 	var onYes:Bool = false;
 	var yesText:Alphabet;
 	var noText:Alphabet;
 
 	var name:String;
 	var isChapter:Bool;
+	var difficulty:Int;
 	
-	public function new(name:String, ?isChapter:Bool)
+	public function new(name:String, difficulty:Int, character:String, ?isChapter:Bool)
 	{
 		this.name = name;
 		this.isChapter = isChapter == true;
+		this.difficulty = difficulty;
 
 		super();
 
@@ -28,6 +30,8 @@ class ResetScoreSubState extends MusicBeatSubstate
 		bg.alpha = 0;
 		bg.scrollFactor.set();
 		add(bg);
+
+		name += ' (' + Difficulty.getString(difficulty) + ')?';
 
 		var tooLong:Float = (name.length > 18) ? 0.8 : 1; //Fucking Winter Horrorland
 		var text:Alphabet = new Alphabet(0, 180 + FlxG.camera.scroll.y, "Reset the score of", true);
@@ -42,8 +46,8 @@ class ResetScoreSubState extends MusicBeatSubstate
 		text.alpha = 0;
 		add(text);
 
-		/*
-		if(week == -1) {
+		
+		if(!isChapter) {
 			icon = new HealthIcon(character);
 			icon.setGraphicSize(Std.int(icon.width * tooLong));
 			icon.updateHitbox();
@@ -51,7 +55,7 @@ class ResetScoreSubState extends MusicBeatSubstate
 			icon.alpha = 0;
 			add(icon);
 		}
-		*/
+		
 
 		yesText = new Alphabet(0, text.y + 150, 'Yes', true);
 		yesText.screenCenter(X);
@@ -86,9 +90,9 @@ class ResetScoreSubState extends MusicBeatSubstate
 		} else if(controls.ACCEPT) {
 			if(onYes) {
 				if(isChapter)
-					Highscore.resetWeek(name);
+					Highscore.resetWeek(name, difficulty);
 				else
-					Highscore.resetSong(name);
+					Highscore.resetSong(name, difficulty);
 			}
 			FlxG.sound.play(Paths.sound('cancelMenu'), 1);
 			close();

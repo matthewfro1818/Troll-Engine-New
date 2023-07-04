@@ -96,7 +96,7 @@ class ChapterMenuState extends MusicBeatState{
 			newSongTxt.setFormat(Paths.font("Normal Text.ttf"), 32, 0xFFF4CC34, FlxTextAlign.RIGHT, FlxTextBorderStyle.NONE);
 			add(newSongTxt);
 
-			var newScoreTxt = new FlxText(1205, yPos, 0, '' + Highscore.getScore(songName), 32);
+			var newScoreTxt = new FlxText(1205, yPos, 0, '' + Highscore.getScore(songName, 1), 32);
 			newScoreTxt.setFormat(Paths.font("Normal Text.ttf"), 32, FlxColor.WHITE, FlxTextAlign.RIGHT, FlxTextBorderStyle.NONE, FlxColor.WHITE);
 			newScoreTxt.x -= newScoreTxt.width + 15;
 			add(newScoreTxt);
@@ -107,7 +107,7 @@ class ChapterMenuState extends MusicBeatState{
 		totalSongTxt.setFormat(Paths.font("Normal Text.ttf"), 32, FlxColor.WHITE, FlxTextAlign.RIGHT, FlxTextBorderStyle.NONE, FlxColor.WHITE);
 		add(totalSongTxt);
 
-		var totalScoreTxt = new FlxText(1205, totalSongTxt.y, 0, Std.string(Highscore.getWeekScore(ChapterData.curChapter.directory)), 32);
+		var totalScoreTxt = new FlxText(1205, totalSongTxt.y, 0, Std.string(Highscore.getWeekScore(ChapterData.curChapter.directory, 1)), 32);
 		totalScoreTxt.setFormat(Paths.font("Normal Text.ttf"), 32, FlxColor.WHITE, FlxTextAlign.RIGHT, FlxTextBorderStyle.NONE, FlxColor.WHITE);
 		totalScoreTxt.x -= totalScoreTxt.width + 15;
 		add(totalScoreTxt);

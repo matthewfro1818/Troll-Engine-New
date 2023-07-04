@@ -45,7 +45,7 @@ class AdvancedHUD extends BaseHUD
 		
 		displayedJudges.push("cb");
 		
-		songHighscore = Highscore.getScore(songName);
+		songHighscore = Highscore.getScore(songName,PlayState.difficulty);
 		var tWidth = 200;
 		scoreTxt = new FlxText(0, 0, tWidth, "0", 20);
 		scoreTxt.setFormat(Paths.font(gameFont), 40, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);

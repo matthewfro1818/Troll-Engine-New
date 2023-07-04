@@ -489,11 +489,11 @@ class FreeplayState extends MusicBeatState
 		{
 			if (FlxG.keys.justPressed.R){
 				Paths.currentModDirectory = selectedSong.folder;
-				openSubState(new ResetScoreSubState(selectedSong.songName, false));
+				openSubState(new ResetScoreSubState(selectedSong.songName,1,'', false));
 			}else if (FlxG.keys.justPressed.TAB){
 				var song = selectedSong.songName;
-				var scr = Highscore.getScore(song);
-				var rat = Highscore.floorDecimal(Highscore.getRating(song) * 100, 2);
+				var scr = Highscore.getScore(song, 1);
+				var rat = Highscore.floorDecimal(Highscore.getRating(song, 1) * 100, 2);
 
 				trace('SONG: $song	| RATING: $rat%	| HI-SCORE: $scr');
 			}
@@ -579,8 +579,8 @@ class FreeplaySongButton extends TGTSquareButton{
 
 	public function updateHighscore()
 	{
-		var ratingPercent = Highscore.getRating(metadata.songName);
-		var ratingScore =  Highscore.getScore(metadata.songName);
+		var ratingPercent = Highscore.getRating(metadata.songName, 1);
+		var ratingScore =  Highscore.getScore(metadata.songName, 1);
 		scoreText.text = ratingScore + " (" + Highscore.floorDecimal(ratingPercent * 100, 2) + '%)';
 		scoreText.color = ratingPercent == 1 ? 0xFFF4CC34 : 0xFFFFFFFF;
 	}

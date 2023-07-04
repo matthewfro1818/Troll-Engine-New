@@ -106,7 +106,9 @@ class Song
 
 	public static function loadFromJson(jsonInput:String, ?folder:String):SwagSong
 	{
-		var path = Paths.formatToSongPath(folder) + '/' + Paths.formatToSongPath(jsonInput);
+		var formattedFolder:String = Paths.formatToSongPath(folder);
+		var formattedSong:String = Paths.formatToSongPath(jsonInput);
+		var path = formattedFolder + '/' + formattedSong;
 		var rawJson = Paths.getText('songs/$path.json', false);
 		
 		#if PE_MOD_COMPATIBILITY
@@ -140,8 +142,6 @@ class Song
 
 	public static function parseJSONshit(rawJson:String):SwagSong
 	{
-		var swagShit:SwagSong = cast Json.parse(rawJson).song;
-		swagShit.validScore = true;
-		return swagShit;
+		return cast Json.parse(rawJson).song;
 	}
 }

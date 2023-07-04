@@ -613,7 +613,7 @@ class PlayState extends MusicBeatState
 		Conductor.changeBPM(SONG.bpm);
 
 		songName = Paths.formatToSongPath(SONG.song);
-		songHighscore = Highscore.getScore(SONG.song);
+		songHighscore = Highscore.getScore(SONG.song, difficulty);
 
 		if (SONG != null){
 			if(SONG.metadata != null)
@@ -2720,8 +2720,7 @@ class PlayState extends MusicBeatState
 
 	function resyncVocals():Void
 	{
-		if(finishTimer != null || transitioning || isDead || !SONG.needsVoices)
-			return;
+		if(finishTimer != null) return;
 
 		if(showDebugTraces)
 			trace("resync vocals!!");
@@ -4713,6 +4712,11 @@ class PlayState extends MusicBeatState
 	var lastStepHit:Int = -9999;
 	override function stepHit()
 	{
+		if (Math.abs(FlxG.sound.music.time - (Conductor.songPosition - Conductor.offset)) > (20 * playbackRate)
+			|| (SONG.needsVoices && Math.abs(vocals.time - (Conductor.songPosition - Conductor.offset)) > (20 * playbackRate)))
+		{
+			resyncVocals();
+		}
 		super.stepHit();
 		if(curStep == lastStepHit) 
 			return;
