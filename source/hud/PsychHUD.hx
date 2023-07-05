@@ -45,41 +45,32 @@ class PsychHUD extends BaseHUD {
 		scoreTxt.borderSize = 1.25;
 		scoreTxt.visible = scoreTxt.alpha > 0;
 
-		var idx:Int = 0;
 		if (ClientPrefs.judgeCounter != 'Off')
 		{
-			for (judgment in displayedJudges)
+			var textWidth = ClientPrefs.judgeCounter == 'Shortened' ? 150 : 200;
+			var textPosX = ClientPrefs.hudPosition == 'Right' ? (FlxG.width - 5 - textWidth) : 5;
+			var textPosY = (FlxG.height - displayedJudges.length*25) * 0.5;
+
+			for (idx in 0...displayedJudges.length)
 			{
-				var text = new FlxText(0, 0, 200, displayNames.get(judgment), 20);
+				var judgment = displayedJudges[idx];
+
+				var text = new FlxText(textPosX, textPosY + idx*25, textWidth, displayNames.get(judgment), 20);
 				text.setFormat(Paths.font(gameFontBold), 24, judgeColours.get(judgment), LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-				text.screenCenter(Y);
-				text.y -= 35 - (25 * idx);
-				text.x += 20 - 15;
 				text.scrollFactor.set();
 				text.borderSize = 1.25;
 				add(text);
 
-				var numb = new FlxText(0, 0, 200, "0", 20);
+				var numb = new FlxText(textPosX, text.y, textWidth, "0", 20);
 				numb.setFormat(Paths.font(gameFont), 24, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-				numb.screenCenter(Y);
-				numb.y -= 35 - (25 * idx);
-				numb.x += 25 - 15;
 				numb.scrollFactor.set();
 				numb.borderSize = 1.25;
 				add(numb);
 
 				judgeTexts.set(judgment, numb);
 				judgeNames.set(judgment, text);
-				idx++;
 			}
 		}
-
-		if (ClientPrefs.hudPosition == 'Right')
-		{
-			for (obj in members)
-				obj.x = FlxG.width - obj.width - obj.x;
-		}
-
 
 		loadSongPos();
 
@@ -124,22 +115,26 @@ class PsychHUD extends BaseHUD {
 	{
 		super.changedOptions(changed);
 
-		var songPosY = FlxG.height - 706;
-		if (ClientPrefs.downScroll)
-			songPosY = FlxG.height - 33;
-		songPosBar.y = songPosY;
-		bar.y = songPosBar.y;
-		songNameTxt.y = bar.y + ((songPosBar.height - 15) / 2) - 5;
-		songPosBar.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
-		songNameTxt.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
-		bar.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
-		hitbar.visible = ClientPrefs.hitbar;
+		updateTime = (ClientPrefs.timeBarType != 'Disabled' && ClientPrefs.timeOpacity > 0);
 
 		songNameTxt.visible = updateTime;
 		songPosBar.visible = updateTime;
 		bar.visible = updateTime;
 		
+		if (updateTime)
+		{
+			var songPosY = FlxG.height - 706;
+			if (ClientPrefs.downScroll)
+				songPosY = FlxG.height - 33;
+			songPosBar.y = songPosY;
+			bar.y = songPosBar.y;
+			songNameTxt.y = bar.y + ((songPosBar.height - 15) / 2) - 5;
+			songPosBar.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
+			songNameTxt.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
+		}
 
+		hitbar.visible = ClientPrefs.hitbar;
+		
 		if (ClientPrefs.hitbar)
 		{
 			hitbar.screenCenter(XY);

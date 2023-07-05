@@ -234,24 +234,31 @@ class AdvancedHUD extends BaseHUD
 		healthBar.iconP1.y = healthBar.y - 75;
 		healthBar.iconP2.y = healthBar.y - 75;
 
-		var songPosY = FlxG.height - 706;
-		if (ClientPrefs.downScroll)
-			songPosY = FlxG.height - 33;
-		songPosBar.y = songPosY;
-		bar.y = songPosBar.y;
-		songNameTxt.y = bar.y + ((songPosBar.height - 15) / 2) - 5;
-		songPosBar.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
-		songNameTxt.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
-		bar.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
-		hitbar.visible = ClientPrefs.hitbar;
-		npsTxt.visible = ClientPrefs.npsDisplay;
+		updateTime = (ClientPrefs.timeBarType != 'Disabled' && ClientPrefs.timeOpacity > 0);
 
 		songNameTxt.visible = updateTime;
 		songPosBar.visible = updateTime;
 		bar.visible = updateTime;
 
+		if (updateTime){
+			var songPosY = FlxG.height - 706;
+			if (ClientPrefs.downScroll)
+				songPosY = FlxG.height - 33;
+			songPosBar.y = songPosY;
+			bar.y = songPosBar.y;
+			songNameTxt.y = bar.y + ((songPosBar.height - 15) / 2) - 5;
+			songPosBar.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
+			songNameTxt.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
+			bar.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
+		}
+
 		pcTxt.screenCenter(Y);
 		pcTxt.y -= 5 - (25 * (ClientPrefs.npsDisplay ? npsIdx + 1 : npsIdx));
+
+		npsTxt.visible = ClientPrefs.npsDisplay;
+
+		hitbar.visible = ClientPrefs.hitbar;
+		
 		if (ClientPrefs.hitbar)
 		{
 			hitbar.screenCenter(XY);
