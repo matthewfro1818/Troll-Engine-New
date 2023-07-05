@@ -337,6 +337,7 @@ class PlayState extends MusicBeatState
 	public var endingSong:Bool = false;
 	public var startingSong:Bool = false;
 	private var updateTime:Bool = true;
+	public static var changedDifficulty:Bool = false;
 	public static var chartingMode:Bool = false;
 
 	//Gameplay settings
@@ -2720,7 +2721,7 @@ class PlayState extends MusicBeatState
 
 	function resyncVocals():Void
 	{
-		if(finishTimer != null) return;
+		if(finishTimer != null || transitioning || isDead) return;
 
 		if(showDebugTraces)
 			trace("resync vocals!!");
@@ -2864,10 +2865,13 @@ class PlayState extends MusicBeatState
 		if(stats.npsPeak < nps)
 			stats.npsPeak = nps;
 
-		if (chartingMode)
-			Overlay.offset.y = 50;
-		else
-			Overlay.offset.y = 0;
+		if (ClientPrefs.downScroll)
+		{
+			if (chartingMode)
+				Overlay.offset.y = 50;
+			else
+				Overlay.offset.y = 0;
+		}
 		
 		if (!endingSong){
 			//// time travel
@@ -3555,7 +3559,7 @@ class PlayState extends MusicBeatState
 				// TODO: Save more stats?
 
 				if (!playOpponent && saveScore && ratingFC!='Fail')
-					Highscore.saveScore(SONG.song, stats.score, percent);
+					Highscore.saveScore(SONG.song, stats.score, difficulty, percent);
 			}
 
 
@@ -3584,7 +3588,7 @@ class PlayState extends MusicBeatState
 					// Save week score
 					if (ChapterData.curChapter != null && !playOpponent){
 						if(!ClientPrefs.getGameplaySetting('practice', false) && !ClientPrefs.getGameplaySetting('botplay', false)) {
-							Highscore.saveWeekScore(ChapterData.curChapter.directory, campaignScore);
+							Highscore.saveWeekScore(ChapterData.curChapter.directory, campaignScore, difficulty);
 							
 							StoryMenuState.weekCompleted.set(ChapterData.curChapter.directory, true);
 							FlxG.save.data.weekCompleted = StoryMenuState.weekCompleted;
@@ -3612,9 +3616,12 @@ class PlayState extends MusicBeatState
 					#else
 					gotoMenus();
 					#end
+
+					changedDifficulty = false;
 				}
 				else
 				{
+					var difficulty:String = Difficulty.getFilePath();
 					var nextSong = PlayState.storyPlaylist[0];
 					trace('LOADING NEXT SONG: $nextSong');
 
@@ -3630,7 +3637,7 @@ class PlayState extends MusicBeatState
 					inst.stop();
 
 					function playNextSong(){
-						PlayState.SONG = Song.loadFromJson(nextSong, nextSong);
+						PlayState.SONG = Song.loadFromJson(nextSong  + difficulty, nextSong);
 						LoadingState.loadAndSwitchState(new PlayState());
 					}
 
@@ -3653,8 +3660,9 @@ class PlayState extends MusicBeatState
 				if(FlxTransitionableState.skipNextTransIn)
 					CustomFadeTransition.nextCamera = null;
 				
-				MusicBeatState.switchState(new FreeplayState());
+				MusicBeatState.switchState(new PsychFreeplayState());
 				MusicBeatState.playMenuMusic(1, true);
+				changedDifficulty = false;
 			}
 		}
 	}

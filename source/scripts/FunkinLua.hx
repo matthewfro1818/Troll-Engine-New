@@ -986,7 +986,7 @@ class FunkinLua extends FunkinScript
 			if(PlayState.isStoryMode)
 				MusicBeatState.switchState(new StoryMenuState());
 			else
-				MusicBeatState.switchState(new FreeplayState());
+				MusicBeatState.switchState(new PsychFreeplayState());
 
 			MusicBeatState.playMenuMusic(true);
 			

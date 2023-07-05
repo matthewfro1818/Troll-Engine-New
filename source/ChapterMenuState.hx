@@ -1,5 +1,6 @@
 package;
 
+import flixel.math.FlxMath;
 import ChapterData;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
@@ -15,6 +16,8 @@ class ChapterMenuState extends MusicBeatState{
 	public var chapData:ChapterMetadata;
 
 	public var cameFromStoryMenu = false;
+
+	var diffText:FlxText;
 
 	public function new(chapData:ChapterMetadata){
 		super();
@@ -32,6 +35,16 @@ class ChapterMenuState extends MusicBeatState{
 		return artGraph != null ? artGraph : Paths.image('songs/placeholder');
 	}
 
+	var newScoreTxt:FlxText;
+	var totalScoreTxt:FlxText;
+
+	var lerpScore:Int = 0;
+	var lerpTotalScore:Int = 0;
+	var intendedScore:Int = 0;
+	var intendedTotalScore:Int = 0;
+	var curDifficulty:Int = -1;
+	private static var lastDifficultyName:String = '';
+
 	override function create()
 	{
 		#if !FLX_NO_MOUSE
@@ -42,6 +55,13 @@ class ChapterMenuState extends MusicBeatState{
 			FlxTransitionableState.skipNextTransIn = true;
 		else if (FlxTransitionableState.skipNextTransIn)
 			CustomFadeTransition.nextCamera = null;
+
+		Difficulty.resetList();
+		if(lastDifficultyName == '')
+		{
+			lastDifficultyName = Difficulty.getDefault();
+		}
+		curDifficulty = Math.round(Math.max(0, Difficulty.defaultList.indexOf(lastDifficultyName)));
 
 		super.create();
 
@@ -96,7 +116,7 @@ class ChapterMenuState extends MusicBeatState{
 			newSongTxt.setFormat(Paths.font("Normal Text.ttf"), 32, 0xFFF4CC34, FlxTextAlign.RIGHT, FlxTextBorderStyle.NONE);
 			add(newSongTxt);
 
-			var newScoreTxt = new FlxText(1205, yPos, 0, '' + Highscore.getScore(songName, 1), 32);
+			newScoreTxt = new FlxText(1205, yPos, 0, '0', 32);
 			newScoreTxt.setFormat(Paths.font("Normal Text.ttf"), 32, FlxColor.WHITE, FlxTextAlign.RIGHT, FlxTextBorderStyle.NONE, FlxColor.WHITE);
 			newScoreTxt.x -= newScoreTxt.width + 15;
 			add(newScoreTxt);
@@ -107,10 +127,14 @@ class ChapterMenuState extends MusicBeatState{
 		totalSongTxt.setFormat(Paths.font("Normal Text.ttf"), 32, FlxColor.WHITE, FlxTextAlign.RIGHT, FlxTextBorderStyle.NONE, FlxColor.WHITE);
 		add(totalSongTxt);
 
-		var totalScoreTxt = new FlxText(1205, totalSongTxt.y, 0, Std.string(Highscore.getWeekScore(ChapterData.curChapter.directory, 1)), 32);
+		totalScoreTxt = new FlxText(1205, totalSongTxt.y, 0, '0', 32);
 		totalScoreTxt.setFormat(Paths.font("Normal Text.ttf"), 32, FlxColor.WHITE, FlxTextAlign.RIGHT, FlxTextBorderStyle.NONE, FlxColor.WHITE);
 		totalScoreTxt.x -= totalScoreTxt.width + 15;
 		add(totalScoreTxt);
+
+		diffText = new FlxText(totalSongTxt.x, totalSongTxt.y + 36, 0, "", 24);
+		diffText.font = Paths.font("Normal Text.ttf");
+		add(diffText);
 
 		////
 		var funkyRectangle = new flixel.addons.display.shapes.FlxShapeBox(10, 10, 1260, 700, {thickness: 3, color: 0xFFF4CC34}, FlxColor.BLACK);
@@ -120,6 +144,8 @@ class ChapterMenuState extends MusicBeatState{
 		FlxTween.num(1, 0, 0.12, {ease: FlxEase.quadOut}, function(yo){
 			funkyRectangle.fillColor = FlxColor.fromRGBFloat(0,0,0,yo);
 		});
+
+		changeDiff();
 	}
 
 	function goBack()
@@ -131,14 +157,60 @@ class ChapterMenuState extends MusicBeatState{
 		MusicBeatState.switchState(state);
 	}
 
+	function changeDiff(change:Int = 0)
+	{
+		curDifficulty += change;
+
+		if (curDifficulty < 0)
+			curDifficulty = Difficulty.list.length-1;
+		if (curDifficulty >= Difficulty.list.length)
+			curDifficulty = 0;
+
+		var songAmount:Int = chapData.songs.length;
+		for (idx in 0...songAmount)
+		{
+			var songName = chapData.songs[idx];
+			#if !switch
+			intendedScore = Highscore.getScore(songName, curDifficulty);
+			intendedTotalScore = Highscore.getWeekScore(ChapterData.curChapter.directory, curDifficulty);
+			#end
+		}
+
+		lastDifficultyName = Difficulty.getString(curDifficulty);
+		if (Difficulty.list.length > 1)
+			diffText.text = '< ' + lastDifficultyName.toUpperCase() + ' >';
+		else
+			diffText.text = lastDifficultyName.toUpperCase();
+	}
+
 	override function update(elapsed:Float)
 	{
+		lerpScore = Math.floor(FlxMath.lerp(lerpScore, intendedScore, FlxMath.bound(elapsed * 30, 0, 1)));
+		if(Math.abs(intendedScore - lerpScore) < 10) lerpScore = intendedScore;
+
+		lerpTotalScore = Math.floor(FlxMath.lerp(lerpTotalScore, intendedTotalScore, FlxMath.bound(elapsed * 30, 0, 1)));
+		if(Math.abs(intendedTotalScore - lerpTotalScore) < 10) lerpTotalScore = intendedTotalScore;
+
+		newScoreTxt.text = Std.string(lerpScore);
+		totalScoreTxt.text = Std.string(lerpTotalScore);
+
 		if (controls.BACK)
 			goBack();
 		else if (controls.ACCEPT)
 			playWeek();
 		else if (flixel.FlxG.keys.justPressed.CONTROL)
 			openSubState(new GameplayChangersSubstate());
+
+		if (controls.UI_LEFT_P)
+			{
+				changeDiff(-1);
+				//_updateSongLastDifficulty();
+			}
+		else if (controls.UI_RIGHT_P)
+			{
+				changeDiff(1);
+				//_updateSongLastDifficulty();
+			}
 
 		super.update(elapsed);
 	}
@@ -157,15 +229,18 @@ class ChapterMenuState extends MusicBeatState{
 		PlayState.storyPlaylist = chapData.songs;
 		PlayState.isStoryMode = true;
 
-		PlayState.SONG = Song.loadFromJson(PlayState.storyPlaylist[0].toLowerCase(), PlayState.storyPlaylist[0].toLowerCase());
-		PlayState.difficulty = 1;
-		PlayState.difficultyName = '';
+		var diffic = Difficulty.getFilePath(curDifficulty);
+		if(diffic == null) diffic = '';
+
+		PlayState.SONG = Song.loadFromJson(PlayState.storyPlaylist[0].toLowerCase() + diffic, PlayState.storyPlaylist[0].toLowerCase());
+		PlayState.difficulty = curDifficulty;
+		//PlayState.difficultyName = '';
 		PlayState.campaignScore = 0;
 		PlayState.campaignMisses = 0;
 
 		var nextSong = PlayState.storyPlaylist[0];
 		function playNextSong(){
-			PlayState.SONG = Song.loadFromJson(nextSong, nextSong);
+			PlayState.SONG = Song.loadFromJson(nextSong  + diffic, nextSong);
 			LoadingState.loadAndSwitchState(new PlayState(), true);
 		}
 

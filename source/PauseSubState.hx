@@ -19,7 +19,8 @@ class PauseSubState extends MusicBeatSubstate
 	var grpMenuShit:FlxTypedGroup<Alphabet>;
 
 	var menuItems:Array<String> = [];
-	var menuItemsOG:Array<String> = ['Resume', 'Restart Song', 'Options', 'Exit to menu'];
+	var menuItemsOG:Array<String> = ['Resume', 'Restart Song', 'Change Difficulty', 'Options', 'Exit to menu'];
+	var difficultyChoices = [];
 	var curSelected:Int = 0;
 
 	var pauseMusic:FlxSound;
@@ -33,6 +34,7 @@ class PauseSubState extends MusicBeatSubstate
 	public function new(x:Float, y:Float)
 	{
 		super();
+		if(Difficulty.list.length < 2) menuItemsOG.remove('Change Difficulty'); //No need to change difficulty if there is only one!
 		
 		persistentUpdate = false;
 
@@ -65,6 +67,12 @@ class PauseSubState extends MusicBeatSubstate
 			menuItemsOG.insert(shit + num, 'Toggle Botplay');
 		}
 		menuItems = menuItemsOG;
+
+		for (i in 0...Difficulty.list.length) {
+			var diff:String = Difficulty.getString(i);
+			difficultyChoices.push(diff);
+		}
+		difficultyChoices.push('BACK');
 
 
 		pauseMusic = new FlxSound();
@@ -99,6 +107,8 @@ class PauseSubState extends MusicBeatSubstate
 				songCredit += " - " + metadata.artist;
 			pushInfo(songCredit);
 		}
+
+		pushInfo(Difficulty.getString().toUpperCase());
 
 		if (metadata != null){
 			if(metadata.charter != null)
@@ -229,6 +239,24 @@ class PauseSubState extends MusicBeatSubstate
 
 			if (accepted)
 			{
+				if (menuItems == difficultyChoices)
+				{
+					if(menuItems.length - 1 != curSelected && difficultyChoices.contains(daSelected)) {
+						var name:String = PlayState.SONG.song;
+						var poop = Highscore.formatSong(name, curSelected);
+						PlayState.SONG = Song.loadFromJson(poop, name);
+						PlayState.difficulty = curSelected;
+						MusicBeatState.resetState();
+						FlxG.sound.music.volume = 0;
+						PlayState.changedDifficulty = true;
+						PlayState.chartingMode = false;
+						return;
+					}
+
+					menuItems = menuItemsOG;
+					regenMenu();
+				}
+
 				switch (daSelected)
 				{
 					case 'Change Modifiers':
@@ -273,6 +301,9 @@ class PauseSubState extends MusicBeatSubstate
 						openSubState(daSubstate);
 					case "Resume":
 						close();
+					case 'Change Difficulty':
+						menuItems = difficultyChoices;
+						regenMenu();
 					case "Restart Song":
 
 						if (FlxG.keys.pressed.SHIFT){					
@@ -309,6 +340,7 @@ class PauseSubState extends MusicBeatSubstate
 						PlayState.instance.finishSong(true);
 					case 'Toggle Botplay':
 						PlayState.instance.cpuControlled = !PlayState.instance.cpuControlled;
+						PlayState.changedDifficulty = true;
 	/* 					PlayState.instance.botplayTxt.visible = PlayState.instance.cpuControlled;
 						PlayState.instance.botplayTxt.alpha = 1;
 						PlayState.instance.botplaySine = 0; */
@@ -322,6 +354,8 @@ class PauseSubState extends MusicBeatSubstate
 							MusicBeatState.switchState(new PsychFreeplayState());
 						}
 						PlayState.instance.cancelMusicFadeTween();
+
+						PlayState.changedDifficulty = false;
 
 						MusicBeatState.playMenuMusic(true);
 						
