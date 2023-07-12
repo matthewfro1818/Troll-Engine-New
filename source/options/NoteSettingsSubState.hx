@@ -1,7 +1,7 @@
 package options;
 
 import options.NoteSubStateWheel;
-#if desktop
+#if discord_rpc
 import Discord.DiscordClient;
 #end
 import Controls;

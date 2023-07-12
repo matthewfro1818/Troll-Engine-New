@@ -28,7 +28,7 @@ import newoptions.OptionsState;
 import sowy.SowyBaseButton;
 
 using StringTools;
-#if desktop
+#if discord_rpc
 import Discord.DiscordClient;
 #end
 
@@ -64,7 +64,7 @@ class OldMainMenuState extends MusicBeatState
 	{
 		Paths.loadTheFirstEnabledMod();
 
-		#if desktop
+		#if discord_rpc
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Menus", null);
 		#end
@@ -222,7 +222,7 @@ class OldMainMenuState extends MusicBeatState
 			{
 				onSelected();
 			}
-			#if desktop
+			#if discord_rpc
 			else if (FlxG.keys.anyJustPressed(debugKeys))
 			{
 				selectedSomethin = true;

@@ -1,8 +1,7 @@
 package options;
 
 import shaders.RGBPalette;
-import shaders.AmongUsColorSwapShader;
-#if desktop
+#if discord_rpc
 import Discord.DiscordClient;
 #end
 import Controls;

@@ -1,7 +1,7 @@
 package editors;
 
 import Character;
-#if desktop
+#if discord_rpc
 import Discord.DiscordClient;
 #end
 import animateatlas.AtlasFrameMaker;
@@ -121,7 +121,7 @@ class CharacterEditorState extends MusicBeatState
 		zeroTwoPointer.setGraphicSize(40, 40);
 		zeroTwoPointer.updateHitbox();
 		zeroTwoPointer.color = FlxColor.RED;
-		zeroTwoPointer.setPosition(-zeroTwoPointer.width* 0.5 + 220, -zeroTwoPointer.height* 0.5 + 718);
+		zeroTwoPointer.setPosition(-zeroTwoPointer.width* 0.5, -zeroTwoPointer.height* 0.5);
 		add(zeroTwoPointer);
 
 		testModeButton  = new FlxButton(FlxG.width - 360, 25, "Test: OFF", function()
@@ -1170,7 +1170,7 @@ class CharacterEditorState extends MusicBeatState
 	}
 
 	function updateDiscordPresence() {
-		#if desktop
+		#if discord_rpc
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("Character Editor", "Character: " + daAnim, leHealthIcon.getCharacter());
 		#end

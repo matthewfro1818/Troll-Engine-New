@@ -2,9 +2,6 @@ function setupNote(note:Note){
   trace("Called when the note's noteType is set");
   note.canQuant = false;
   note.reloadNote("", "NOTE_assets");
-  note.colorSwap.hue = 0;
-  note.colorSwap.saturation = 0;
-  note.colorSwap.lightness = 0;
 }
 
 function onReloadNote(note:Note, skin:String, type:String){

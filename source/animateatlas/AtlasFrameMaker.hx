@@ -15,7 +15,7 @@ import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxFramesCollection;
 import flixel.graphics.frames.FlxFrame;
 
-#if desktop
+#if discord_rpc
 import sys.FileSystem;
 import sys.io.File;
 #else

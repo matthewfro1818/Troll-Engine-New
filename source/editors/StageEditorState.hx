@@ -22,7 +22,7 @@ using StringTools;
 #if sys
 import sys.FileSystem;
 #end
-#if desktop
+#if discord_rpc
 import Discord.DiscordClient;
 #end
 
@@ -139,8 +139,7 @@ class StageEditorState extends MusicBeatState{
 	}
 
 	override function create()
-	{
-		#if desktop
+	{#if discord_rpc
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Stage Editor", null);
 

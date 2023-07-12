@@ -171,6 +171,8 @@ class OptionsSubstate extends MusicBeatSubstate
 			case 'customizeHUD':
 				if((FlxG.state is OptionsState))
 					LoadingState.loadAndSwitchState(new options.NoteOffsetState());
+				else if (FlxG.state is PlayState)
+					openSubState(new newoptions.ComboOffsetSubstate());
 			case 'customizeColours':
 				// TODO: check the note colours once you exit to see if any changed
 				openSubState(ClientPrefs.noteSkin == "Quants" ? new options.QuantNotesSubStateRGB() : new options.NoteSubStateWheel.NotesSubStateWheel());
@@ -457,7 +459,8 @@ class OptionsSubstate extends MusicBeatSubstate
 
 
 		////
-		var optionMenu = new FlxSprite(84, 80, CoolUtil.makeOutlinedGraphic(920, FlxG.height-80, FlxColor.fromRGB(82, 82, 82), 2, FlxColor.fromRGB(70, 70, 70)));
+		var optionMenu = new FlxSprite(84, 80, CoolUtil.makeOutlinedGraphic(FlxMath.minInt(920, FlxG.width), FlxG.height-80, FlxColor.fromRGB(82, 82, 82), 2, FlxColor.fromRGB(70, 70, 70)));
+		if (optionMenu.width == FlxG.width) optionMenu.x = 0;
 		optionMenu.alpha = 0.8;
 		add(optionMenu);
 
@@ -570,6 +573,14 @@ class OptionsSubstate extends MusicBeatSubstate
 		}
 		add(currentGroup);
 
+		////
+		selectableWidgetObjects = [
+			for (object in currentGroup.members){
+				if (currentWidgets.exists(object))
+					object;
+			}
+		];
+		////
 		optionDesc = new FlxText(5, FlxG.height - 48, 0, "", 20);
 		optionDesc.setFormat(Paths.font("Normal Text.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		optionDesc.textField.background = true;
@@ -586,14 +597,13 @@ class OptionsSubstate extends MusicBeatSubstate
 
 	function createWidget(name:String, drop:FlxSprite, text:FlxText, data:OptionData):Widget
 	{
+		var objects:FlxTypedGroup<FlxObject> = new FlxTypedGroup<FlxObject>();
 		var widget:Widget = {
 			type: data.type,
 			optionData: data,
 			locked: false,
-			data: ["objects" => new FlxTypedGroup<FlxObject>()]
+			data: ["objects" => objects]
 		}
-
-		var objects:FlxTypedGroup<FlxObject> = widget.data.get("objects");
 
 		switch (widget.type)
 		{
@@ -846,6 +856,86 @@ class OptionsSubstate extends MusicBeatSubstate
 				currentGroup = group;
 			}
 		}
+		////
+		selectableWidgetObjects = [
+			for (object in currentGroup.members){
+				if (currentWidgets.exists(object))
+					object;
+			}
+		];
+
+		changeWidget(null, true);
+	}
+
+	//// For keyboard
+	var selectableWidgetObjects:Array<FlxObject> = [];
+	var curOption:Null<Int> = null;
+	var curWidget:Widget;
+
+	function changeWidget(val:Null<Int>, ?isAbs:Bool = false){
+		var nextOption:Null<Int> = null; 
+
+		if (val != null)
+		{
+			if (curOption == null) curOption = (val<0) ? 0 : -1;
+
+			nextOption = isAbs ? val : (curOption + val);
+
+			if (nextOption < 0) nextOption = selectableWidgetObjects.length + nextOption;
+			nextOption = (selectableWidgetObjects.length > 0) ? (nextOption % selectableWidgetObjects.length) : 0;
+		}
+
+		// highlight and get the option text
+		var nextObject:Null<FlxText> = null;
+		for (idx in 0...selectableWidgetObjects.length)
+		{
+			var object:FlxText = cast selectableWidgetObjects[idx];
+
+			if (idx == nextOption){
+				nextObject = object;
+				object.color = FlxColor.YELLOW;
+			}else
+				object.color = FlxColor.WHITE;
+		}
+
+		if (nextObject != null){
+			var widget:Widget = currentWidgets.get(nextObject);
+
+			// move the camera to the option if it's off-screen
+			if (widget != null){
+				var optBox:FlxObject = widget.data.get("optionBox");
+				var cam = optBox.camera;
+
+				if (optBox.y < cam.scroll.y)
+					camFollow.y = nextOption==0 ? 0 : optBox.y;
+				else{
+					var camTail = cam.scroll.y + cam.height;
+					var optTail = optBox.y + optBox.height;
+
+					if (camTail < optTail)
+						camFollow.y += (optTail - camTail);
+				}
+			}
+
+			if (curWidget != null)
+				onWidgetUnselected(curWidget);
+
+			curWidget = widget;
+		}else{
+			curWidget = null;
+		}
+
+		curOption = nextOption;
+	}
+
+	function onWidgetUnselected(widget:Widget)
+	{
+		switch(widget.type){
+			case Number:
+				widget.data.get("leftAdjust").release();
+				widget.data.get("rightAdjust").release();
+			default:
+		}
 	}
 
 	var scrubbingBar:FlxSprite; // TODO: maybe make the bar a seperate class and then have this handled in that class
@@ -854,11 +944,11 @@ class OptionsSubstate extends MusicBeatSubstate
 	{
 		var optBox = widget.data.get("optionBox");
 		var locked:Bool = widget.optionData.data.exists("locked") ? widget.optionData.data.get("locked") : false;
-		if (!optState)
+		/*if (!optState)
 		{
 			if (widget.data.get("optionName") == 'customizeHUD')
 				locked = true;
-		}
+		}*/
 		widget.data.get("lockOverlay").visible = locked;
 		widget.locked = locked;
 		switch (widget.type)
@@ -1173,10 +1263,57 @@ class OptionsSubstate extends MusicBeatSubstate
 	{
 		if (subState == null)
 		{
-			if (controls.UI_LEFT_P)
-				changeCategory(-1);
-			else if (controls.UI_RIGHT_P)
+			if (FlxG.keys.justPressed.TAB){
+				FlxG.sound.play(Paths.sound("scrollMenu"));
 				changeCategory(1);
+			}
+
+			if (FlxG.keys.justPressed.UP){
+				FlxG.sound.play(Paths.sound("scrollMenu"));
+				changeWidget(-1);
+			}
+			if (FlxG.keys.justPressed.DOWN){
+				FlxG.sound.play(Paths.sound("scrollMenu"));
+				changeWidget(1);
+			}
+
+			if (curWidget != null){
+				switch (curWidget.type){
+					case Toggle:
+						if (FlxG.keys.justPressed.ENTER){
+							var checkbox:Checkbox = curWidget.data.get("checkbox");
+							checkbox.toggled = !checkbox.toggled;
+							changeToggle(curWidget.optionData.data.get("optionName"), checkbox.toggled);
+						}
+					case Button:
+						if (FlxG.keys.justPressed.ENTER && !curWidget.locked){
+							onButtonPressed(curWidget.optionData.data.get("optionName"));
+						}
+
+					case Number:
+						// ;_;
+						if (FlxG.keys.justPressed.LEFT)		curWidget.data.get("leftAdjust").press();
+						else if (!FlxG.keys.pressed.LEFT)	curWidget.data.get("leftAdjust").release();
+
+						if (FlxG.keys.justPressed.RIGHT)	curWidget.data.get("rightAdjust").press();
+						else if (!FlxG.keys.pressed.RIGHT)	curWidget.data.get("rightAdjust").release();
+
+					case Dropdown:
+						var change = 0;
+						if (FlxG.keys.justPressed.LEFT) change--;
+						if (FlxG.keys.justPressed.RIGHT) change++;
+
+						if (change != 0){
+							var optionName = curWidget.optionData.data.get("optionName");
+							var sowy = actualOptions.get(optionName);
+							var allOptions:Array<String> = sowy.data.get("options");
+							var idx = FlxMath.wrap(allOptions.indexOf(sowy.value) + change, 0, allOptions.length-1);
+
+							changeDropdown(optionName, allOptions[idx]);
+					}
+					default:
+				}
+			}
 
 			if (FlxG.mouse.released)
 				scrubbingBar = null;
@@ -1214,12 +1351,18 @@ class OptionsSubstate extends MusicBeatSubstate
 					else if (recommendsRestart.contains(oN))
 						optionDesc.text += "\nNOTE: This won't have any effect unless you restart the song!";
 				}
+				var maxWidth = FlxG.width - 30;
+				if (optionDesc.width > maxWidth)
+					optionDesc.fieldWidth = maxWidth;
+				else
+					optionDesc.fieldWidth = 0;
 
-				optionDesc.screenCenter(XY);
-				optionDesc.y = FlxG.height - 76;
+				var goalY = FlxG.height - optionDesc.height - 44;
+				optionDesc.screenCenter(X);
+				optionDesc.y = goalY - 12;
 				optionDesc.alpha = 0;
 				FlxTween.cancelTweensOf(optionDesc);
-				FlxTween.tween(optionDesc, {y: FlxG.height - 64, alpha: 1}, 0.35, {ease: FlxEase.quadOut});
+				FlxTween.tween(optionDesc, {y: goalY, alpha: 1}, 0.35, {ease: FlxEase.quadOut});
 			}
 
 			if (openedDropdown == null)
@@ -1290,6 +1433,17 @@ class WidgetButton extends WidgetSprite
 	var pressedTime:Float = 0;
 	var repeatingTime:Float = 0;
 
+	public function press(){
+		isPressed = true;
+		if (onPressed != null)
+			onPressed();
+	}
+	public function release(){
+		isPressed = false;
+		if (onReleased != null)				
+			onReleased();
+	}
+
 	override function update(elapsed:Float)
 	{
 		if (!isPressed)
@@ -1302,9 +1456,7 @@ class WidgetButton extends WidgetSprite
 				{
 					if (FlxG.mouse.overlaps(this, camera))
 					{
-						isPressed = true;
-						if (onPressed != null)
-							onPressed();
+						press();
 						break;
 					}
 				}
@@ -1324,11 +1476,9 @@ class WidgetButton extends WidgetSprite
 						onPressed();
 				}
 			}
-			if (FlxG.mouse.released)
+			if (FlxG.mouse.justReleased)
 			{
-				isPressed = false;
-				if (onReleased != null)
-					onReleased();
+				release();
 			}
 			else
 			{

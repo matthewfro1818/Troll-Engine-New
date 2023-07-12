@@ -9,7 +9,7 @@ import flixel.tweens.FlxTween;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.input.keyboard.FlxKey;
 
-#if desktop
+#if discord_rpc
 import Discord.DiscordClient;
 import lime.app.Application;
 #end
@@ -28,7 +28,7 @@ class StartupState extends FlxState
 	static var recentRelease:Release;
 
 	static function clearTemps(dir:String){
-		#if desktop
+		#if discord_rpc
 		for(file in FileSystem.readDirectory(dir)){
 			var file = './$dir/$file';
 			if(FileSystem.isDirectory(file))
@@ -68,7 +68,7 @@ class StartupState extends FlxState
 		FlxTransitionableState.defaultTransOut = FadeTransitionSubstate;
 		
 		// this shit doesn't work
-		#if desktop
+		#if discord_rpc
 		Paths.sound("cancelMenu");
 		Paths.sound("confirmMenu");
 		Paths.sound("scrollMenu");
@@ -86,7 +86,7 @@ class StartupState extends FlxState
 		if (FlxG.save.data.weekCompleted != null)
 			StoryMenuState.weekCompleted = FlxG.save.data.weekCompleted;
 		
-		#if desktop
+		#if discord_rpc
 		if (!DiscordClient.isInitialized){
 			DiscordClient.initialize();
 			Application.current.onExit.add(function(exitCode)
@@ -165,6 +165,7 @@ class StartupState extends FlxState
 
 	private var warning:FlxSprite;
 	private var step = 0;
+	private var nextState = TitleState;
 
 	override function update(elapsed)
 	{
@@ -182,11 +183,13 @@ class StartupState extends FlxState
 				step = 1;
 			case 1:
  				load();
-				TitleState.load();
+				 if (Type.getClassFields(nextState).contains("load"))
+					nextState.load();
 				
+				#if (sys && debug)
 				var waitTime = 1.5 - Sys.cpuTime();
 				if (waitTime > 0) Sys.sleep(waitTime);
-				
+				#end
 				step = 2;
 			case 2:
  				FlxTween.tween(warning, {alpha: 0}, 1, {ease: FlxEase.expoIn, onComplete: function(twn){

@@ -1,0 +1,8 @@
+var prox:ProxyField;
+var modManager = game.modManager;
+
+function onCountdownStarted()
+{
+    modManager.queueEase(30, 50,'tipZOffset', 100, 'quadIn', 0);
+    modManager.queueEase(90, 160,'centerrotateY', 360 * 3, 'quadIn', 0);
+}

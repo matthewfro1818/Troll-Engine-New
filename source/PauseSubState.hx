@@ -31,9 +31,14 @@ class PauseSubState extends MusicBeatSubstate
 
 	public static var songName:String = '';
 
-	public function new(x:Float, y:Float)
+	public function new (x:Float, y:Float)
 	{
 		super();
+	}
+
+	override public function create()
+	{
+		super.create();
 		if(Difficulty.list.length < 2) menuItemsOG.remove('Change Difficulty'); //No need to change difficulty if there is only one!
 		
 		persistentUpdate = false;
@@ -103,7 +108,8 @@ class PauseSubState extends MusicBeatSubstate
 
 		if (PlayState.SONG != null && PlayState.SONG.song != null){
 			var songCredit = PlayState.SONG.song;
-			if (metadata != null)
+
+			if (metadata != null && metadata.artist != null && metadata.artist.length > 0)
 				songCredit += " - " + metadata.artist;
 			pushInfo(songCredit);
 		}
@@ -111,10 +117,10 @@ class PauseSubState extends MusicBeatSubstate
 		pushInfo(Difficulty.getString().toUpperCase());
 
 		if (metadata != null){
-			if(metadata.charter != null)
+			if(metadata.charter != null && metadata.charter.length > 0)
 				pushInfo("Charted by " + metadata.charter);
 
-			if(metadata.modcharter != null)
+			if(metadata.charter != null && metadata.charter.length > 0)
 				pushInfo("Modcharted by " + metadata.modcharter);
 		}
 

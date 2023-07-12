@@ -1,6 +1,6 @@
 package;
 
-import shaders.ColorSwap;
+import shaders.AmongUsColorSwapShader;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.addons.transition.TransitionData;
 import flixel.graphics.frames.FlxAtlasFrames;
@@ -21,7 +21,7 @@ import openfl.display.Bitmap;
 import openfl.display.BitmapData;
 
 using StringTools;
-#if desktop
+#if discord_rpc
 import Discord.DiscordClient;
 import sys.thread.Thread;
 #end
@@ -42,7 +42,7 @@ class TitleState extends MusicBeatState
 
 	static var logoBl:RandomTitleLogo;
 	static var titleText:FlxSprite;
-	static var swagShader:ColorSwap = null;
+	static var swagShader:AmongUsColorSwapShader = null;
 	static var bg:Stage;
 
 	static var loaded = false;
@@ -85,13 +85,13 @@ class TitleState extends MusicBeatState
 		}
 
 		// Random logoooo
-		swagShader = new ColorSwap();
+		swagShader = new AmongUsColorSwapShader();
 
 		logoBl = new RandomTitleLogo();
 		logoBl.scrollFactor.set();
 		logoBl.screenCenter(XY);
 		
-		logoBl.shader = swagShader.shader;
+		logoBl.shader = swagShader;
 
 		//
 		titleText = new FlxSprite(140, 576);
@@ -102,6 +102,7 @@ class TitleState extends MusicBeatState
 		titleText.animation.play('idle');
 
 		titleText.updateHitbox();
+		titleText.screenCenter(X);
 
 		//
 		blackScreen = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);

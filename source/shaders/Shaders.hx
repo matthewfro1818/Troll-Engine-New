@@ -16,16 +16,24 @@ class VhsEffect extends FlxBasic
 {
 	public var shader(default, null):VHS = new VHS();
 
-	public function new():Void
+    public var iTime(default, set):Float = 0;
+
+	public function new(_iTime:Float):Void
 	{
 		super();
-		shader.iTime.value = [0];
+        iTime = _iTime;
 	}
 
 	override public function update(elapsed:Float):Void
 	{
-		shader.iTime.value[0] += elapsed;
+		iTime += elapsed;
 		super.update(elapsed);
+	}
+
+    function set_iTime(v:Float):Float{
+		iTime = v;
+		shader.iTime.value = [iTime];
+		return v;
 	}
 }
 

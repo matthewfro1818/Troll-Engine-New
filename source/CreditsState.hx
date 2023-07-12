@@ -6,7 +6,7 @@ import flixel.system.FlxSound;
 import flixel.text.FlxText;
 import flixel.tweens.*;
 import flixel.util.FlxColor;
-#if desktop
+#if discord_rpc
 import Discord.DiscordClient;
 #end
 #if sys
@@ -64,7 +64,7 @@ class CreditsState extends MusicBeatState
 
 	override function create()
 	{
-		#if desktop
+		#if discord_rpc
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Menus", null);
 		#end

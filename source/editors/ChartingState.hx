@@ -5,7 +5,7 @@ import Conductor.BPMChangeEvent;
 import Song.SwagSong;
 import scripts.FunkinHScript;
 import scripts.FunkinScript;
-#if desktop
+#if discord_rpc
 import Discord.DiscordClient;
 #end
 import flixel.*;
@@ -265,16 +265,18 @@ class ChartingState extends MusicBeatState
 			PlayState.SONG = _song;
 		}
 		
+		/*
 		if(_song.metadata==null){
 			_song.metadata = {
 				artist: "Unspecified",
 				charter: "Unspecified"
 			}
 		}
+		*/
 
 		// Paths.clearMemory();
 
-		#if desktop
+		#if discord_rpc
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("Chart Editor", StringTools.replace(_song.song, '-', ' '));
 		#end
@@ -1295,7 +1297,7 @@ class ChartingState extends MusicBeatState
 	var metronomeStepper:FlxUINumericStepper;
 	var metronomeOffsetStepper:FlxUINumericStepper;
 	var disableAutoScrolling:FlxUICheckBox;
-	#if desktop
+	#if discord_rpc
 	var waveformUseInstrumental:FlxUICheckBox;
 	var waveformUseVoices:FlxUICheckBox;
 
@@ -1309,7 +1311,7 @@ class ChartingState extends MusicBeatState
 		var tab_group_chart = new FlxUI(null, UI_box);
 		tab_group_chart.name = 'Charting';
 
-		#if desktop
+		#if discord_rpc
 		if (FlxG.save.data.chart_waveformInst == null) FlxG.save.data.chart_waveformInst = false;
 		if (FlxG.save.data.chart_waveformVoices == null) FlxG.save.data.chart_waveformVoices = false;
 
@@ -1435,7 +1437,7 @@ class ChartingState extends MusicBeatState
 		tab_group_chart.add(playSoundBf);
 		tab_group_chart.add(playSoundDad);
 
-		#if desktop
+		#if discord_rpc
 		tab_group_chart.add(waveformTrackDropDown);
 		/*
 		tab_group_chart.add(waveformUseInstrumental);
@@ -2220,7 +2222,7 @@ class ChartingState extends MusicBeatState
 		gridLayer.clear();
 		gridBG = FlxGridOverlay.create(GRID_SIZE, GRID_SIZE, GRID_SIZE * 9, Std.int(GRID_SIZE * getSectionBeats() * 4 * zoomList[curZoom]),true, gridColor1, gridColor2);
 
-		#if desktop
+		#if discord_rpc
 		//if(FlxG.save.data.chart_waveformInst || FlxG.save.data.chart_waveformVoices) {
 			updateWaveform();
 		//}
@@ -2276,7 +2278,7 @@ class ChartingState extends MusicBeatState
 	var wavData:Array<Array<Array<Float>>> = [[[0], [0]], [[0], [0]]];
 	function updateWaveform() 
 	{
-		#if desktop
+		#if discord_rpc
 		if(waveformPrinted) {
 			waveformSprite.makeGraphic(Std.int(GRID_SIZE * 8), Std.int(gridBG.height), 0x00FFFFFF);
 			waveformSprite.pixels.fillRect(new Rectangle(0, 0, gridBG.width, gridBG.height), 0x00FFFFFF);
@@ -3166,13 +3168,14 @@ class ChartingState extends MusicBeatState
 	}
 
 	private function saveMetadata(){
-		if(_song.metadata==null){
-			_song.metadata = {
+		var metadata = _song.metadata;
+		if(metadata==null){
+			metadata = {
 				artist: "Unspecified",
 				charter: "Unspecified"
 			}
 		}
-		var data:String = Json.stringify(_song.metadata, "\t");
+		var data:String = Json.stringify(metadata, "\t");
 
 		if ((data != null) && (data.length > 0))
 		{
@@ -3180,7 +3183,7 @@ class ChartingState extends MusicBeatState
 			_file.addEventListener(Event.COMPLETE, onSaveComplete);
 			_file.addEventListener(Event.CANCEL, onSaveCancel);
 			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
-			_file.save(data.trim(), "events.json");
+			_file.save(data.trim(), "metadata.json");
 		}
 	}
 

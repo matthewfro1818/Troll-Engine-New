@@ -22,7 +22,7 @@ import editors.ChartingState;
 import sys.FileSystem;
 #end
 
-#if desktop
+#if discord_rpc
 import Discord.DiscordClient;
 #end
 
@@ -54,6 +54,8 @@ class PsychFreeplayState extends MusicBeatState
 	var intendedColor:Int;
 	var colorTween:FlxTween;
 
+	var hintText:FlxText;
+
 	override function create()
 	{
 		Paths.clearStoredMemory();
@@ -65,8 +67,10 @@ class PsychFreeplayState extends MusicBeatState
 		switch (freeplayType)
 		{
 			case 1:
-				addSong('False Paradise', 0, 'dad',FlxColor.fromRGB(146, 113, 253), 'Normal');
-				addSong('Prey', 0, 'dad',FlxColor.fromRGB(146, 113, 253), 'Normal');
+				addSong('False Paradise', 0, 'dad',FlxColor.fromRGB(146, 113, 253), 'Normal', 'ViranModchart');
+				addSong('Prey', 0, 'dad',FlxColor.fromRGB(146, 113, 253), 'Normal', 'ViranModchart');
+				addSong('Endless', 0, 'dad',FlxColor.fromRGB(146, 113, 253), '', 'ViranModchart');
+				addSong('The Phoenix', 0, 'dad',FlxColor.fromRGB(146, 113, 253), 'Normal', 'ViranModchart');
 			case 0:
 				var dadColor = FlxColor.fromRGB(146, 113, 253);
 				var spook = FlxColor.fromRGB(34, 51, 68);
@@ -100,6 +104,7 @@ class PsychFreeplayState extends MusicBeatState
 			songText.scaleX = Math.min(1, 980 / songText.width);
 			songText.snapToPosition();
 
+			Paths.currentModDirectory = songs[i].folder;
 			var icon:HealthIcon = new HealthIcon(songs[i].songCharacter);
 			icon.sprTracker = songText;
 
@@ -152,10 +157,10 @@ class PsychFreeplayState extends MusicBeatState
 		var leText:String = "Press CTRL to open the Gameplay Changers Menu / Press RESET to Reset your Score and Accuracy.";
 		var size:Int = 18;
 		#end
-		var text:FlxText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, leText, size);
-		text.setFormat(Paths.font("Normal Text.ttf"), size, FlxColor.WHITE, RIGHT);
-		text.scrollFactor.set();
-		add(text);
+		hintText = new FlxText(textBG.x, textBG.y + 4, FlxG.width, leText, size);
+		hintText.setFormat(Paths.font("Normal Text.ttf"), size, FlxColor.WHITE, RIGHT);
+		hintText.scrollFactor.set();
+		add(hintText);
 		
 		updateTexts();
 		super.create();
@@ -169,10 +174,11 @@ class PsychFreeplayState extends MusicBeatState
 		super.closeSubState();
 	}
 
-	public function addSong(songName:String, weekNum:Int, songCharacter:String, color:Int, diff:String = "")
+	public function addSong(songName:String, weekNum:Int, songCharacter:String, color:Int, diff:String = "", ?folder:String)
 	{
 		var mData = new PsychSongMetadata(songName, weekNum, songCharacter, color);
 		mData.availableDiff = diff;
+		mData.folder = folder;
 		songs.push(mData);
 		return mData;
 	}
@@ -197,6 +203,10 @@ class PsychFreeplayState extends MusicBeatState
 	var holdTime:Float = 0;
 	override function update(elapsed:Float)
 	{
+		hintText.x -= 64 * elapsed * 3;
+		if (hintText.x < (FlxG.camera.scroll.x - hintText.width))
+			hintText.x = FlxG.camera.scroll.x + FlxG.width;
+
 		if (FlxG.sound.music.volume < 0.7)
 		{
 			FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
@@ -299,7 +309,7 @@ class PsychFreeplayState extends MusicBeatState
 				#if PRELOAD_ALL
 				destroyFreeplayVocals();
 				FlxG.sound.music.volume = 0;
-				Mods.currentModDirectory = songs[curSelected].folder;
+				Paths.currentModDirectory = songs[curSelected].folder;
 				var poop:String = Highscore.formatSong(songs[curSelected].songName.toLowerCase(), curDifficulty);
 				PlayState.SONG = Song.loadFromJson(poop, songs[curSelected].songName.toLowerCase());
 				if (PlayState.SONG.needsVoices)
@@ -517,6 +527,7 @@ class PsychSongMetadata
 	public var color:Int = -7179779;
 	public var lastDifficulty:String = null;
 	public var availableDiff:String = "";
+	public var folder:String = "";
 
 	public function new(song:String, week:Int, songCharacter:String, color:Int)
 	{
@@ -524,12 +535,14 @@ class PsychSongMetadata
 		this.week = week;
 		this.songCharacter = songCharacter;
 		this.color = color;
+		this.folder = Paths.currentModDirectory;
+		if(this.folder == null) this.folder = '';
 	}
 }
 
 class FreeplaySelectState extends MusicBeatState
 {
-	var freeplayCats:Array<String> = ['Friday Night Funkin', 'Testing'];
+	var freeplayCats:Array<String> = ['Friday Night Funkin', 'Viran Modchart'];
 	var grpCats:FlxTypedGroup<AlphabetNew>;
 	var curSelected:Int = 0;
 	var BG:FlxSprite;

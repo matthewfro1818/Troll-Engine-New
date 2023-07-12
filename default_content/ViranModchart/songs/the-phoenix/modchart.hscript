@@ -1,0 +1,135 @@
+importClass("openfl.filters.ShaderFilter");
+importClass("shaders.Shaders.ChromaticAbberation");
+
+var modManager = game.modManager;
+
+function onCountdownStarted(){
+    modManager.setValue("alpha", 1);
+    modManager.setPercent("opponentSwap", 50);
+
+    if (disableModcharts) {
+		getInstance().saveScore = false;
+		return;
+	}
+
+    modManager.queueSet(155,"alpha", 0, 0);
+    modManager.queueSet(160,"reverse0", 1, 0);
+    modManager.queueSet(160,"reverse1", 1, 0);
+
+    modManager.queueEase(268,272,"reverse0", 0,'quadOut', 0);
+    modManager.queueEase(268,272,"reverse1", 0,'quadOut', 0);
+    modManager.queueEase(268,272,"reverse", 0,'quadOut', 0);
+
+    modManager.queueSet(288,"rotateX", -70, 0);
+    modManager.queueSet(288,"dark", 1, 0);
+    modManager.queueSet(288,"transformZ-a", 100, 0);
+    modManager.queueSet(288,"transformY-a", 300, 0);
+    modManager.queueEase(396,402,"transformZ", -100,'quadIn', 0);
+    modManager.queueEase(396,402,"transformY-a", 0,'quadIn', 0);
+    modManager.queueEase(396,402,"dark", 0,'quadIn', 0);
+    modManager.queueEase(403,416,"centerrotateZ", 360 * 2,'circIn', 0);
+
+    modManager.queueEase(416,419,"transformY-a", 0,'quadOut', 0);
+    modManager.queueEase(416,419,"transformZ-a", 0,'quadOut', 0);
+    modManager.queueEase(416,419,"transformZ", 0,'quadOut', 0);
+    modManager.queueEase(416,419,"rotateX", 0,'quadOut', 0);
+    modManager.queueEase(416,419,"receptorScroll", 1,'quadOut', 0);
+
+    modManager.queueEase(672,675,"receptorScroll", 0,'quadOut', 0);
+
+    modManager.queueEase(720,720 + 6,"invert", 1,'quadIn', 0);
+    modManager.queueEase(752,752 + 6,"invert", 0,'quadIn', 0);
+    modManager.queueEase(784,784 + 6,"invert", 1,'quadIn', 0);
+    modManager.queueEase(816,818,"invert", 0,'quadIn', 0);
+    modManager.queueEase(820,821,"invert", 1,'quadIn', 0);
+    modManager.queueEase(822,826,"invert", 0,'quadIn', 0);
+    modManager.queueEase(846,846 + 6,"invert", 1,'quadIn', 0);
+    modManager.queueEase(880,880 + 6,"invert", 0,'quadIn', 0);
+    modManager.queueEase(912,912 + 6,"invert", 1,'quadIn', 0);
+    modManager.queueEase(952,953,"invert", 0,'quadIn', 0);
+    modManager.queueEase(954,955,"invert", 1,'quadIn', 0);
+    modManager.queueEase(956,957,"invert", 0,'quadIn', 0);
+
+    /*modManager.queueSet(1392,"tipsy", 0.5, 0);
+    modManager.queueSet(1392,"tipsySpeed", 0.5, 0);
+
+    modManager.queueSet(1408,"tipsy", 0, 0);
+    modManager.queueSet(1408,"tipsySpeed", 0, 0);
+
+    modManager.queueSet(1424,"tipsy", 1.5, 0);
+    modManager.queueSet(1424,"tipsySpeed", 0.5, 0);
+
+    modManager.queueSet(1440,"tipsy", 0, 0);
+    modManager.queueSet(1440,"tipsySpeed", 0, 0);
+
+    modManager.queueSet(1456,"tipsy", 0.5, 0);
+    modManager.queueSet(1456,"tipsySpeed", 0.5, 0);
+
+    modManager.queueSet(1472,"tipsy", 0, 0);
+    modManager.queueSet(1472,"tipsySpeed", 0, 0);*/
+
+    modManager.queueEase(1248,1261,"receptorScroll", 1,'quadOut', 0);
+    modManager.queueEase(1504,1506,"receptorScroll", 0,'quadOut', 0);
+}
+
+var prox:ProxyField;
+var prox2:ProxyField;
+
+function onStepHit()
+{
+    switch (curStep)
+    {
+        case 416:
+            for (field in game.playfields)
+            {
+               prox = new ProxyField(field.noteField);
+               prox.cameras = [game.camHUD];
+               prox.x += 500;
+               game.add(prox);
+
+               prox2 = new ProxyField(field.noteField);
+               prox2.cameras = [game.camHUD];
+               prox2.x -= 500;
+               game.add(prox2);
+            }
+        case 704:
+            prox.alpha = 0;
+            prox2.alpha = 0;
+            game.camHUD.flash(FlxColor.fromString(0xFFFFFFFF), 0.5, null, true);
+    }
+}
+
+var vhsShaders;
+var vhsFilter;
+
+function onCreatePost()
+{
+    game.camZooming = true;
+
+    vhsShaders = newShader("vcr");
+    //vhsShaders.data.iTime.value = [0];
+
+    vhsFilter = new ShaderFilter(vhsShaders);
+    FlxG.game.setFilters([vhsFilter]);
+}
+function removeVHSShader()
+{
+	if (vhsShaders != null){
+		if (script.get("game") == null){
+			getInstance().camGame.setFilters([]);
+			return;
+		}
+	
+		game.camGame.setFilters([]);
+		game.camHUD.setFilters([]);
+        FlxG.game.setFilters([]);
+	}
+}
+
+onDestroy = removeVHSShader;
+function update(elapsed)
+{
+    vhsShaders.data.iTime.value = [Conductor.songPosition * 0.001];
+}
+
+onGameOver = removeVHSShader;

@@ -4,7 +4,6 @@ import shaders.RGBPalette;
 import scripts.FunkinHScript;
 import scripts.FunkinScript;
 import flixel.util.FlxColor;
-import shaders.AmongUsColorSwapShader;
 #if !macro
 import flixel.FlxG;
 import flixel.FlxSprite;

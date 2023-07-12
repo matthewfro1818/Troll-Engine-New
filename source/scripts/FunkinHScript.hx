@@ -61,7 +61,7 @@ class FunkinHScript extends FunkinScript
 		catch (e:haxe.Exception)
 		{
 			var errMsg = 'Error parsing hscript! '#if hscriptPos + '$name:' + parser.line + ', ' #end + e.message;
-			#if desktop
+			#if discord_rpc
 			Application.current.window.alert(errMsg, "Error on haxe script!");
 			#end
 			trace(errMsg);

@@ -18,10 +18,6 @@ class PsychHUD extends BaseHUD {
 	public var scoreTxt:FlxText;
 	public var hitbar:Hitbar;
 
-	public var bar:FlxSprite;
-	public var songPosBar:FlxBar = null;
-	public var songNameTxt:FlxText;
-
 	var hitbarTween:FlxTween;
 	var scoreTxtTween:FlxTween;
 
@@ -72,8 +68,6 @@ class PsychHUD extends BaseHUD {
 			}
 		}
 
-		loadSongPos();
-
 		//
 		
 		hitbar = new Hitbar();
@@ -92,46 +86,9 @@ class PsychHUD extends BaseHUD {
 		add(scoreTxt);
 	}
 
-	var tweenProg:Float = 0;
-
-	override public function songStarted()
-	{
-		FlxTween.num(0, 1, 0.5, {
-			ease: FlxEase.circOut,
-			onComplete: function(tw:FlxTween)
-			{
-				tweenProg = 1;
-			}
-		}, function(prog:Float)
-		{
-			tweenProg = prog;
-			bar.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
-			songPosBar.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
-			songNameTxt.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
-		});
-	}
-
 	override function changedOptions(changed:Array<String>)
 	{
 		super.changedOptions(changed);
-
-		updateTime = (ClientPrefs.timeBarType != 'Disabled' && ClientPrefs.timeOpacity > 0);
-
-		songNameTxt.visible = updateTime;
-		songPosBar.visible = updateTime;
-		bar.visible = updateTime;
-		
-		if (updateTime)
-		{
-			var songPosY = FlxG.height - 706;
-			if (ClientPrefs.downScroll)
-				songPosY = FlxG.height - 33;
-			songPosBar.y = songPosY;
-			bar.y = songPosBar.y;
-			songNameTxt.y = bar.y + ((songPosBar.height - 15) / 2) - 5;
-			songPosBar.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
-			songNameTxt.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
-		}
 
 		hitbar.visible = ClientPrefs.hitbar;
 		
@@ -148,11 +105,7 @@ class PsychHUD extends BaseHUD {
 				hitbar.y += 340;
 		}
 	}
-	override public function songEnding(){
-		bar.visible = false;
-		songPosBar.visible = false;
-		songNameTxt.visible = false;
-	}
+
 	override function update(elapsed:Float){
 		scoreTxt.text = (songHighscore != 0 && score > songHighscore ? 'Hi-score: ' : 'Score: ')
 			+ '$score | Combo Breaks: $comboBreaks | Rating: '
@@ -168,25 +121,6 @@ class PsychHUD extends BaseHUD {
 		}
 		
 		super.update(elapsed);
-
-		var curTime:Float = Conductor.songPosition - ClientPrefs.noteOffset;
-		if (curTime < 0)
-			curTime = 0;
-		songPercent = (curTime / songLength);
-
-		var songCalc:Float = (songLength - curTime);
-		songCalc = curTime;
-
-		var secondsTotal:Int = Math.floor(songCalc / 1000);
-		if (secondsTotal < 0)
-			secondsTotal = 0;
-		else if (secondsTotal >= Math.floor(songLength / 1000))
-			secondsTotal = Math.floor(songLength / 1000);
-
-		songNameTxt.text = songName
-			+ ' (${FlxStringUtil.formatTime(secondsTotal, false)} - ${FlxStringUtil.formatTime(Math.floor(songLength / 1000), false)})';
-		songNameTxt.updateHitbox();
-		songNameTxt.screenCenter(X);
 	}
 
 	override function noteJudged(judge:JudgmentData, ?note:Note, ?field:PlayField)
@@ -257,37 +191,4 @@ class PsychHUD extends BaseHUD {
 
 		super.beatHit(beat);
 	}
-
-	function loadSongPos()
-		{
-			var songPosY = FlxG.height - 706;
-			if (ClientPrefs.downScroll)
-				songPosY = FlxG.height - 33;
-	
-			var bfColor = FlxColor.fromRGB(PlayState.instance.boyfriend.healthColorArray[0], PlayState.instance.boyfriend.healthColorArray[1], PlayState.instance.boyfriend.healthColorArray[2]);
-			var dadColor = FlxColor.fromRGB(PlayState.instance.dad.healthColorArray[0], PlayState.instance.dad.healthColorArray[1], PlayState.instance.dad.healthColorArray[2]);
-			songPosBar = new FlxBar(390, songPosY, LEFT_TO_RIGHT, 500, 25, this, 'songPercent', 0, 1);
-			songPosBar.alpha = 0;
-			songPosBar.scrollFactor.set();
-			songPosBar.createGradientBar([FlxColor.BLACK], [bfColor, dadColor]);
-			songPosBar.numDivisions = 800;
-			add(songPosBar);
-	
-			bar = new FlxSprite(songPosBar.x, songPosBar.y).makeGraphic(Math.floor(songPosBar.width), Math.floor(songPosBar.height), FlxColor.TRANSPARENT);
-			bar.alpha = 0;
-			add(bar);
-	
-			FlxSpriteUtil.drawRect(bar, 0, 0, songPosBar.width, songPosBar.height, FlxColor.TRANSPARENT, {thickness: 4, color: (FlxColor.BLACK)});
-	
-			songNameTxt = new FlxText(0, bar.y + ((songPosBar.height - 15) / 2) - 5, 0, '', 16);
-			songNameTxt.setFormat(Paths.font(gameFont), 16, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-			songNameTxt.autoSize = true;
-			songNameTxt.borderStyle = FlxTextBorderStyle.OUTLINE_FAST;
-			songNameTxt.borderSize = 2;
-			songNameTxt.scrollFactor.set();
-			songNameTxt.text = songName +
-				' (${FlxStringUtil.formatTime(songLength, false)} - ${FlxStringUtil.formatTime(Math.floor(songLength / 1000), false)})';
-			songNameTxt.alpha = 0;
-			add(songNameTxt);
-		}
 }

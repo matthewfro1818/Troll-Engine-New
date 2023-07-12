@@ -76,7 +76,7 @@ class MainMenuState extends MusicBeatState {
 
 		FadeTransitionSubstate.nextCamera = FlxG.camera; // AAAA
 
-		#if desktop
+		#if discord_rpc
 		// Updating Discord Rich Presence
 		Discord.DiscordClient.changePresence("In the Menus", null);
 		#end
@@ -503,7 +503,7 @@ class MainMenuState extends MusicBeatState {
 				MusicBeatState.switchState(new TitleState());
 			}else if (controls.ACCEPT)
 				onSelected();
-			#if desktop
+			#if discord_rpc
 			else if (FlxG.keys.anyJustPressed(debugKeys))
 			{
 				selectedSomethin = true;

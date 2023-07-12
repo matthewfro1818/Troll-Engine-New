@@ -1,0 +1,20 @@
+{
+	"chapters": [
+		{
+			"name": "Week 1",
+			"category": "main",
+			"freeplayCategory": "ViranModchart",
+			"unlockCondition": true,
+			"songs": ["False Paradise","Prey","Endless"]
+		}
+	],
+	"freeplaySongs": [],
+	"freeplayCategories": [
+		{
+			"name": "Friday Night Funkin'",
+			"id": "ViranModchart"
+		}
+	],
+	"runsGlobally": false,
+	"defaultCategory": "ViranModchart"
+}

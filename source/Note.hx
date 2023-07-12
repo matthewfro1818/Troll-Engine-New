@@ -3,7 +3,6 @@ package;
 import flixel.util.FlxColor;
 import shaders.RGBPalette;
 import editors.ChartingState;
-import shaders.AmongUsColorSwapShader;
 import JudgmentManager.Judgment;
 import math.Vector3;
 import scripts.*;
@@ -644,8 +643,7 @@ class Note extends NoteObject
 				skinScript.executeFunc("noteUpdate", [elapsed], this);
 			}
 		}
-		
-		//colorSwap.daAlpha = alphaMod * alphaMod2;
+	
 		
 		if (hitByOpponent)
 			wasGoodHit = true;

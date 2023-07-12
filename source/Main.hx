@@ -16,8 +16,9 @@ using StringTools;
 import haxe.CallStack;
 import lime.app.Application;
 import openfl.events.UncaughtErrorEvent;
+import sys.io.File;
 #end
-#if desktop
+#if discord_rpc
 import Discord.DiscordClient;
 #end
 
@@ -212,18 +213,11 @@ class Main extends Sprite
 		}
 
 		errMsg += "\nUncaught Error: " + e.error;
+		File.saveContent("crash.txt", errMsg);
 
 		Sys.println(" \n" + errMsg);
 		
 		Application.current.window.alert(errMsg, "Error!");
-
-		/*	Woah, this works???
-			MusicBeatState.switchState(new MainMenuState());
-			e.stopPropagation();
-			e.preventDefault();
-			e.stopImmediatePropagation();
-		*/
-
 		DiscordClient.shutdown();
 		Sys.exit(1);
 	}

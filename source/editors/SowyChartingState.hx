@@ -56,11 +56,11 @@ class ChartNote extends FlxSprite
 		return val;
 	}
 
-	public var colorSwap = new RGBPalette();
+	public var rgbShader = new RGBPalette();
 	public function new()
 	{
 		super();
-		this.shader = colorSwap.shader;
+		this.shader = rgbShader.shader;
 		frames = Paths.getSparrowAtlas("noteSkin/NOTE_assets");
 	}
 
@@ -102,22 +102,22 @@ class ChartNote extends FlxSprite
 			var quant = getQuant(beat);
 			var idx = quants.indexOf(quant);
 
-			colorSwap.r = ClientPrefs.quantColors[idx][0];
-			colorSwap.g = ClientPrefs.quantColors[idx][1];
-			colorSwap.b = ClientPrefs.quantColors[idx][2];			
+			rgbShader.r = ClientPrefs.quantColors[idx][0];
+			rgbShader.g = ClientPrefs.quantColors[idx][1];
+			rgbShader.b = ClientPrefs.quantColors[idx][2];			
 		}else{
-			colorSwap.r = ClientPrefs.columnColors[noteData % 4][0];
-			colorSwap.g = ClientPrefs.columnColors[noteData % 4][1];
-			colorSwap.b = ClientPrefs.columnColors[noteData % 4][2];
+			rgbShader.r = ClientPrefs.columnColors[noteData % 4][0];
+			rgbShader.g = ClientPrefs.columnColors[noteData % 4][1];
+			rgbShader.b = ClientPrefs.columnColors[noteData % 4][2];
 		}
 	}
 }
 class ChartTail extends FlxSprite
 {
-	public var colorSwap = new RGBPalette();
+	public var rgbShader = new RGBPalette();
 	public function new(?x, ?y, ?graph){
 		super(x, y, graph);
-		this.shader = colorSwap.shader;
+		this.shader = rgbShader.shader;
 	}
 }
 
@@ -707,9 +707,9 @@ class SowyChartingState extends MusicBeatState
 				noteSpr.tail.updateHitbox();
 			}
 
-			noteSpr.tail.colorSwap.r = noteSpr.colorSwap.r;
-			noteSpr.tail.colorSwap.g = noteSpr.colorSwap.g;
-			noteSpr.tail.colorSwap.b = noteSpr.colorSwap.b;
+			noteSpr.tail.rgbShader.r = noteSpr.rgbShader.r;
+			noteSpr.tail.rgbShader.g = noteSpr.rgbShader.g;
+			noteSpr.tail.rgbShader.b = noteSpr.rgbShader.b;
 		}
 		else if (noteSpr.tail != null){
 			noteSpr.tail.kill();
@@ -872,16 +872,7 @@ class SowyChartingState extends MusicBeatState
 	var holdingNote = false;
 	function set_selected(?spr:ChartNote){
 		var prevSpr = currentlyUsedNotes.get(curSelectedNote);
-
-		//if (prevSpr != null){ 
-		//	prevSpr.colorSwap.flash = 0;
-		//	prevSpr.colorSwap.brightness = 0;
-		//}
-
 		if (spr != null){
-			//spr.colorSwap.flash = 0;
-			//spr.colorSwap.brightness = -0.5;
-
 			curSelectedNote = spr.noteInfo;
 			
 			@:privateAccess
@@ -963,7 +954,7 @@ class SowyChartingState extends MusicBeatState
 			}
 
 			//if (lastHoveredNote != null){
-				//lastHoveredNote.colorSwap.flash = 0;
+				//lastHoveredNote.rgbShader.flash = 0;
 			//}
 
 			if (noteOverlapped == null){
@@ -1042,14 +1033,14 @@ class SowyChartingState extends MusicBeatState
 					}
 				}else{
 					lastHoveredNote = noteOverlapped;
-					//noteOverlapped.colorSwap.flash = 1;
+					//noteOverlapped.rgbShader.flash = 1;
 				}
 
 				gridSelection.visible = false;
 			}
 		}else{
 			//if (lastHoveredNote != null){
-			//	lastHoveredNote.colorSwap.flash = 0;
+			//	lastHoveredNote.rgbShader.flash = 0;
 			//}
 			gridSelection.visible = false;
 		}
