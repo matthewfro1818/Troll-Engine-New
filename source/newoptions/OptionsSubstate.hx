@@ -24,6 +24,7 @@ typedef Widget =
 
 class OptionsSubstate extends MusicBeatSubstate
 {
+	// TODO: put this all into the ClientPrefs option definitions instead
 	public static var recommendsRestart:Array<String> = [
 		"etternaHUD",
 		"judgeCounter",
@@ -317,7 +318,14 @@ class OptionsSubstate extends MusicBeatSubstate
 					"customizeHUD",
 				]
 			],
-			["Advanced", ["etternaHUD", "gradeSet"]]
+			[
+				"Advanced", 
+				[
+					"etternaHUD", 
+					"gradeSet",
+					"showWifeScore"
+				]
+			]
 		],
 		"Video" => [
 			["Video", ["shaders", "showFPS"]],

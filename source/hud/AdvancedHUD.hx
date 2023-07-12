@@ -23,6 +23,8 @@ class AdvancedHUD extends BaseHUD
 
 	var peakCombo:Int = 0;
 	var songHighscore:Int = 0;
+	var songWifeHighscore:Float = 0;
+	var songHighRating:Float = 0;
 	public var hudPosition(default, null):String = ClientPrefs.hudPosition;
 
 	var npsIdx:Int = 0;
@@ -40,6 +42,8 @@ class AdvancedHUD extends BaseHUD
 		displayedJudges.push("cb");
 		
 		songHighscore = Highscore.getScore(songName,PlayState.difficulty);
+		songWifeHighscore = Highscore.getNotesHit(songName,PlayState.difficulty);
+		songHighRating = Highscore.getRating(songName,PlayState.difficulty);
 		var tWidth = 200;
 		scoreTxt = new FlxText(0, 0, tWidth, "0", 20);
 		scoreTxt.setFormat(Paths.font(gameFont), 40, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
@@ -156,6 +160,11 @@ class AdvancedHUD extends BaseHUD
 		hitbar = new Hitbar();
 		hitbar.alpha = alpha;
 		hitbar.visible = ClientPrefs.hitbar;
+
+		statChanged("totalNotesHit", stats.totalNotesHit);
+		statChanged("score", stats.score);
+
+		// ^^ force the displays to update
 		add(hitbar);
 		if (ClientPrefs.hitbar)
 		{
@@ -232,7 +241,7 @@ class AdvancedHUD extends BaseHUD
 		if (hudPosition == 'Right')gradeTxt.x = FlxG.width - gradeTxt.width - 20;
 
 		ratingTxt.text = (grade != "?"?(Highscore.floorDecimal(ratingPercent * 100, 2) + "%"):"0%");
-		fcTxt.text = (ratingFC=='GFC' && ClientPrefs.wife3)?"FC":ratingFC;
+		fcTxt.text = (ratingFC=='CFC' && ClientPrefs.wife3)?"FC":ratingFC;
 		
 		if (ClientPrefs.npsDisplay)
 			npsTxt.text = 'NPS: ${nps} (Peak: ${npsPeak})';
@@ -250,17 +259,48 @@ class AdvancedHUD extends BaseHUD
 	function statChanged(stat:String, val:Dynamic){
 		switch(stat){
 			case 'score':
-				var displayedScore = Std.string(val);
+				if(!ClientPrefs.showWifeScore){
+					var displayedScore = Std.string(val);
+					if (displayedScore.length > 7)
+					{
+						if (val < 0)
+							displayedScore = '-999999';
+						else
+							displayedScore = '9999999';
+					}
+
+					scoreTxt.text = displayedScore;
+					scoreTxt.color = !PlayState.instance.saveScore ? 0x818181 : ((songHighscore != 0 && val > songHighscore) ? 0xFFD800 : 0xFFFFFF);
+				}
+			case 'totalNotesHit':
+				if (ClientPrefs.showWifeScore)
+				{
+					var disp:Int = Math.floor(val * 100);
+					var displayedScore = Std.string(disp);
+					if (displayedScore.length > 7)
+					{
+						if (disp < 0)
+							displayedScore = '-999999';
+						else
+							displayedScore = '9999999';
+					}
+
+					scoreTxt.text = displayedScore;
+					scoreTxt.color = !PlayState.instance.saveScore ? 0x818181 : ((songWifeHighscore != 0 && val > songWifeHighscore) ? 0xFFD800 : 0xFFFFFF);
+				}
+
+				var disp:Int = Math.floor(val * 100);
+				var displayedScore = Std.string(disp);
 				if (displayedScore.length > 7)
 				{
-					if (score < 0)
+					if (disp < 0)
 						displayedScore = '-999999';
 					else
 						displayedScore = '9999999';
 				}
 
 				scoreTxt.text = displayedScore;
-				scoreTxt.color = !PlayState.instance.saveScore ? 0x818181 : ((songHighscore != 0 && score > songHighscore) ? 0xFFD800 : 0xFFFFFF);
+				scoreTxt.color = !PlayState.instance.saveScore ? 0x818181 : ((songWifeHighscore != 0 && val > songWifeHighscore) ? 0xFFD800 : 0xFFFFFF);
 			case 'grade':
 				FlxTween.cancelTweensOf(gradeTxt.scale);
 				gradeTxt.scale.set(1.2, 1.2);
