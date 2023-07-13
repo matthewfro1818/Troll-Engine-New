@@ -240,10 +240,13 @@ class ModManager {
     public function updateTimeline(curStep:Float)
 		timeline.update(curStep);
 
-	public var playerAmount = 2;
-	public var receptorAmount = 4;
-	public function getBaseX(direction:Int, player:Int):Float
+	public var playerAmount:Int = 2;
+	public function getBaseX(direction:Int, player:Float, receptorAmount:Int = 4):Float
 	{
+		if (player > (playerAmount-1) || player < 0)
+			player = 0.5; // replicating old behaviour for upcoming modcharts
+
+
 		var spaceWidth = FlxG.width / playerAmount;
 		var spaceX = spaceWidth * (playerAmount-1-player);
 
@@ -252,6 +255,20 @@ class ModManager {
 
 		return x;
 	}
+
+	/* 	public function getBaseX(direction:Int, player:Int):Float
+	{
+		var x:Float = (FlxG.width * 0.5) - Note.swagWidth - 54 + Note.swagWidth * direction;
+		switch (player)
+		{
+			case 0:
+				x += FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
+			case 1:
+				x -= FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
+		}
+		x -= 56;
+		return x;
+	} */
 
 	public function updateObject(beat:Float, obj:FlxSprite, player:Int){
 		for (name in getActiveMods(player))
@@ -302,7 +319,7 @@ class ModManager {
 
 		if (!obj.alive)return pos;
 
-		pos.x = (Note.swagWidth / 2) + getBaseX(data, player);
+		pos.x = (Note.swagWidth / 2) + getBaseX(data, player, field.field.keyCount);
 		pos.y = (Note.swagWidth / 2) + 50 + diff;
 		pos.z = 0;
 
