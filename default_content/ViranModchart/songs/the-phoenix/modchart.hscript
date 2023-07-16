@@ -3,6 +3,10 @@ importClass("shaders.Shaders.ChromaticAbberation");
 
 var modManager = game.modManager;
 
+function onCreatePost(){
+        game.camZooming = true;
+}
+
 function onCountdownStarted(){
     modManager.setValue("alpha", 1, 1);
     modManager.setPercent("opponentSwap", 50);
@@ -136,16 +140,14 @@ function onStepHit()
     }
 }
 
+if (ClientPrefs.shaders == 'None')
+    return;
+
 var vhsShaders;
 var vhsFilter;
 
 function onCreatePost()
 {
-    game.camZooming = true;
-
-    if (ClientPrefs.shaders == 'None')
-        return;
-
     vhsShaders = newShader("vcr");
     //vhsShaders.data.iTime.value = [0];
 

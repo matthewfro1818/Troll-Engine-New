@@ -5134,7 +5134,9 @@ class PlayState extends MusicBeatState
 
 	override public function switchTo(nextState: Dynamic){
 		callOnHScripts("switchingState", [nextState]);
+		#if LUA_ALLOWED
 		callOnLuas("switchingState");
+		#end
 		FlxG.timeScale = 1;
 		pressedGameplayKeys = [];
 		FunkinHScript.defaultVars.clear();

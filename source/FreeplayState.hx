@@ -487,7 +487,7 @@ class FreeplayState extends MusicBeatState
 		}
 		else if (selectedSong != null)
 		{
-			if (FlxG.keys.justPressed.R){
+			if (FlxG.keys.justPressed.R || FlxG.keys.justPressed.DELETE){
 				Paths.currentModDirectory = selectedSong.folder;
 				openSubState(new ResetScoreSubState(selectedSong.songName,1,'', false));
 			}else if (FlxG.keys.justPressed.TAB){
