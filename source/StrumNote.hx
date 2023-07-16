@@ -38,6 +38,7 @@ class StrumNote extends NoteObject
 	public var direction:Float = 90;//plan on doing scroll directions soon -bb
 	public var downScroll:Bool = false;//plan on doing scroll directions soon -bb
 	public var sustainReduce:Bool = true;
+	public var useRGBColors:Bool = true;
 	
 	//private var player:Int;
 
@@ -110,7 +111,7 @@ class StrumNote extends NoteObject
 				loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'), true, Math.floor(width), Math.floor(height));
 	
 				antialiasing = false;
-				rgbShader.enabled = false;
+				useRGBColors = false;
 				setGraphicSize(Std.int(width * PlayState.daPixelZoom));
 				updateHitbox();
 	
@@ -139,13 +140,14 @@ class StrumNote extends NoteObject
 				}
 			default:
 				frames = Paths.getSparrowAtlas('noteSkin/NOTE_assets');
+				useRGBColors = true;
 				loadStrumAnims();
 		}
 	
 		if (PlayState.instance != null)
 			skinScript = PlayState.instance.noteskinScripts.get(texture);
 	
-		if (skinScript != null && skinScript.scriptType == 'hscript'){
+		if (skinScript != null && skinScript is FunkinHScript){
 			var skinScript:FunkinHScript = cast skinScript;
 			skinScript.executeFunc("ReloadStrumsSkin", [this], this);
 		}
@@ -160,7 +162,7 @@ class StrumNote extends NoteObject
 	}
 
 	public function loadStrumAnims() {
-		if (skinScript != null && skinScript.scriptType == 'hscript'){
+		if (skinScript != null && skinScript is FunkinHScript){
 			var skinScript:FunkinHScript = cast skinScript;
 			if (skinScript.exists("loadStrumAnims") && Reflect.isFunction(skinScript.get("loadStrumAnims"))){
 				skinScript.executeFunc("loadStrumAnims", [this], this, ["super" => _loadStrumAnims]);
@@ -254,7 +256,8 @@ class StrumNote extends NoteObject
 					rgbShader.r = ClientPrefs.columnColors[noteData % 4][0];
 					rgbShader.g = ClientPrefs.columnColors[noteData % 4][1];
 					rgbShader.b = ClientPrefs.columnColors[noteData % 4][2];
-					rgbShader.enabled = true;
+					if (useRGBColors)
+						rgbShader.enabled = true;
 				}
 				else
 				{
@@ -264,7 +267,8 @@ class StrumNote extends NoteObject
 			else
 			{
 				// ok now the quants should b fine lol
-				rgbShader.enabled = true;
+				if (useRGBColors)
+					rgbShader.enabled = true;
 				rgbShader.r = note.rgbShader.r;
 				rgbShader.g = note.rgbShader.g;
 				rgbShader.b = note.rgbShader.b;

@@ -26,7 +26,6 @@ class OptionsSubstate extends MusicBeatSubstate
 {
 	// TODO: put this all into the ClientPrefs option definitions instead
 	public static var recommendsRestart:Array<String> = [
-		"etternaHUD",
 		"judgeCounter",
 		"hudPosition",
 		"shaders",
@@ -50,6 +49,7 @@ class OptionsSubstate extends MusicBeatSubstate
 		"hitWindow",
 		"judgeDiff", 
 		"noteSkin",
+		"etternaHUD"
 	];
 	
 	var changed:Array<String> = [];

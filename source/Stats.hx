@@ -129,8 +129,9 @@ class Stats {
 	function get_misses()return judgements.get("miss");
 	function set_misses(val:Int){judgements.set("miss", val);return val;}
 
-	public function new(?gradeSet:Array<Array<Dynamic>>){
-		if (gradeSet==null)
+	public function new(?gradeSet:Array<Array<Dynamic>>)
+    {
+        if (gradeSet == null)
 			gradeSet = Highscore.grades.get(ClientPrefs.gradeSet);
 
         this.gradeSet = gradeSet;
@@ -138,31 +139,25 @@ class Stats {
         updateVariables();
     }
 
-    public function getGrade()
+    public function getGrade():String
     {
-        var grade = '?';
 		if (totalPlayed < 1)
-            return grade;
+            return '?';
         
 		if (ratingPercent >= 1)
-			grade = gradeSet[0][0]; // Uses first string
+			return gradeSet[0][0]; // Uses first string
 		else
 		{
-			grade = gradeSet[gradeSet.length - 1][0];
-			for (i in 0...gradeSet.length)
+			for (grade in gradeSet)
 			{
-				if (ratingPercent >= gradeSet[i][1])
-				{
-					grade = gradeSet[i][0];
-                    break;
-				}
+                if (ratingPercent >= grade[1])
+					return grade[0];
 			}
 		}
-
-        return grade;
+        return '?';
     }
 
-    public function getClearType()
+    public function getClearType():String
         {
             var clear = 'Clear';
     

@@ -4,13 +4,36 @@ importClass("shaders.Shaders.ChromaticAbberation");
 var modManager = game.modManager;
 
 function onCountdownStarted(){
-    modManager.setValue("alpha", 1);
+    modManager.setValue("alpha", 1, 1);
     modManager.setPercent("opponentSwap", 50);
 
     if (disableModcharts) {
 		getInstance().saveScore = false;
 		return;
 	}
+
+    var drums = [];
+    var drums2 = [];
+
+    numericForInterval(160, 272, 4, function(i){
+        drums.push(i);
+    });
+
+    numericForInterval(160 + 4, 272 + 4, 8, function(i){
+        drums2.push(i);
+    });
+
+    for (i in 0...drums.length){
+        var step = drums[i];
+        modManager.queueSet(step, 'fieldYaw', 65);
+        modManager.queueEase(step, step + 4, 'fieldYaw', 0, 'cubeOut');
+    }
+
+    for (i in 0...drums2.length){
+        var step = drums2[i];
+        modManager.queueSet(step, 'fieldYaw', -65);
+        modManager.queueEase(step, step + 4, 'fieldYaw', 0, 'cubeOut');
+    }
 
     modManager.queueSet(155,"alpha", 0, 0);
     modManager.queueSet(160,"reverse0", 1, 0);
@@ -20,7 +43,15 @@ function onCountdownStarted(){
     modManager.queueEase(268,272,"reverse1", 0,'quadOut', 0);
     modManager.queueEase(268,272,"reverse", 0,'quadOut', 0);
 
-    modManager.queueSet(288,"rotateX", -70, 0);
+    modManager.queueSet(274,"rotateX", -10, 0);
+    modManager.queueSet(275,"rotateX", -20, 0);
+    modManager.queueSet(276,"rotateX", -30, 0);
+    modManager.queueSet(277,"rotateX", -40, 0);
+    modManager.queueSet(278,"rotateX", -50, 0);
+    modManager.queueSet(279,"rotateX", -60, 0);
+    modManager.queueSet(280,"rotateX", -70, 0);
+
+    //modManager.queueSet(288,"rotateX", -70, 0);
     modManager.queueSet(288,"dark", 1, 0);
     modManager.queueSet(288,"transformZ-a", 100, 0);
     modManager.queueSet(288,"transformY-a", 300, 0);
@@ -37,18 +68,24 @@ function onCountdownStarted(){
 
     modManager.queueEase(672,675,"receptorScroll", 0,'quadOut', 0);
 
-    modManager.queueEase(720,720 + 6,"invert", 1,'quadIn', 0);
-    modManager.queueEase(752,752 + 6,"invert", 0,'quadIn', 0);
-    modManager.queueEase(784,784 + 6,"invert", 1,'quadIn', 0);
+    modManager.queueEase(720 - 5,720,"invert", 1,'quadIn', 0);
+    modManager.queueEase(752 - 5,752,"invert", 0,'quadIn', 0);
+    modManager.queueEase(784 - 5,784,"invert", 1,'quadIn', 0);
     modManager.queueEase(816,818,"invert", 0,'quadIn', 0);
     modManager.queueEase(820,821,"invert", 1,'quadIn', 0);
     modManager.queueEase(822,826,"invert", 0,'quadIn', 0);
-    modManager.queueEase(846,846 + 6,"invert", 1,'quadIn', 0);
-    modManager.queueEase(880,880 + 6,"invert", 0,'quadIn', 0);
-    modManager.queueEase(912,912 + 6,"invert", 1,'quadIn', 0);
+    modManager.queueEase(846 - 5,846,"invert", 1,'quadIn', 0);
+    modManager.queueEase(880 - 5,880,"invert", 0,'quadIn', 0);
+    modManager.queueEase(912 - 5,912,"invert", 1,'quadIn', 0);
     modManager.queueEase(952,953,"invert", 0,'quadIn', 0);
     modManager.queueEase(954,955,"invert", 1,'quadIn', 0);
     modManager.queueEase(956,957,"invert", 0,'quadIn', 0);
+
+    modManager.queueEase(960,960 + 2,"drunk", 1,'quadIn', 0);
+    modManager.queueEase(960,960 + 2,"drunkSpeed", 2,'quadIn', 0);
+
+    modManager.queueEase(1184,1184 + 2,"drunk", 0,'quadIn', 0);
+    modManager.queueEase(1184,1184 + 2,"drunkSpeed", 0,'quadIn', 0);
 
     /*modManager.queueSet(1392,"tipsy", 0.5, 0);
     modManager.queueSet(1392,"tipsySpeed", 0.5, 0);
@@ -106,6 +143,9 @@ function onCreatePost()
 {
     game.camZooming = true;
 
+    if (ClientPrefs.shaders == 'None')
+        return;
+
     vhsShaders = newShader("vcr");
     //vhsShaders.data.iTime.value = [0];
 
@@ -133,3 +173,11 @@ function update(elapsed)
 }
 
 onGameOver = removeVHSShader;
+
+function numericForInterval(start, end, interval, func){
+    var index = start;
+    while(index < end){
+        func(index);
+        index += interval;
+    }
+}

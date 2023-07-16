@@ -29,15 +29,25 @@ class PauseSubState extends MusicBeatSubstate
 	var curTime:Float = Math.max(0, Conductor.songPosition);
 	//var botplayText:FlxText;
 
-	public static var songName:String = '';
+	public static var songName:Null<String> = null;
 
 	public function new (x:Float, y:Float)
 	{
 		super();
 	}
 
+	var prevTimeScale:Float;
+	override public function close(){
+		FlxG.timeScale = prevTimeScale;
+
+		super.close();
+	}
+
 	override public function create()
 	{
+		prevTimeScale = FlxG.timeScale;
+		FlxG.timeScale = 1;
+
 		super.create();
 		if(Difficulty.list.length < 2) menuItemsOG.remove('Change Difficulty'); //No need to change difficulty if there is only one!
 		

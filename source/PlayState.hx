@@ -155,46 +155,39 @@ class Wife3
 }
 class PlayState extends MusicBeatState
 {
-	public var stats:Stats = new Stats();
-	public var botplayTxt:FlxText;
-
-	var notefields:NotefieldManager = new NotefieldManager();
 	var sndFilter:ALFilter = AL.createFilter();
     var sndEffect:ALEffect = AL.createEffect();
 
 	public var showDebugTraces:Bool = #if debug true #else Main.showDebugTraces #end;
 
-	public var noteHits:Array<Float> = [];
-	public var nps:Int = 0;
+	var speedChanges:Array<SpeedEvent> = [];
 	public var currentSV:SpeedEvent = {position: 0, songTime:0, speed: 1};
 	public var judgeManager:JudgmentManager;
 
-	var speedChanges:Array<SpeedEvent> = [];
-	var subtitles:Null<SubtitleDisplay>;
-	
-	public var metadata:SongCreditdata; // metadata for the songs (artist, etc)
+	var notefields:NotefieldManager = new NotefieldManager();
+	public var modManager:ModManager; // andromeda modcharts :D
 
-	// andromeda modcharts :D
-	public var modManager:ModManager;
-
-	public var whosTurn:String = '';
-	public var focusedChar:Character;
-
+	/*
 	public static var STRUM_X = 42;
 	public static var STRUM_X_MIDDLESCROLL = -278;
-	public static var arrowSkin:String = '';
+
+	public var spawnTime:Float = 2000;
+	*/
 	public static var arrowSkinbf:String = null;
 	public static var arrowSkindad:String = null;
-	public static var splashSkin:String = '';
 
 	public var gameFont:String = 'Normal Text.ttf';
 	public var gameFontBold:String = 'Bold Normal Text.ttf';
 
+	public var stats:Stats = new Stats();
+	public var noteHits:Array<Float> = [];
+	public var nps:Int = 0;
 	public var ratingStuff:Array<Array<Dynamic>> = Highscore.grades.get(ClientPrefs.gradeSet);
 	
 	public var hud:BaseHUD;
 	public var scoreTxt:FlxText = new FlxText(); // just so psych mods n shit dont error
-	public var timingTxt:FlxText;
+	public var botplayTxt:FlxText;
+	var subtitles:Null<SubtitleDisplay>;
 
 	public var modchartTweens:Map<String, FlxTween> = new Map<String, FlxTween>();
 	public var modchartSprites:Map<String, ModchartSprite> = new Map<String, ModchartSprite>();
@@ -228,8 +221,10 @@ class PlayState extends MusicBeatState
 	public static var storyPlaylist:Array<String> = [];
 	public static var difficulty:Int = 1; // for psych mod shit
 	public static var difficultyName:String = ''; // for psych mod shit
+	public static var arrowSkin:String = '';
+	public static var splashSkin:String = '';
 
-	public var spawnTime:Float = 2000;
+	public var metadata:SongCreditdata; // metadata for the songs (artist, etc)
 
 	public var tracks:Array<FlxSound> = [];
 	public var vocals:FlxSound;
@@ -239,6 +234,7 @@ class PlayState extends MusicBeatState
 	public var gf:Character = null;
 	public var boyfriend:Character = null;
 
+	public var focusedChar:Character;
 	public var gfSpeed:Int = 1;
 
 	public var notes = new FlxTypedGroup<Note>();
@@ -266,12 +262,13 @@ class PlayState extends MusicBeatState
 	
 	public var ratingTxtGroup = new FlxTypedGroup<RatingSprite>();
 	public var comboNumGroup = new FlxTypedGroup<RatingSprite>();
-	
-	private var curSong:String = "";
+	public var timingTxt:FlxText;
 
 	public var displayedHealth(default, set):Float = 1;
 	function set_displayedHealth(value:Float){
 		healthBar.value = value;
+		if (ClientPrefs.etternaHUD == 'ITG')
+			healthBar2.value = value;
 		displayedHealth = value;
 
 		return value;
@@ -368,6 +365,9 @@ class PlayState extends MusicBeatState
 	public var healthBar:FNFHealthBar;
 	public var healthBarBG:FlxSprite;
 
+	public var healthBar2:FNFHealthBar;
+	public var healthBarBG2:FlxSprite;
+
 	public var iconP1:HealthIcon;
 	public var iconP2:HealthIcon;
 
@@ -390,8 +390,8 @@ class PlayState extends MusicBeatState
 	public var cameraSpeed:Float = 1;
 	public var defaultCamZoom:Float = 1;
 
-	public var sectionCamera = new FlxPoint(); // default camera
-	public var customCamera = new FlxPoint(); // custom camera
+	public var sectionCamera = new FlxPoint(); // Default camera focus point
+	public var customCamera = new FlxPoint(); // Used for the 'Camera Follow Pos' event
 	public var cameraPoints:Array<FlxPoint>;
 
 	// how big to stretch the pixel art assets
@@ -464,8 +464,9 @@ class PlayState extends MusicBeatState
 	private var keysArray:Array<Dynamic>;
 	private var controlArray:Array<String>;
 
-	var finishedCreating =false;
+	// Loading
 	var shitToLoad:Array<AssetPreload> = [];
+	var finishedCreating = false;
 
 	// MP4 vids var
 	#if (VIDEOS_ALLOWED)
@@ -656,15 +657,13 @@ class PlayState extends MusicBeatState
 		{
 			Paths.iterateDirectory(folder, function(file:String)
 			{
-				if(filesPushed.contains(file))
+				if(filesPushed.contains(file) || !file.endsWith('.hscript'))
 					return;
 
-				if(file.endsWith('.hscript')) {
-					var script = FunkinHScript.fromFile(folder + file);
-					hscriptArray.push(script);
-					funkyScripts.push(script);
-					filesPushed.push(file);
-				}
+				var script = FunkinHScript.fromFile(folder + file);
+				hscriptArray.push(script);
+				funkyScripts.push(script);
+				filesPushed.push(file);
 			});
 		}
 
@@ -678,6 +677,28 @@ class PlayState extends MusicBeatState
 		if (stage.stageScript != null){
 			hscriptArray.push(cast stage.stageScript);
 			funkyScripts.push(stage.stageScript);
+		}
+
+		// SONG SPECIFIC SCRIPTS
+		var foldersToCheck:Array<String> = Paths.getFolders('songs/$songName');
+		#if PE_MOD_COMPATIBILITY
+		for (dir in Paths.getFolders('data/$songName'))
+			foldersToCheck.push(dir);
+		#end
+
+		var filesPushed:Array<String> = [];
+		for (folder in foldersToCheck)
+		{
+			Paths.iterateDirectory(folder, function(file:String)
+			{
+				if(filesPushed.contains(file) || !file.endsWith('.hscript'))
+					return;
+
+				var script = FunkinHScript.fromFile(folder + file);
+				hscriptArray.push(script);
+				funkyScripts.push(script);
+				filesPushed.push(file);
+			});
 		}
 
 		//// Asset precaching start	
@@ -822,6 +843,7 @@ class PlayState extends MusicBeatState
 		if (hud == null){
 			switch(ClientPrefs.etternaHUD){
 				case 'Advanced': hud = new AdvancedHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
+				case 'ITG': hud = new hud.ITGHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
 				default: hud = new PsychHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
 			}
 		}
@@ -830,6 +852,12 @@ class PlayState extends MusicBeatState
 		// aka make the HUD handle all of this (so that you can make custom HP bars, etc)
 		healthBar = hud.healthBar;
 		healthBarBG = healthBar.healthBarBG;
+
+		if (ClientPrefs.etternaHUD == 'ITG')
+		{
+			healthBar2 = hud.healthBar2;
+			healthBarBG2 = healthBar2.healthBarBG;
+		}
 		iconP1 = healthBar.iconP1;
 		iconP2 = healthBar.iconP2;
 
@@ -951,43 +979,32 @@ class PlayState extends MusicBeatState
 
 			break;
 		}
-		#end
 
 
-		// SONG SPECIFIC SCRIPTS
+		// SONG SPECIFIC LUA SCRIPTS
 		var foldersToCheck:Array<String> = Paths.getFolders('songs/$songName');
 		#if PE_MOD_COMPATIBILITY
-		for (dir in Paths.getFolders('data/$songName'))foldersToCheck.push(dir);
+		for (dir in Paths.getFolders('data/$songName'))
+			foldersToCheck.push(dir);
 		
 		#end
 		var filesPushed:Array<String> = [];
 
 
-		for (folder in foldersToCheck)
-		{
+		var filesPushed:Array<String> = [];
+		for (folder in foldersToCheck){
 			Paths.iterateDirectory(folder, function(file:String)
 			{
-				if(filesPushed.contains(file))
+				if(filesPushed.contains(file) || !file.endsWith('.lua'))
 					return;
 
-				#if LUA_ALLOWED
-				if(file.endsWith('.lua'))
-				{
-					var script = new FunkinLua(folder + file);
-					luaArray.push(script);
-					funkyScripts.push(script);
-					filesPushed.push(file);
-				}
-				else #end if(file.endsWith('.hscript'))
-				{
-					var script = FunkinHScript.fromFile(folder + file);
-					hscriptArray.push(script);
-					funkyScripts.push(script);
-					filesPushed.push(file);
-				}
+				var script = new FunkinLua(folder + file);
+				luaArray.push(script);
+				funkyScripts.push(script);
+				filesPushed.push(file);	
 			});
 		}
-
+		#end
 
 		var cH = [camHUD];
 		hud.cameras = cH;
@@ -1068,12 +1085,10 @@ class PlayState extends MusicBeatState
 		*/
 
 		// Load all of the countdown intro assets!!!!!
-		var shitToLoad:Array<AssetPreload> = [
-			{path: 'intro3', type: "SOUND"},
-			{path: 'intro2', type: "SOUND"},
-			{path: 'intro1', type: "SOUND"},
-			{path: 'introGo', type: "SOUND"}
-		];
+		shitToLoad.push({path: 'intro3', type: "SOUND"});
+		shitToLoad.push({path: 'intro2', type: "SOUND"});
+		shitToLoad.push({path: 'intro1', type: "SOUND"});
+		shitToLoad.push({path: 'introGo', type: "SOUND"});
 		for (introPath in introAlts){
 			if (introPath != null)
 				shitToLoad.push({path: introPath});
@@ -1190,14 +1205,34 @@ class PlayState extends MusicBeatState
 	}
 
 	public function reloadHealthBarColors() {
-		if(callOnHScripts('reloadHealthBarColors', [healthBar]) != Globals.Function_Stop){
-			healthBar.createFilledBar(
-				FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]),
-				FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2])
-			);
-		}
+		if(callOnHScripts('reloadHealthBarColors', [healthBar]) == Globals.Function_Stop)
+			return;
 
-		healthBar.updateBar();
+		if (ClientPrefs.etternaHUD == 'ITG') {
+			if (healthBar != null){
+				healthBar.createFilledBar(
+					FlxColor.BLACK,
+					0xFFdce0e6
+				);
+				healthBar.updateBar();
+			}
+
+			if (healthBar2 != null){
+				healthBar2.createFilledBar(
+					FlxColor.BLACK,
+					0xFFdce0e6
+				);
+				healthBar2.updateBar();
+			}	
+		} else {
+			if (healthBar != null){
+				healthBar.createFilledBar(
+					FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]),
+					FlxColor.fromRGB(boyfriend.healthColorArray[0], boyfriend.healthColorArray[1], boyfriend.healthColorArray[2])
+				);
+				healthBar.updateBar();
+			}	
+		}
 	}
 
 	public function addCharacterToList(newCharacter:String, type:Int) {
@@ -1413,10 +1448,9 @@ class PlayState extends MusicBeatState
 
 	/*
 	function songIntroCutscene(){
-		var daSong:String = Paths.formatToSongPath(curSong);
 		if (isStoryMode && !seenCutscene)
 		{
-			switch (daSong)
+			switch (songName)
 			{
 				default:
 					startCountdown();
@@ -1720,7 +1754,7 @@ class PlayState extends MusicBeatState
 					var returnVal:Dynamic = true;
 
 					#if LUA_ALLOWED
-					if (eventScript.scriptType == 'lua')
+					if (eventScript is FunkinLua)
 						returnVal = callScript(eventScript, "shouldPush", [event.value1, event.value2]);
 					else #end
 						returnVal = callScript(eventScript, "shouldPush", [event]);
@@ -1827,15 +1861,12 @@ class PlayState extends MusicBeatState
 		var songData = SONG;
 		Conductor.changeBPM(songData.bpm);
 
-		curSong = songData.song;
-
-		//FlxG.sound.list.add(new FlxSound().loadEmbedded(Paths.inst(PlayState.SONG.song)));
 		inst = new FlxSound().loadEmbedded(Paths.inst(PlayState.SONG.song));
+		vocals = new FlxSound();
 
 		if (SONG.needsVoices)
-			vocals = new FlxSound().loadEmbedded(Paths.voices(PlayState.SONG.song));
-		else
-			vocals = new FlxSound();
+			vocals.loadEmbedded(Paths.voices(PlayState.SONG.song));
+
 		FlxG.sound.list.add(inst);
 		FlxG.sound.list.add(vocals);
 
@@ -1883,13 +1914,10 @@ class PlayState extends MusicBeatState
 
 		for (section in noteData)
 			{
-				for (songNotes in section.sectionNotes)
-				{
-					var type:Dynamic = section.mustHitSection ? arrowSkinbf : arrowSkindad;
+				var type:Dynamic = section.mustHitSection ? arrowSkinbf : arrowSkindad;
 	
-					if (!noteSkinMap.exists(type)) {
-						noteSkinMap.set(type, true);
-					}
+				if (!noteSkinMap.exists(type)) {
+					noteSkinMap.set(type, true);
 				}
 			}
 	
@@ -2139,7 +2167,7 @@ class PlayState extends MusicBeatState
 
 				#if LUA_ALLOWED
 				// in hscripts setupNote gets called on Note.set_noteType
-				if(swagNote.noteScript != null && swagNote.noteScript.scriptType == 'lua'){
+				if(swagNote.noteScript != null && swagNote.noteScript is FunkinLua){
 					callScript(swagNote.noteScript, 'setupNote', [
 						allNotes.indexOf(swagNote),
 						Math.abs(swagNote.noteData),
@@ -2174,7 +2202,7 @@ class PlayState extends MusicBeatState
 						playfield.queue(sustainNote);
 						allNotes.push(sustainNote);
 						#if LUA_ALLOWED
-						if (sustainNote.noteScript != null && sustainNote.noteScript.scriptType == 'lua'){
+						if (sustainNote.noteScript != null && sustainNote.noteScript is FunkinLua){
 							callScript(sustainNote.noteScript, 'setupNote', [
 								allNotes.indexOf(sustainNote),
 								Math.abs(sustainNote.noteData),
@@ -2215,7 +2243,7 @@ class PlayState extends MusicBeatState
 
 		#if(LUA_ALLOWED && PE_MOD_COMPATIBILITY)
 		for(key => script in notetypeScripts){
-			if(script.scriptType == 'lua')
+			if(script is FunkinLua)
 				script.call("onCreate");
 			
 		}
@@ -2306,7 +2334,7 @@ class PlayState extends MusicBeatState
 					var eventScript:FunkinScript = eventScripts.get(event.event);
 
 					#if LUA_ALLOWED
-					if (eventScript.scriptType == 'lua')
+					if (eventScript is FunkinLua)
 						callScript(eventScript, "onPush",[event.value1, event.value2]);
 					else
 					#end
@@ -2333,10 +2361,10 @@ class PlayState extends MusicBeatState
 				// should PROBABLY turn this into a function, callEventScript(eventNote, "func") or something, idk
 				if (eventScripts.exists(event.event))
 				{
-					var eventScript:Dynamic = eventScripts.get(event.event);
+					var eventScript:FunkinScript = eventScripts.get(event.event);
 
 					#if LUA_ALLOWED
-					if (eventScript.scriptType == 'lua')
+					if (eventScript is FunkinLua)
 						callScript(eventScript, "onLoad", [event.value1, event.value2]);
 					else
 					#end
@@ -2431,9 +2459,9 @@ class PlayState extends MusicBeatState
 		var currentRV:Float = callOnAllScripts('eventEarlyTrigger', [event.event, event.value1, event.value2]);
 
 		if (eventScripts.exists(event.event)){
-			var eventScript:Dynamic = eventScripts.get(event.event);
+			var eventScript:FunkinScript = eventScripts.get(event.event);
 			#if LUA_ALLOWED
-			if(eventScript.scriptType == 'lua')
+			if(eventScript is FunkinLua)
 				returnedValue = callScript(eventScript, "getOffset", [event.value1, event.value2]);
 			else
 			#end
@@ -2696,8 +2724,7 @@ class PlayState extends MusicBeatState
 				var script:FunkinScript = dunceNote.noteScript;
 
 				#if LUA_ALLOWED
-				if (script.scriptType == 'lua')
-				{
+				if (script is FunkinLua) {
 					callScript(script, 'postSpawnNote', [
 						notes.members.indexOf(dunceNote),
 						Math.abs(dunceNote.noteData),
@@ -2750,15 +2777,13 @@ class PlayState extends MusicBeatState
 		setOnScripts('curDecStep', curDecStep);
 		setOnScripts('curDecBeat', curDecBeat);
 		#if(LUA_ALLOWED && PE_MOD_COMPATIBILITY)
-		for (key => script in notetypeScripts){
-			if(script.scriptType=='lua')script.call("onUpdate", [elapsed]); // for backwards compat w/ psych lua
-		}
+		for (key => script in notetypeScripts)
+			if(script is FunkinLua) script.call("onUpdate", [elapsed]); // for backwards compat w/ psych lua
 		#end
 
 		#if(LUA_ALLOWED && PE_MOD_COMPATIBILITY)
-		for (key => script in eventScripts){
-			if(script.scriptType=='lua')script.call("onUpdate", [elapsed]); // for backwards compat w/ psych lua
-		}
+		for (key => script in eventScripts)
+			if(script is FunkinLua) script.call("onUpdate", [elapsed]); // for backwards compat w/ psych lua
 		#end
 
 		callOnScripts('onUpdate', [elapsed]);
@@ -2988,14 +3013,11 @@ class PlayState extends MusicBeatState
 		setOnScripts('cameraY', camFollowPos.y);
 		callOnScripts('onUpdatePost', [elapsed]);
 		#if(LUA_ALLOWED && PE_MOD_COMPATIBILITY)
-		for (key => script in notetypeScripts){
-			if(script.scriptType=='lua')script.call("onUpdatePost", [elapsed]); // for backwards compat w/ psych lua
-		}
-		#end
-		#if(LUA_ALLOWED && PE_MOD_COMPATIBILITY)
-		for (key => script in eventScripts){
-			if(script.scriptType=='lua')script.call("onUpdatePost", [elapsed]); // for backwards compat w/ psych lua
-		}
+		for (key => script in notetypeScripts)
+			if(script is FunkinLua) script.call("onUpdatePost", [elapsed]); // for backwards compat w/ psych lua
+
+		for (key => script in eventScripts)
+			if(script is FunkinLua) script.call("onUpdatePost", [elapsed]); // for backwards compat w/ psych lua
 		#end
 	}
 
@@ -3414,7 +3436,7 @@ class PlayState extends MusicBeatState
 		if(eventScripts.exists(eventName)){
 			var script = eventScripts.get(eventName);
 			#if LUA_ALLOWED
-			if(script.scriptType == 'lua')
+			if(script is FunkinLua)
 				callScript(script, "onEvent", [eventName, value1, value2]);
 			else
 			#end
@@ -3681,6 +3703,7 @@ class PlayState extends MusicBeatState
 	private function displayJudgment(image:String){
 		var rating:RatingSprite;
 		var time = (Conductor.stepCrochet * 0.001);
+		var itgRatingScale:Float = ClientPrefs.etternaHUD == 'ITG' ? 1.4 : 0.7;
 
 		if (ClientPrefs.simpleJudge)
 		{
@@ -3694,15 +3717,15 @@ class PlayState extends MusicBeatState
 				rating.tween.destroy();
 			}
 
-			rating.scale.set(0.7 * 1.1, 0.7 * 1.1);
+			rating.scale.set(itgRatingScale * 1.1, itgRatingScale * 1.1);
 
-			rating.tween = FlxTween.tween(rating.scale, {x: 0.7, y: 0.7}, 0.1, {
+			rating.tween = FlxTween.tween(rating.scale, {x: itgRatingScale, y: itgRatingScale}, 0.1, {
 				ease: FlxEase.quadOut,
 				onComplete: function(tween:FlxTween)
 				{
 					if (!rating.alive)
 						return;
-
+	
 					rating.tween = FlxTween.tween(rating.scale, {x: 0, y: 0}, time, {
 						startDelay: time * 8,
 						ease: FlxEase.quadIn,
@@ -3719,6 +3742,7 @@ class PlayState extends MusicBeatState
 			rating = ratingTxtGroup.recycle(RatingSprite, RatingSprite.newRating);
 			rating.moves = true;
 			rating.acceleration.y = 550;
+			rating.scale.set(itgRatingScale, itgRatingScale);
 			rating.velocity.set(FlxG.random.int(-10, 10), -FlxG.random.int(140, 175));
 
 			rating.alpha = 1;
@@ -3735,7 +3759,12 @@ class PlayState extends MusicBeatState
 		rating.alpha = ClientPrefs.judgeOpacity;
 
 		rating.visible = showRating;
-		rating.loadGraphic(Paths.image(image));
+		if (ClientPrefs.etternaHUD == 'ITG') {
+			rating.frames = Paths.getSparrowAtlas('SimplyLoveHud/judgements');
+			rating.animation.addByPrefix(image, image, 0);
+			rating.animation.play(image);
+		} else
+			rating.loadGraphic(Paths.image(image));
 		rating.updateHitbox();
 
 		rating.screenCenter();
@@ -4150,10 +4179,10 @@ class PlayState extends MusicBeatState
 		
 		if (daNote.noteScript!=null)
 		{
-			var script:Dynamic = daNote.noteScript;
+			var script:FunkinScript = daNote.noteScript;
 
 			#if LUA_ALLOWED
-			if (script.scriptType == 'lua')
+			if (script is FunkinLua)
 			{
 				if(callScript(script, 'preNoteMiss', [
 					notes.members.indexOf(daNote),
@@ -4256,10 +4285,10 @@ class PlayState extends MusicBeatState
 		////
 		if (daNote.noteScript != null)
 		{
-			var script:Dynamic = daNote.noteScript;
+			var script:FunkinScript = daNote.noteScript;
 
 			#if LUA_ALLOWED
-			if (script.scriptType == 'lua')
+			if (script is FunkinLua)
 			{
 				callScript(script, 'noteMiss', [
 					notes.members.indexOf(daNote),
@@ -4340,7 +4369,7 @@ class PlayState extends MusicBeatState
 		{
 			var script:FunkinScript = note.noteScript;
 			#if LUA_ALLOWED
-			if (script.scriptType == 'lua')
+			if (script is FunkinLua)
 				if (callScript(script, 'preOpponentNoteHit', [notes.members.indexOf(note), leData, leType, isSus, note.ID]) == Globals.Function_Stop)
 					return;
 				else
@@ -4403,10 +4432,10 @@ class PlayState extends MusicBeatState
 
 		if (note.noteScript != null)
 		{
-			var script:Dynamic = note.noteScript;
+			var script:FunkinScript = note.noteScript;
 
 			#if LUA_ALLOWED
-			if (script.scriptType == 'lua'){
+			if (script is FunkinLua){
 				callScript(script, 'opponentNoteHit',
 				[
 					notes.members.indexOf(note),
@@ -4474,7 +4503,7 @@ class PlayState extends MusicBeatState
 		{
 			var script:FunkinScript = note.noteScript;
 			#if LUA_ALLOWED
-			if (script.scriptType == 'lua')
+			if (script is FunkinLua)
 				if (callScript(script, 'preGoodNoteHit', [notes.members.indexOf(note), leData, leType, isSus, note.ID]) == Globals.Function_Stop)
 					return;
 				else
@@ -4595,7 +4624,7 @@ class PlayState extends MusicBeatState
 		{
 			var script:FunkinScript = note.noteScript;
 			#if LUA_ALLOWED
-			if (script.scriptType == 'lua')
+			if (script is FunkinLua)
 				callScript(script, 'goodNoteHit',
 					[notes.members.indexOf(note), leData, leType, isSus, note.ID]);
 			else
@@ -4913,58 +4942,7 @@ class PlayState extends MusicBeatState
 			spr.resetAnim = time;
 		}
 	}
-	public function getClearType(){
-		var clear = 'Clear';
-
-		if (stats.comboBreaks <= 0)
-		{
-			var goods = stats.judgements.get("good");
-			var sicks = stats.judgements.get("sick");
-			var epics = stats.judgements.get("epic");
-
-			if (totalPlayed == 0){
-				clear = 'No Play'; // Havent played anything yet
-				return clear;
-			}
-
-			if (goods > 0){
-				if(goods < 10 && goods > 0)
-					clear = 'SDG'; // Single Digit Goods
-				else
-					clear = 'GFC'; // Good Full Combo
-			}
-			else if (sicks > 0)
-			{
-				if (sicks < 10 && sicks > 0)
-					clear = 'SDS'; // Single Digit Sicks
-				else
-					clear = 'SFC'; // Sick Full Combo
-			}
-			else if (epics > 0)
-				clear = "EFC";
-			if (ClientPrefs.gradeSet == 'Etterna')
-			{
-				if(sicks == 1)
-					clear = 'WF'; // White Flag (EFC missed by 1 sick)
-				else if (goods == 1)
-					clear = 'BF'; // Black Flag (SFC missed by 1 good)
-				
-			}
-			
-		}
-		else
-		{
-			if (ClientPrefs.gradeSet == 'Etterna' && stats.comboBreaks == 1)
-				clear = 'MF'; // Miss Flag (Any FC missed by 1 CB)
-			else if (stats.comboBreaks < 10 && stats.score >= 0)
-				clear = "SDCB"; // Single Digit Combo Break
-			else if (stats.score < 0 || stats.comboBreaks >= 10 && stats.ratingPercent <= 0)
-				clear = "Fail"; // Fail
-		}
-
-		return clear;
-	}
-
+	
 	public function RecalculateRating() {
 		setOnScripts('score', stats.score);
 		setOnScripts('misses', songMisses);
@@ -5200,16 +5178,26 @@ class FNFHealthBar extends FlxBar{
 
 	override function set_visible(value:Bool){
 		healthBarBG.visible = value;
-		iconP1.visible = value;
-		iconP2.visible = value;
+		if (ClientPrefs.etternaHUD == 'ITG') {
+			iconP1.visible = false;
+			iconP2.visible = false;
+		} else {
+			iconP1.visible = value;
+			iconP2.visible = value;
+		}
 
 		return super.set_visible(value);
 	}
 
 	override function set_alpha(value:Float){
 		healthBarBG.alpha = value;
-		iconP1.alpha = value;
-		iconP2.alpha = value;
+		if (ClientPrefs.etternaHUD == 'ITG') {
+			iconP1.alpha = 0;
+			iconP2.alpha = 0;
+		} else {
+			iconP1.alpha = value;
+			iconP2.alpha = value;
+		}
 
 		return super.set_alpha(value);
 	}
@@ -5217,13 +5205,18 @@ class FNFHealthBar extends FlxBar{
 	public function new(bfHealthIcon = "face", dadHealthIcon = "face")
 	{
 		//
-		healthBarBG = new FlxSprite(0, FlxG.height * (ClientPrefs.downScroll ? 0.11 : 0.89));
-		healthBarBG.loadGraphic(Paths.image('healthBar'));
-		//healthBarBG.makeGraphic(600, 18);
-		//healthBarBG.color = 0xFF000000;
-		healthBarBG.screenCenter(X);
-		healthBarBG.scrollFactor.set();
-		healthBarBG.antialiasing = false;
+		if (ClientPrefs.etternaHUD == 'ITG') {
+			healthBarBG = new FlxSprite(10, FlxG.height - 706);
+			healthBarBG.loadGraphic(Paths.image('SimplyLoveHud/HealthBG'));
+			healthBarBG.scrollFactor.set();
+			healthBarBG.antialiasing = false;
+		}else {
+			healthBarBG = new FlxSprite(0, FlxG.height * (ClientPrefs.downScroll ? 0.11 : 0.89));
+			healthBarBG.loadGraphic(Paths.image('healthBar'));
+			healthBarBG.screenCenter(X);
+			healthBarBG.scrollFactor.set();
+			healthBarBG.antialiasing = false;
+		}
 
 		//
 		iconP1 = new HealthIcon(bfHealthIcon, true);
@@ -5232,15 +5225,26 @@ class FNFHealthBar extends FlxBar{
 		rightIcon = iconP1;
 
 		//
-		isOpponentMode = PlayState.instance.playOpponent;
+		if (ClientPrefs.etternaHUD != 'ITG')
+			isOpponentMode = PlayState.instance.playOpponent;
 
-		super(
-			healthBarBG.x + 5, healthBarBG.y + 5,
-			RIGHT_TO_LEFT,
-			Std.int(healthBarBG.width - 10), Std.int(healthBarBG.height - 10),
-			null, null,
-			0, 2
-		);
+		if (ClientPrefs.etternaHUD == 'ITG') {
+			super(
+				healthBarBG.x + 5, healthBarBG.y + 5,
+				LEFT_TO_RIGHT,
+				Std.int(healthBarBG.width - 10), Std.int(healthBarBG.height - 10),
+				null, null,
+				0, 2
+			);
+		} else {
+			super(
+				healthBarBG.x + 5, healthBarBG.y + 5,
+				RIGHT_TO_LEFT,
+				Std.int(healthBarBG.width - 10), Std.int(healthBarBG.height - 10),
+				null, null,
+				0, 2
+			);
+		}
 		
 		value = 1;
 

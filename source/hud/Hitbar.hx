@@ -48,6 +48,10 @@ class Hitbar extends FlxSpriteGroup {
         return avg;
     }
 
+	var epicColors:FlxColor = 0xFFE367E5;
+	var sickColors:FlxColor = 0xFF00A2E8;
+	var goodColors:FlxColor = 0xFFB5E61D;
+
 	public function new(?x:Float, ?y:Float){
         super(x, y);
 
@@ -56,11 +60,18 @@ class Hitbar extends FlxSpriteGroup {
 		mainBar.alpha = 0.5;
 		add(mainBar);
 
-		var epicWindow = new FlxSprite().makeGraphic(Std.int(hitbarPxPerMs * judgeManager.getWindow(TIER5)), hitbarHeight, 0xFFE367E5);
+		if (ClientPrefs.etternaHUD == 'ITG')
+		{
+			epicColors = 0xFF55daf3;
+			sickColors = 0xFFedd48a;
+			goodColors = 0xFF74c857;
+		}
+
+		var epicWindow = new FlxSprite().makeGraphic(Std.int(hitbarPxPerMs * judgeManager.getWindow(TIER5)), hitbarHeight, epicColors);
 		epicWindow.alpha = 0.6;
-		var sickWindow = new FlxSprite().makeGraphic(Std.int(hitbarPxPerMs * judgeManager.getWindow(TIER4)), hitbarHeight, 0xFF00A2E8);
+		var sickWindow = new FlxSprite().makeGraphic(Std.int(hitbarPxPerMs * judgeManager.getWindow(TIER4)), hitbarHeight, sickColors);
 		sickWindow.alpha = 0.6;
-		var goodWindow = new FlxSprite().makeGraphic(Std.int(hitbarPxPerMs * judgeManager.getWindow(TIER3)), hitbarHeight, 0xFFB5E61D);
+		var goodWindow = new FlxSprite().makeGraphic(Std.int(hitbarPxPerMs * judgeManager.getWindow(TIER3)), hitbarHeight, goodColors);
 		goodWindow.alpha = 0.6;
 		var badWindow = new FlxSprite().makeGraphic(Std.int(hitbarPxPerMs * judgeManager.getWindow(TIER2)), hitbarHeight, FlxColor.BLACK);
 		badWindow.alpha = 0.6;

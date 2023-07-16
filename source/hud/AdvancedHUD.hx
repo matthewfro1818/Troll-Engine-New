@@ -288,19 +288,7 @@ class AdvancedHUD extends BaseHUD
 					scoreTxt.text = displayedScore;
 					scoreTxt.color = !PlayState.instance.saveScore ? 0x818181 : ((songWifeHighscore != 0 && val > songWifeHighscore) ? 0xFFD800 : 0xFFFFFF);
 				}
-
-				var disp:Int = Math.floor(val * 100);
-				var displayedScore = Std.string(disp);
-				if (displayedScore.length > 7)
-				{
-					if (disp < 0)
-						displayedScore = '-999999';
-					else
-						displayedScore = '9999999';
-				}
-
-				scoreTxt.text = displayedScore;
-				scoreTxt.color = !PlayState.instance.saveScore ? 0x818181 : ((songWifeHighscore != 0 && val > songWifeHighscore) ? 0xFFD800 : 0xFFFFFF);
+				ratingTxt.color = !PlayState.instance.saveScore ? 0x818181 : ((songWifeHighscore != 0 && val > songWifeHighscore && stats.ratingPercent > songHighRating) ? 0xFFD800 : 0xFFFFFF);
 			case 'grade':
 				FlxTween.cancelTweensOf(gradeTxt.scale);
 				gradeTxt.scale.set(1.2, 1.2);

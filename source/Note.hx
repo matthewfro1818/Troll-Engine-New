@@ -253,13 +253,13 @@ class Note extends NoteObject
 			rgbShader.b = ClientPrefs.columnColors[noteData % 4][2];
 		}
 
-		if (noteScript != null && noteScript.scriptType == 'hscript')
+		if (noteScript != null && noteScript is FunkinHScript)
 		{
 			var noteScript:FunkinHScript = cast noteScript;
 			noteScript.executeFunc("onUpdateColours", [this], this);
 		}
 
-		if (skinScript != null && skinScript.scriptType == 'hscript')
+		if (skinScript != null && skinScript is FunkinHScript)
 		{
 			var skinScript:FunkinHScript = cast skinScript;
 			skinScript.executeFunc("onUpdateColours", [this], this);
@@ -328,20 +328,20 @@ class Note extends NoteObject
 					else if(inEditor && ChartingState.instance!=null)
 						noteScript = ChartingState.instance.notetypeScripts.get(value);
 					
-					if (noteScript != null && noteScript.scriptType == 'hscript')
+					if (noteScript != null && noteScript is FunkinHScript)
 					{
 						var noteScript:FunkinHScript = cast noteScript;
-						noteScript.executeFunc("setupNote", [this], this);
+						noteScript.executeFunc("setupNote", [this], this, ["this" => this]);
 					}
 						
 			}
 			noteType = value;
 		}
 
-		if (noteScript != null && noteScript.scriptType == 'hscript')
+		if (noteScript != null && noteScript is FunkinHScript)
 		{
 			var noteScript:FunkinHScript = cast noteScript;
-			noteScript.executeFunc("postSetupNote", [this], this);
+			noteScript.executeFunc("postSetupNote", [this], this, ["this" => this]);
 		}
 		return value;
 	}
@@ -351,13 +351,11 @@ class Note extends NoteObject
 	public function new(strumTime:Float, noteData:Int, ?prevNote:Note, ?sustainNote:Bool = false,?style:String = '', ?inEditor:Bool = false)
 	{
 		super();
-
-		if (prevNote == null)
-			prevNote = this;
-		
-		this.prevNote = prevNote;
-		this.style = style;
-		isSustainNote = sustainNote;
+		this.strumTime = strumTime;
+		this.noteData = noteData;
+		this.prevNote = (prevNote==null) ? this : prevNote;
+		this.isSustainNote = sustainNote;
+		this.inEditor = inEditor;
 
 		if (canQuant && ClientPrefs.noteSkin == 'Quants'){
 			if(prevNote != null && isSustainNote)
@@ -367,16 +365,13 @@ class Note extends NoteObject
 		}
 		beat = Conductor.getBeat(strumTime);
 
-		this.inEditor = inEditor;
+		//x += PlayState.STRUM_X + 50;
+		y -= 2000; // MAKE SURE ITS DEFINITELY OFF SCREEN?
 
-		x += PlayState.STRUM_X + 50;
-		// MAKE SURE ITS DEFINITELY OFF SCREEN?
-		y -= 2000;
-		this.strumTime = strumTime;
-		if(!inEditor) this.strumTime += ClientPrefs.noteOffset;
-		if(!inEditor)visualTime = PlayState.instance.getNoteInitialTime(this.strumTime);
-
-		this.noteData = noteData;
+		if(!inEditor){ 
+			this.strumTime += ClientPrefs.noteOffset;
+			visualTime = PlayState.instance.getNoteInitialTime(this.strumTime);
+		}
 
 		if(noteData > -1) {
 			texture = '';
@@ -402,10 +397,10 @@ class Note extends NoteObject
 			alpha = 0.6;
 			multAlpha = 0.6;
 			hitsoundDisabled = true;
+			copyAngle = false;
 			//if(ClientPrefs.downScroll) flipY = true;
 
 			//offsetX += width* 0.5;
-			copyAngle = false;
 
 			if (pixelNote)
 				offsetX += 30;
@@ -449,7 +444,7 @@ class Note extends NoteObject
 
 	public function reloadNote(skin:String = '',type:String = '')
 	{
-		if (noteScript != null && noteScript.scriptType == 'hscript')
+		if (noteScript != null && noteScript is FunkinHScript)
 		{
 			var noteScript:FunkinHScript = cast noteScript;
 			if (noteScript.executeFunc("onReloadNote", [this,skin,type], this) == Globals.Function_Stop)
@@ -520,7 +515,7 @@ class Note extends NoteObject
 		else if(inEditor && ChartingState.instance!=null)
 			skinScript = ChartingState.instance.noteskinScripts.get(skin);
 	
-		if (skinScript != null && skinScript.scriptType == 'hscript'){
+		if (skinScript != null && skinScript is FunkinHScript){
 			var skinScript:FunkinHScript = cast skinScript;
 			skinScript.executeFunc("ReloadNoteSkin", [this], this);
 		}
@@ -544,7 +539,7 @@ class Note extends NoteObject
 			updateHitbox();
 		}
 	
-		if (noteScript != null && noteScript.scriptType == 'hscript')
+		if (noteScript != null && noteScript is FunkinHScript)
 		{
 			var noteScript:FunkinHScript = cast noteScript;
 			noteScript.executeFunc("postReloadNote", [this,skin,type], this);
@@ -562,7 +557,7 @@ class Note extends NoteObject
 				antialiasing = ClientPrefs.globalAntialiasing;
 		}
 
-		if (noteScript != null && noteScript.scriptType == 'hscript'){
+		if (noteScript != null && noteScript is FunkinHScript){
 			var noteScript:FunkinHScript = cast noteScript;
 			if (noteScript.exists("loadNoteTypeAnims") && Reflect.isFunction(noteScript.get("loadNoteTypeAnims"))){
 				noteScript.executeFunc("loadNoteTypeAnims", [this, type], this);
@@ -571,7 +566,7 @@ class Note extends NoteObject
 	}
 
 	public function loadNoteAnims() {
-		if (noteScript != null && noteScript.scriptType == 'hscript'){
+		if (noteScript != null && noteScript is FunkinHScript){
 			var noteScript:FunkinHScript = cast noteScript;
 			if (noteScript.exists("loadNoteAnims") && Reflect.isFunction(noteScript.get("loadNoteAnims"))){
 				noteScript.executeFunc("loadNoteAnims", [this], this, ["super" => _loadNoteAnims]);
@@ -633,12 +628,12 @@ class Note extends NoteObject
 		zIndex -= (mustPress == true ? 0 : 1); */
 
 		if(!inEditor){
-			if (noteScript != null && noteScript.scriptType == 'hscript'){
+			if (noteScript != null && noteScript is FunkinHScript){
 				var noteScript:FunkinHScript = cast noteScript;
 				noteScript.executeFunc("noteUpdate", [elapsed], this);
 			}
 
-			if (skinScript != null && skinScript.scriptType == 'hscript'){
+			if (skinScript != null && skinScript is FunkinHScript){
 				var skinScript:FunkinHScript = cast skinScript;
 				skinScript.executeFunc("noteUpdate", [elapsed], this);
 			}

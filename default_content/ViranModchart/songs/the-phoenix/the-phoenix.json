@@ -5,6 +5,26 @@
 		"player2": "dad",
 		"events": [
 			[
+				0,
+				[
+					[
+						"Change Scroll Speed",
+						"0.2",
+						""
+					]
+				]
+			],
+			[
+				12808.9887640449,
+				[
+					[
+						"Change Scroll Speed",
+						"1",
+						"1"
+					]
+				]
+			],
+			[
 				13483.1460674157,
 				[
 					[
@@ -3875,6 +3895,56 @@
 				"mustHitSection": true,
 				"changeBPM": false,
 				"bpm": 178
+			},
+			{
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"sectionBeats": 4,
+				"altAnim": false,
+				"gfSection": false,
+				"bpm": 178,
+				"changeBPM": false,
+				"mustHitSection": true
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 178
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 178
+			},
+			{
+				"sectionBeats": 4,
+				"sectionNotes": [],
+				"typeOfSection": 0,
+				"gfSection": false,
+				"altAnim": false,
+				"mustHitSection": true,
+				"changeBPM": false,
+				"bpm": 178
+			},
+			{
+				"gfSection": false,
+				"altAnim": false,
+				"typeOfSection": 0,
+				"sectionNotes": [],
+				"bpm": 178,
+				"sectionBeats": 4,
+				"changeBPM": false,
+				"mustHitSection": true
 			},
 			{
 				"gfSection": false,

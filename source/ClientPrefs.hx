@@ -397,7 +397,7 @@ class ClientPrefs
 				type: Dropdown,
 				value: "Default",
 				data: [
-					"options" => ["Default", "Advanced"]
+					"options" => ["Default", "Advanced", "ITG"]
 				]
 			},
 
