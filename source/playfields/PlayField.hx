@@ -501,7 +501,12 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 					if (!daNote.isSustainNote){
 						var hitDiff = Conductor.songPosition - daNote.strumTime;
 						if (isPlayer && (hitDiff + ClientPrefs.ratingOffset) >= (-5 * (Wife3.timeScale > 1?1:Wife3.timeScale)) || hitDiff >= 0){
-							daNote.hitResult.judgment = judgeManager.useEpics ? TIER5 : TIER4;
+							if (judgeManager.useEpics) {
+								daNote.hitResult.judgment = TIER5 ;
+							} else {
+								if (ClientPrefs.etternaHUD != "ITG")
+									daNote.hitResult.judgment = TIER4;
+							}
 							daNote.hitResult.hitDiff = (hitDiff > -5) ? -5 : hitDiff;
 							if (noteHitCallback!=null)noteHitCallback(daNote, this);
 						}

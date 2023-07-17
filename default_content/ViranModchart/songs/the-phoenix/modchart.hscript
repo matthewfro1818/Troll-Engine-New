@@ -3,10 +3,6 @@ importClass("shaders.Shaders.ChromaticAbberation");
 
 var modManager = game.modManager;
 
-function onCreatePost(){
-        game.camZooming = true;
-}
-
 function onCountdownStarted(){
     modManager.setValue("alpha", 1, 1);
     modManager.setPercent("opponentSwap", 50);
@@ -140,38 +136,43 @@ function onStepHit()
     }
 }
 
-if (ClientPrefs.shaders == 'None')
-    return;
-
-var vhsShaders;
-var vhsFilter;
+if (ClientPrefs.shaders != 'None') {
+    var vhsShaders;
+    var vhsFilter;
+}
 
 function onCreatePost()
 {
-    vhsShaders = newShader("vcr");
-    //vhsShaders.data.iTime.value = [0];
+    game.camZooming = true;
+    if (ClientPrefs.shaders != 'None') {
+        vhsShaders = newShader("vcr");
+        //vhsShaders.data.iTime.value = [0];
 
-    vhsFilter = new ShaderFilter(vhsShaders);
-    FlxG.game.setFilters([vhsFilter]);
+        vhsFilter = new ShaderFilter(vhsShaders);
+        FlxG.game.setFilters([vhsFilter]);
+    }
 }
 function removeVHSShader()
 {
-	if (vhsShaders != null){
-		if (script.get("game") == null){
-			getInstance().camGame.setFilters([]);
-			return;
-		}
-	
-		game.camGame.setFilters([]);
-		game.camHUD.setFilters([]);
-        FlxG.game.setFilters([]);
-	}
+    if (ClientPrefs.shaders != 'None') {
+        if (vhsShaders != null){
+            if (script.get("game") == null){
+                getInstance().camGame.setFilters([]);
+                return;
+            }
+        
+            game.camGame.setFilters([]);
+            game.camHUD.setFilters([]);
+            FlxG.game.setFilters([]);
+        }
+    }
 }
 
 onDestroy = removeVHSShader;
 function update(elapsed)
 {
-    vhsShaders.data.iTime.value = [Conductor.songPosition * 0.001];
+    if (ClientPrefs.shaders != 'None')
+        vhsShaders.data.iTime.value = [Conductor.songPosition * 0.001];
 }
 
 onGameOver = removeVHSShader;

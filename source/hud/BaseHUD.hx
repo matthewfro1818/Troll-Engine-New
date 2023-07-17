@@ -134,8 +134,6 @@ class BaseHUD extends FlxSpriteGroup {
 		super();
 		this.stats = stats;
 		this.songName = songName;
-		if (!ClientPrefs.useEpics)
-			displayedJudges.remove("epic");
 
 		healthBar = new FNFHealthBar(iP1, iP2);
 		if (ClientPrefs.etternaHUD == 'ITG')

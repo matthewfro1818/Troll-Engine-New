@@ -356,6 +356,7 @@ class Note extends NoteObject
 		this.prevNote = (prevNote==null) ? this : prevNote;
 		this.isSustainNote = sustainNote;
 		this.inEditor = inEditor;
+		this.style = style;
 
 		if (canQuant && ClientPrefs.noteSkin == 'Quants'){
 			if(prevNote != null && isSustainNote)

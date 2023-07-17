@@ -717,14 +717,14 @@ class PlayState extends MusicBeatState
 			shitToLoad.push({path: 'missnote3', type: 'SOUND'});
 		}
 
-		/* 
+		 
 		if (PauseSubState.songName != null)
 			shitToLoad.push({path: PauseSubState.songName, type: 'MUSIC'});
-		else if (ClientPrefs.pauseMusic != 'None')
-			shitToLoad.push({path: Paths.formatToSongPath(ClientPrefs.pauseMusic), type: 'MUSIC'}); 
+		else if (PauseSubState.songName != 'None')
+			shitToLoad.push({path: Paths.formatToSongPath('Breakfast'), type: 'MUSIC'}); 
 		
 		shitToLoad.push({path: "breakfast", type: 'MUSIC'}); 
-		*/
+		
 
 		////
 		shitToLoad.push({path: 'noteSkin/$arrowSkin'});
@@ -3798,7 +3798,11 @@ class PlayState extends MusicBeatState
 
 		var daLoop:Int = 0;
 
-		var col = combo < 0 ? hud.judgeColours.get("miss") : comboColor;
+		var col;
+		if (ClientPrefs.etternaHUD == "ITG")
+			col = combo < 0 ? hud.itgJudgeColours.get("miss") : comboColor;
+		else
+			col = combo < 0 ? hud.judgeColours.get("miss") : comboColor;
 
 		var numStartX:Float = (FlxG.width - separatedScore.length * 41) * 0.5 + ClientPrefs.comboOffset[2];
 		for (i in separatedScore)
@@ -3894,14 +3898,25 @@ class PlayState extends MusicBeatState
 
 		if (ClientPrefs.coloredCombos)
 			{
-				if (stats.judgements.get("bad") > 0 || stats.judgements.get("shit") > 0 || stats.comboBreaks > 0)
-					comboColor = 0xFFFFFFFF;
-				else if (stats.judgements.get("good") > 0)
-					comboColor = hud.judgeColours.get("good");
-				else if (stats.judgements.get("sick") > 0)
-					comboColor = hud.judgeColours.get("sick");
-				else if (stats.judgements.get("epic") > 0)
-					comboColor = hud.judgeColours.get("epic");
+				if (ClientPrefs.etternaHUD == "ITG") {
+					if (stats.judgements.get("bad") > 0 || stats.judgements.get("shit") > 0 || stats.comboBreaks > 0)
+						comboColor = 0xFFFFFFFF;
+					else if (stats.judgements.get("good") > 0)
+						comboColor = hud.itgJudgeColours.get("good");
+					else if (stats.judgements.get("sick") > 0)
+						comboColor = hud.itgJudgeColours.get("sick");
+					else if (stats.judgements.get("epic") > 0)
+						comboColor = hud.itgJudgeColours.get("epic");
+				} else {
+					if (stats.judgements.get("bad") > 0 || stats.judgements.get("shit") > 0 || stats.comboBreaks > 0)
+						comboColor = 0xFFFFFFFF;
+					else if (stats.judgements.get("good") > 0)
+						comboColor = hud.judgeColours.get("good");
+					else if (stats.judgements.get("sick") > 0)
+						comboColor = hud.judgeColours.get("sick");
+					else if (stats.judgements.get("epic") > 0)
+						comboColor = hud.judgeColours.get("epic");
+				}
 			}
 
 		if(show){
@@ -3964,7 +3979,10 @@ class PlayState extends MusicBeatState
 			timingTxt.x += ClientPrefs.comboOffset[4];
 			timingTxt.y -= ClientPrefs.comboOffset[5];
 
-			timingTxt.color = hud.judgeColours.get(judgeData.internalName);
+			if (ClientPrefs.etternaHUD == "ITG")
+				timingTxt.color = hud.itgJudgeColours.get(judgeData.internalName);
+			else
+				timingTxt.color = hud.judgeColours.get(judgeData.internalName);
 
 			timingTxt.visible = true;
 			timingTxt.alpha = ClientPrefs.judgeOpacity;

@@ -240,7 +240,7 @@ class JudgmentManager {
         if(useEpics==null)useEpics = ClientPrefs.useEpics;
 
         this.useEpics = useEpics;
-        if(!useEpics){
+        if(!useEpics && ClientPrefs.etternaHUD != "ITG"){
 			hittableJudgments.remove(TIER5);
             judgmentData.get(TIER4).accuracy =100;
         }

@@ -25,5 +25,5 @@ function ReloadStrumsSkin(strum:StrumNote)
 	strum.frames = Paths.getSparrowAtlas('noteSkin/tenzus_notes');
 	strum._loadStrumAnims();
 
-	strum.rgbShader.enabled = false;
+	strum.useRGBColors = false;
 }

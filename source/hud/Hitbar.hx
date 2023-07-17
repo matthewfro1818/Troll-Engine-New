@@ -81,6 +81,8 @@ class Hitbar extends FlxSpriteGroup {
 		add(sickWindow);
         if(ClientPrefs.useEpics)
 		    add(epicWindow);
+		else if (ClientPrefs.etternaHUD == "ITG" && !ClientPrefs.useEpics)
+			add(epicWindow);
         
 		epicWindow.x = mainBar.x + ((mainBar.width - epicWindow.width)) / 2;
 		sickWindow.x = mainBar.x + ((mainBar.width - sickWindow.width)) / 2;

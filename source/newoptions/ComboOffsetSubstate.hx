@@ -24,7 +24,10 @@ class ComboOffsetSubstate extends MusicBeatSubstate{
             var judgeMan = PlayState.instance.judgeManager; 
 
             ratingName = judgeMan.judgmentData.get(judgeMan.hittableJudgments[0]).internalName;
-            ratingColor = PlayState.instance.hud.judgeColours.get(ratingName);
+            if (ClientPrefs.etternaHUD == "ITG")
+                ratingColor = PlayState.instance.hud.itgJudgeColours.get(ratingName);
+            else
+                ratingColor = PlayState.instance.hud.judgeColours.get(ratingName);
 
             camHUD.bgColor = FlxColor.fromRGBFloat(0, 0, 0, 0.6);
         }else

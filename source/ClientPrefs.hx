@@ -129,7 +129,7 @@ class ClientPrefs
 			},
 			"useEpics" => {
 				display: "Use Epic",
-				desc: "When toggled, Epic will be used as the highest judgement.",
+				desc: "When toggled, Epic will be used as the highest judgement.\nNote: Epics still on when use ITG Hud",
 				type: Toggle,
 				value: false,
 				data: []

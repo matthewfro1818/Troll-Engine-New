@@ -1044,14 +1044,7 @@ class ChartingState extends MusicBeatState
 		#if (sys && (hscript || LUA_ALLOWED))
 		var charsLoaded:Map<String, Bool> = new Map();
 		var notesList = [];
-		var directories:Array<String> = [
-			#if MODS_ALLOWED
-			Paths.mods(Paths.currentModDirectory + '/noteskins/'),
-			Paths.mods('global/noteskins/'),
-			Paths.mods('noteskins/'),
-			#end
-			Paths.getPreloadPath('noteskins/')
-		];
+		var directories:Array<String> = Paths.getFolders('noteskins');
 		var allowedFormats = [
 			#if hscript
 			'.hscript',

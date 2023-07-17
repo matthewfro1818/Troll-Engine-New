@@ -107,7 +107,7 @@ class Highscore
 		if (isWife3)
 			idArray.push("w3");
 		var windows = ['sick', 'good', 'bad', 'hit'];
-		if (hasEpic)windows.insert(0, 'epic');
+		if (hasEpic && ClientPrefs.etternaHUD != "ITG")windows.insert(0, 'epic');
 		if (judgeDiff !='J4')
 			idArray.push(judgeDiff);
 		

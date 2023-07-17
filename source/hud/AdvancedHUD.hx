@@ -31,6 +31,8 @@ class AdvancedHUD extends BaseHUD
 	override public function new(iP1:String, iP2:String, songName:String, stats:Stats)
 	{
 		super(iP1, iP2, songName, stats);
+		if (!ClientPrefs.useEpics)
+			displayedJudges.remove("epic");
 
 		stats.changedEvent.add(statChanged);
 
