@@ -47,7 +47,7 @@ class FlxSound extends FlxBasic
 	/**
 	 * Effect which gets applied to the sound
 	 */
-	public var effect(default, set):ALEffect;
+	 public var effect(default, set):Null<ALEffect>;
 
 	function set_effect(v:ALEffect)
 	{
@@ -272,6 +272,7 @@ class FlxSound extends FlxBasic
 		amplitudeLeft = 0;
 		amplitudeRight = 0;
 		autoDestroy = false;
+		effect = null;
 
 		if (_transform == null)
 			_transform = new SoundTransform();
@@ -286,6 +287,7 @@ class FlxSound extends FlxBasic
 		_target = null;
 		name = null;
 		artist = null;
+		effect = null;
 
 		if (_channel != null)
 		{
@@ -617,26 +619,22 @@ class FlxSound extends FlxBasic
 	@:allow(flixel.system.FlxSoundGroup)
 	function updateTransform():Void
 	{
-		_transform.volume = #if FLX_SOUND_SYSTEM (FlxG.sound.muted ? 0 : 1) * FlxG.sound.volume * #end
-			(group != null ? group.volume : 1) * _volume * _volumeAdjust;
+		if (_transform != null)
+		{
+			_transform.volume = #if FLX_SOUND_SYSTEM (FlxG.sound.muted ? 0 : 1) * FlxG.sound.volume * #end
+				(group != null ? group.volume : 1) * _volume * _volumeAdjust;
+		}
 
 		if (_channel != null)
 		{
 			_channel.soundTransform = _transform;
 
-			@:privateAccess
-			if(_channel.__source != null)
-			{
-				#if cpp
-				@:privateAccess
-				this._channel.__source.__backend.setPitch(_pitch);
-				#end
-			}
-
 			#if cpp
 			@:privateAccess
 			{
 				if (_channel.__source != null){
+					this._channel.__source.__backend.setPitch(_pitch);
+					
 					var handle = this._channel.__source.__backend.handle;
 					if(filter!=null)
 						AL.sourcei(handle, AL.DIRECT_FILTER, filter);

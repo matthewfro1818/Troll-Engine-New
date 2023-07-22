@@ -378,6 +378,7 @@ class PlayState extends MusicBeatState
 	public var camOverlay:FlxCamera; // shit that should go above all else and not get affected by camHUD changes, but still below camOther (pause menu, etc)
 	public var camOther:FlxCamera;
 
+	public var overlayBG:FlxSprite;
 	public var camFollow:FlxPoint;
 	public var camFollowPos:FlxObject;
 	private static var prevCamFollow:Null<FlxPoint> = null;
@@ -1305,9 +1306,9 @@ class PlayState extends MusicBeatState
 	}
 
 	public function getLuaObject(tag:String, text:Bool=true):FlxSprite {
-		if(modchartObjects.exists(tag))return modchartObjects.get(tag);
-		if(modchartSprites.exists(tag))return modchartSprites.get(tag);
-		if(text && modchartTexts.exists(tag))return modchartTexts.get(tag);
+		if(modchartObjects.exists(tag)) return modchartObjects.get(tag);
+		if(modchartSprites.exists(tag)) return modchartSprites.get(tag);
+		if(text && modchartTexts.exists(tag)) return modchartTexts.get(tag);
 		return null;
 	}
 
@@ -1866,6 +1867,10 @@ class PlayState extends MusicBeatState
 
 		if (SONG.needsVoices)
 			vocals.loadEmbedded(Paths.voices(PlayState.SONG.song));
+		else
+			vocalsEnded = true;
+
+		vocals.exists = true; // so it doesn't get recycled and fuck up EVERYTHING
 
 		FlxG.sound.list.add(inst);
 		FlxG.sound.list.add(vocals);
@@ -1904,13 +1909,8 @@ class PlayState extends MusicBeatState
 
 		add(notes);
 
-		var noteData:Array<SwagSection>;
-
 		// NEW SHIT
-		noteData = songData.notes;
-
-		var playerCounter:Int = 0;
-		var daBeats:Int = 0; // Not exactly representative of 'daBeats' lol, just how much it has looped
+		var noteData:Array<SwagSection> = songData.notes;
 
 		for (section in noteData)
 			{
@@ -1924,15 +1924,10 @@ class PlayState extends MusicBeatState
 		for (noteskins in noteSkinMap.keys())
 			{
 				var doPush:Bool = false;
-				#if PE_MOD_COMPATIBILITY
-				var fuck = ["noteskins","custom_noteskins"];
-				for(file in fuck){
+				for(file in ["noteskins", #if PE_MOD_COMPATIBILITY "custom_noteskins" #end])
+				{
 					var baseScriptFile:String = '$file/$noteskins';
-				#else
-					var baseScriptFile:String = 'noteskins/$noteskins';
-				#end
-					var exts = ["hscript" #if LUA_ALLOWED , "lua" #end];
-					for (ext in exts)
+					for (ext in ["hscript", #if LUA_ALLOWED "lua" #end])
 					{
 						if (doPush)
 							break;
@@ -1946,7 +1941,7 @@ class PlayState extends MusicBeatState
 							#if LUA_ALLOWED
 							if (ext == 'lua')
 							{
-								var script = new FunkinLua(file, noteskins, #if(PE_MOD_COMPATIBILITY) true #else false #end);
+								var script = new FunkinLua(file, noteskins, #if PE_COMPATIBILITY true #else false #end);
 								luaArray.push(script);
 								funkyScripts.push(script);
 								noteskinScripts.set(noteskins, script);
@@ -1964,9 +1959,7 @@ class PlayState extends MusicBeatState
 								break;
 						}
 					}
-				#if PE_MOD_COMPATIBILITY
 				}
-				#end
 			}
 
 		// loads note types
@@ -1975,7 +1968,10 @@ class PlayState extends MusicBeatState
 			for (songNotes in section.sectionNotes)
 			{
 				var type:Dynamic = songNotes[3];
-				//if(!Std.isOfType(type, String)) type = editors.ChartingState.noteTypeList[type];
+				/*
+				if (Std.isOfType(type, Int)) 
+					type = editors.ChartingState.noteTypeList[type];
+				*/
 
 				if (!noteTypeMap.exists(type)) {
 					firstNotePush(type);
@@ -1987,15 +1983,10 @@ class PlayState extends MusicBeatState
 		for (notetype in noteTypeMap.keys())
 		{
 			var doPush:Bool = false;
-			#if PE_MOD_COMPATIBILITY
-			var fuck = ["notetypes","custom_notetypes"];
-			for(file in fuck){
+			for(file in ["notetypes", #if PE_MOD_COMPATIBILITY "custom_notetypes" #end])
+			{
 				var baseScriptFile:String = '$file/$notetype';
-			#else
-				var baseScriptFile:String = 'notetypes/$notetype';
-			#end
-				var exts = ["hscript" #if LUA_ALLOWED , "lua" #end];
-				for (ext in exts)
+				for (ext in ["hscript", #if LUA_ALLOWED "lua" #end])
 				{
 					if (doPush)
 						break;
@@ -2009,7 +2000,7 @@ class PlayState extends MusicBeatState
 						#if LUA_ALLOWED
 						if (ext == 'lua')
 						{
-							var script = new FunkinLua(file, notetype, #if(PE_MOD_COMPATIBILITY) true #else false #end);
+							var script = new FunkinLua(file, notetype, #if PE_COMPATIBILITY true #else false #end);
 							luaArray.push(script);
 							funkyScripts.push(script);
 							notetypeScripts.set(notetype, script);
@@ -2027,9 +2018,7 @@ class PlayState extends MusicBeatState
 							break;
 					}
 				}
-			#if PE_MOD_COMPATIBILITY
 			}
-			#end
 		}
 		// loads events
 		for(event in getEvents()){
@@ -2044,15 +2033,9 @@ class PlayState extends MusicBeatState
 		{
 			var doPush:Bool = false;
 			
-			#if PE_MOD_COMPATIBILITY
-			var fuck = ["events","custom_events"];
-			for(file in fuck){
+			for(file in ["events", #if PE_MOD_COMPATIBILITY "custom_events" #end]){
 				var baseScriptFile:String = '$file/$event';
-			#else
-				var baseScriptFile:String = 'events/$event';
-			#end
-				var exts = ["hscript" #if LUA_ALLOWED , "lua" #end];
-				for (ext in exts)
+				for (ext in ["hscript", #if LUA_ALLOWED "lua" #end])
 				{
 					if (doPush)
 						break;
@@ -2070,7 +2053,6 @@ class PlayState extends MusicBeatState
 							luaArray.push(script);
 							funkyScripts.push(script);
 							eventScripts.set(event, script);
-							script.call("onLoad");
 							doPush = true;
 						}
 						else #end if (ext == 'hscript')
@@ -2089,9 +2071,7 @@ class PlayState extends MusicBeatState
 							break;
 					}
 				}
-			#if PE_MOD_COMPATIBILITY
 			}
-			#end
 		}
 
 		for(subEvent in getEvents()){
@@ -2120,9 +2100,7 @@ class PlayState extends MusicBeatState
 				var gottaHitNote:Bool = section.mustHitSection;
 
 				if (songNotes[1]%8 > 3)
-				{
-					gottaHitNote = !section.mustHitSection;
-				}
+					gottaHitNote = !gottaHitNote;
 
 				var oldNote:Note;
 				if (allNotes.length > 0)
@@ -2131,6 +2109,10 @@ class PlayState extends MusicBeatState
 					oldNote = null;
 
 				var type:Dynamic = songNotes[3];
+				/*
+				if (Std.isOfType(songNotes[3], Int))
+					type = editors.ChartingState.noteTypeList[songNotes[3]]; //Backward compatibility + compatibility with Week 7 charts;
+				*/
 				
 				var swagNote:Note = new Note(daStrumTime, daNoteData, oldNote, false, gottaHitNote ? arrowSkinbf : arrowSkindad);
 				swagNote.realNoteData = songNotes[1];
@@ -2178,59 +2160,58 @@ class PlayState extends MusicBeatState
 				}
 				#end
 
-				var floorSus:Int = Math.round(susLength);
-				if(floorSus > 0) {
-					for (susNote in 0...floorSus)
-					{
-						oldNote = allNotes[Std.int(allNotes.length - 1)];
-
-						var sustainNote:Note = new Note(daStrumTime + (Conductor.stepCrochet * susNote) + (Conductor.stepCrochet), daNoteData, oldNote, true,
-						gottaHitNote ? arrowSkinbf : arrowSkindad);
-						sustainNote.mustPress = gottaHitNote;
-						sustainNote.gfNote = swagNote.gfNote;
-						sustainNote.noteType = type;
-						if(sustainNote==null || !sustainNote.alive)
-							break;
-						sustainNote.ID = allNotes.length;
-						modchartObjects.set('note${sustainNote.ID}', sustainNote);
-						sustainNote.scrollFactor.set();
-						swagNote.tail.push(sustainNote);
-						swagNote.unhitTail.push(sustainNote);
-						sustainNote.parent = swagNote;
-						//allNotes.push(sustainNote);
-						sustainNote.fieldIndex = swagNote.fieldIndex;
-						playfield.queue(sustainNote);
-						allNotes.push(sustainNote);
-						#if LUA_ALLOWED
-						if (sustainNote.noteScript != null && sustainNote.noteScript is FunkinLua){
-							callScript(sustainNote.noteScript, 'setupNote', [
-								allNotes.indexOf(sustainNote),
-								Math.abs(sustainNote.noteData),
-								sustainNote.noteType,
-								sustainNote.isSustainNote,
-								sustainNote.ID
-							]);
-						}
-						#end
-
-						if (sustainNote.mustPress)
-						{
-							sustainNote.x += FlxG.width * 0.5; // general offset
-						} 
-					}
-				}
-
+				/*
 				if (swagNote.mustPress)
 				{
 					swagNote.x += FlxG.width * 0.5; // general offset
 				}
+				*/
+
+				oldNote = swagNote;
+
+				var floorSus:Int = Math.round(susLength);
+				for (susNote in 0...floorSus)
+				{
+					var sustainNote:Note = new Note(daStrumTime + Conductor.stepCrochet * (susNote + 1), daNoteData, oldNote, true);
+					sustainNote.mustPress = gottaHitNote;
+					sustainNote.gfNote = swagNote.gfNote;
+					sustainNote.noteType = type;
+					if(sustainNote==null || !sustainNote.alive)
+						break;
+					sustainNote.ID = allNotes.length;
+					modchartObjects.set('note${sustainNote.ID}', sustainNote);
+					sustainNote.scrollFactor.set();
+					swagNote.tail.push(sustainNote);
+					swagNote.unhitTail.push(sustainNote);
+					sustainNote.parent = swagNote;
+					//allNotes.push(sustainNote);
+					sustainNote.fieldIndex = swagNote.fieldIndex;
+					playfield.queue(sustainNote);
+					allNotes.push(sustainNote);
+					#if LUA_ALLOWED
+					if (sustainNote.noteScript != null && sustainNote.noteScript is FunkinLua){
+						callScript(sustainNote.noteScript, 'setupNote', [
+							allNotes.indexOf(sustainNote),
+							Math.abs(sustainNote.noteData),
+							sustainNote.noteType,
+							sustainNote.isSustainNote,
+							sustainNote.ID
+						]);
+					}
+					#end
+
+					/*
+					if (sustainNote.mustPress)
+					{
+						sustainNote.x += FlxG.width * 0.5; // general offset
+					} 
+					*/
+
+					oldNote = sustainNote;
+				}
 
 			}
-			daBeats += 1;
 		}
-
-		// playerCounter += 1;
-
 		allNotes.sort(sortByShit);
 
 		for(fuck in allNotes)
@@ -2299,8 +2280,7 @@ class PlayState extends MusicBeatState
 				var speed:Float = 1;
 				if(event.event == 'Constant SV'){
 					var b = Std.parseFloat(event.value1);
-					if(Math.isNaN(b))speed = songSpeed;
-					speed = songSpeed / b;
+					speed = Math.isNaN(b) ? songSpeed : songSpeed / b;
 				}else{
 					speed = Std.parseFloat(event.value1);
 					if(Math.isNaN(speed))speed = 1;
@@ -4434,11 +4414,7 @@ class PlayState extends MusicBeatState
 			vocals.volume = vocalsEnded?0:1;
 
 		if (note.visible){
-			var time:Float = 0.15;
-			if (note.isSustainNote && !note.animation.curAnim.name.endsWith('end'))
-			time += 0.15;
-
-			StrumPlayAnim(field, Std.int(Math.abs(note.noteData)) % 4, time, note);
+			StrumPlayAnim(field, Std.int(Math.abs(note.noteData)) % 4, Conductor.stepCrochet * 1.5 / 1000, note);
 		}
 
 		note.hitByOpponent = true;
@@ -4499,11 +4475,7 @@ class PlayState extends MusicBeatState
 		// Strum animations
 		if (note.visible){
 			if(field.autoPlayed){
-				var time:Float = 0.15;
-				if(note.isSustainNote && !note.animation.curAnim.name.endsWith('end'))
-					time += 0.15;
-
-				StrumPlayAnim(field, Std.int(Math.abs(note.noteData)) % 4, time, note);
+				StrumPlayAnim(field, Std.int(Math.abs(note.noteData)) % 4, Conductor.stepCrochet * 1.5 / 1000, note);
 			}else{
 				var spr = field.strumNotes[note.noteData];
 				if(spr != null && field.keysPressed[note.noteData])
@@ -5229,13 +5201,13 @@ class FNFHealthBar extends FlxBar{
 			healthBarBG = new FlxSprite(10, FlxG.height - 706);
 			healthBarBG.loadGraphic(Paths.image('SimplyLoveHud/HealthBG'));
 			healthBarBG.scrollFactor.set();
-			healthBarBG.antialiasing = false;
+			healthBarBG.antialiasing = true;
 		}else {
 			healthBarBG = new FlxSprite(0, FlxG.height * (ClientPrefs.downScroll ? 0.11 : 0.89));
 			healthBarBG.loadGraphic(Paths.image('healthBar'));
 			healthBarBG.screenCenter(X);
 			healthBarBG.scrollFactor.set();
-			healthBarBG.antialiasing = false;
+			healthBarBG.antialiasing = true;
 		}
 
 		//
@@ -5357,7 +5329,7 @@ class RatingSprite extends FlxSprite
 		super();
 		moves = !ClientPrefs.simpleJudge;
 
-		antialiasing = ClientPrefs.globalAntialiasing;
+		// antialiasing = ClientPrefs.globalAntialiasing;
 		//cameras = [ClientPrefs.simpleJudge ? PlayState.instance.camHUD : PlayState.instance.camGame];
 		cameras = [PlayState.instance.camHUD];
 

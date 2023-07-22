@@ -200,7 +200,7 @@ class StrumNote extends NoteObject
 						animation.addByPrefix('confirm', 'right confirm', 24, false);
 				}
 		
-				antialiasing = ClientPrefs.globalAntialiasing;
+				//antialiasing = ClientPrefs.globalAntialiasing;
 				setGraphicSize(Std.int(width * 0.7));
 		}
 	}

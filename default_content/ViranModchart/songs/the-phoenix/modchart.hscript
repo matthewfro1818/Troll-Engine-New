@@ -27,13 +27,44 @@ function onCountdownStarted(){
         var step = drums[i];
         modManager.queueSet(step, 'fieldYaw', 65);
         modManager.queueEase(step, step + 4, 'fieldYaw', 0, 'cubeOut');
+
+        modManager.queueSet(step, 'fieldPitch', 65);
+        modManager.queueEase(step, step + 4, 'fieldPitch', 0, 'cubeOut');
     }
 
     for (i in 0...drums2.length){
         var step = drums2[i];
         modManager.queueSet(step, 'fieldYaw', -65);
         modManager.queueEase(step, step + 4, 'fieldYaw', 0, 'cubeOut');
+
+        modManager.queueSet(step, 'fieldPitch', -65);
+        modManager.queueEase(step, step + 4, 'fieldPitch', 0, 'cubeOut');
     }
+
+    modManager.queueEase(288, 288 + 4, 'invert', 1, 'cubeOut');
+
+    var invertBeats = [];
+    var invertBeats2 = [];
+
+    numericForInterval(296, 380, 4, function(i){
+        invertBeats.push(i);
+    });
+
+    numericForInterval(296 + 4, 380 + 4, 8, function(i){
+        invertBeats2.push(i);
+    });
+
+    for (i in 0...invertBeats.length){
+        var step = invertBeats[i];
+        modManager.queueEase(step, step + 4, 'invert', 0, 'expoOut');
+    }
+
+    for (i in 0...invertBeats2.length){
+        var step = invertBeats2[i];
+        modManager.queueEase(step, step + 4, 'invert', 1, 'expoOut');
+    }
+
+    modManager.queueEase(396, 396 + 4, 'invert', 0, 'cubeOut');
 
     modManager.queueSet(155,"alpha", 0, 0);
     modManager.queueSet(160,"reverse0", 1, 0);
@@ -82,7 +113,7 @@ function onCountdownStarted(){
     modManager.queueEase(956,957,"invert", 0,'quadIn', 0);
 
     modManager.queueEase(960,960 + 2,"drunk", 1,'quadIn', 0);
-    modManager.queueEase(960,960 + 2,"drunkSpeed", 2,'quadIn', 0);
+    modManager.queueEase(960,960 + 2,"drunkSpeed", 0.5,'quadIn', 0);
 
     modManager.queueEase(1184,1184 + 2,"drunk", 0,'quadIn', 0);
     modManager.queueEase(1184,1184 + 2,"drunkSpeed", 0,'quadIn', 0);
@@ -107,6 +138,23 @@ function onCountdownStarted(){
 
     modManager.queueEase(1248,1261,"receptorScroll", 1,'quadOut', 0);
     modManager.queueEase(1504,1506,"receptorScroll", 0,'quadOut', 0);
+
+    modManager.queueFunc(1504, 1632, function(event, cDS:Float){
+        var s = cDS - 928;
+        var beat = s / 4;
+        modManager.setValue("transformZ-a", -60 * Math.abs(Math.sin(Math.PI * beat)));
+        modManager.setValue("transformX-a", 30 * Math.cos(Math.PI * beat));      
+    });
+
+    modManager.queueEaseP(1632, 1632 + 4, "transformZ-a", 0, 'quadOut');
+
+    modManager.queueEase(1888,1888 + 4,"fieldRoll", 30,'quadOut', 0);
+
+    modManager.queueEase(1632, 1632 + 4, "transformX-a", 0, 'quadOut');
+
+    modManager.queueSet(1760,"receptorScroll", 1, 0);
+
+    modManager.queueEase(2011,2011 + 4,"fieldRoll", 1,'quadOut', 0);
 }
 
 var prox:ProxyField;
@@ -117,22 +165,18 @@ function onStepHit()
     switch (curStep)
     {
         case 416:
-            for (field in game.playfields)
-            {
-               prox = new ProxyField(field.noteField);
-               prox.cameras = [game.camHUD];
-               prox.x += 500;
-               game.add(prox);
-
-               prox2 = new ProxyField(field.noteField);
-               prox2.cameras = [game.camHUD];
-               prox2.x -= 500;
-               game.add(prox2);
-            }
+            prox.alpha = 1;
+            prox2.alpha = 1;
         case 704:
             prox.alpha = 0;
             prox2.alpha = 0;
             game.camHUD.flash(FlxColor.fromString(0xFFFFFFFF), 0.5, null, true);
+        case 1760:
+            prox.alpha = 1;
+            prox2.alpha = 1;
+        case 2016:
+            prox.alpha = 0;
+            prox2.alpha = 0;
     }
 }
 
@@ -144,6 +188,21 @@ if (ClientPrefs.shaders != 'None') {
 function onCreatePost()
 {
     game.camZooming = true;
+
+    for (field in game.playfields) {
+        prox = new ProxyField(field.noteField);
+        prox.cameras = [game.camHUD];
+        prox.x += 500;
+        prox.alpha = 0;
+        game.add(prox);
+
+        prox2 = new ProxyField(field.noteField);
+        prox2.cameras = [game.camHUD];
+        prox2.x -= 500;
+        prox2.alpha = 0;
+        game.add(prox2);
+    }
+
     if (ClientPrefs.shaders != 'None') {
         vhsShaders = newShader("vcr");
         //vhsShaders.data.iTime.value = [0];

@@ -182,9 +182,10 @@ class Note extends NoteObject
 	public var typeOffsetY:Float = 0;
 	public var typeOffsetAngle:Float = 0;
 	public var multSpeed(default, set):Float = 1;
-	// useless shit mostly
+	/* useless shit mostly
 	public var offsetAngle:Float = 0;
 	public var multAlpha:Float = 1;
+	*/
 
 	public var copyX:Bool = true;
 	public var copyY:Bool = true;
@@ -366,8 +367,10 @@ class Note extends NoteObject
 		}
 		beat = Conductor.getBeat(strumTime);
 
-		//x += PlayState.STRUM_X + 50;
+/*
+		x += PlayState.STRUM_X + 50;
 		y -= 2000; // MAKE SURE ITS DEFINITELY OFF SCREEN?
+		*/
 
 		if(!inEditor){ 
 			this.strumTime += ClientPrefs.noteOffset;
@@ -379,7 +382,7 @@ class Note extends NoteObject
 			rgbShader = new RGBPalette();
 			shader = rgbShader.shader;
 
-			x += swagWidth * (noteData);
+			//x += swagWidth * (noteData);
 			if(!isSustainNote && noteData > -1 && noteData < 4) { //Doing this 'if' check to fix the warnings on Senpai songs
 				var animToPlay:String = '';
 				animToPlay = colArray[noteData % 4];
@@ -396,7 +399,7 @@ class Note extends NoteObject
 		{
 			sustainMult = 0.5; // early hit mult but just so note-types can set their own and not have sustains fuck them
 			alpha = 0.6;
-			multAlpha = 0.6;
+			// multAlpha = 0.6;
 			hitsoundDisabled = true;
 			copyAngle = false;
 			//if(ClientPrefs.downScroll) flipY = true;
@@ -508,7 +511,6 @@ class Note extends NoteObject
 				loadNoteAnims();
 	
 				pixelNote = false;
-				antialiasing = ClientPrefs.globalAntialiasing;
 		}
 	
 		if (!inEditor && PlayState.instance != null)
@@ -555,7 +557,6 @@ class Note extends NoteObject
 				loadNoteAnims();
 
 				pixelNote = false;
-				antialiasing = ClientPrefs.globalAntialiasing;
 		}
 
 		if (noteScript != null && noteScript is FunkinHScript){

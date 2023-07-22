@@ -190,6 +190,28 @@ class Main extends Sprite
 		#if CRASH_HANDLER
 		Lib.current.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onCrash);
 		#end
+
+		
+		// shader coords fix
+		FlxG.signals.gameResized.add(function (w, h) {
+				if (FlxG.cameras != null) {
+				for (cam in FlxG.cameras.list) {
+					@:privateAccess
+					if (cam != null && cam._filters != null)
+						resetSpriteCache(cam.flashSprite);
+				}
+				}
+
+				if (FlxG.game != null)
+				resetSpriteCache(FlxG.game);
+			});
+		}
+
+		static function resetSpriteCache(sprite:Sprite):Void {
+			@:privateAccess {
+					sprite.__cacheBitmap = null;
+				sprite.__cacheBitmapData = null;
+			}
 	}
 
 	// Original code was made by sqirra-rng, big props to them!!!

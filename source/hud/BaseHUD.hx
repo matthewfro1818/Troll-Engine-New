@@ -192,21 +192,23 @@ class BaseHUD extends FlxSpriteGroup {
 		//updateTimeBarType();
 	}
 
-	var tweenProg:Float = 0;
+	var tweenProg:Float = 1;
 	public function songStarted(){
-		FlxTween.num(0, 1, 0.5, 
-			{
-				ease: FlxEase.circOut,
-				onComplete: function(tw:FlxTween){
-					tweenProg = 1;
+		if (ClientPrefs.etternaHUD != 'ITG') {
+				FlxTween.num(0, 1, 0.5, 
+				{
+					ease: FlxEase.circOut,
+					onComplete: function(tw:FlxTween){
+						tweenProg = 1;
+						updateTimeBarAlpha();
+					}
+				}, 
+				function(prog:Float){
+					tweenProg = prog;
 					updateTimeBarAlpha();
 				}
-			}, 
-			function(prog:Float){
-				tweenProg = prog;
-				updateTimeBarAlpha();
-			}
-		);
+			);
+		}
 	}
 
 	public function songEnding()

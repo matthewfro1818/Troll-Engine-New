@@ -72,7 +72,6 @@ class NoteSplash extends NoteObject
 		}
 
 		shader = rgbShader.shader;
-		antialiasing = true;
 		alpha = 0.6;
 	}
 

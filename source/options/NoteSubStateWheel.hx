@@ -8,6 +8,7 @@ import flixel.util.FlxColor;
 import flixel.addons.display.FlxBackdrop;
 import flixel.addons.display.FlxGridOverlay;
 import flixel.addons.display.shapes.FlxShapeCircle;
+import flixel.input.keyboard.FlxKey;
 import flixel.math.FlxPoint;
 import lime.system.Clipboard;
 import flixel.util.FlxGradient;
@@ -28,6 +29,10 @@ class NotesSubStateWheel extends MusicBeatSubstate
 	var curSelectedNote:Int = 0;
 	var onPixel:Bool = false;
 	var dataArray:Array<Array<FlxColor>>;
+
+	var hexTypeLine:FlxSprite;
+	var hexTypeNum:Int = -1;
+	var hexTypeVisibleTimer:Float = 0;
 
 	var copyButton:FlxSprite;
 	var pasteButton:FlxSprite;
@@ -134,6 +139,10 @@ class NotesSubStateWheel extends MusicBeatSubstate
 		alphabetHex = makeColorAlphabet(1000, 5);
 		add(alphabetHex);
 
+		hexTypeLine = new FlxSprite(0, 20).makeGraphic(5, 62, FlxColor.WHITE);
+		hexTypeLine.visible = false;
+		add(hexTypeLine);
+
 		spawnNotes();
 		updateNotes(true);
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
@@ -144,6 +153,11 @@ class NotesSubStateWheel extends MusicBeatSubstate
 	var _storedColor:FlxColor;
 	var changingNote:Bool = false;
 	var holdingOnObj:FlxSprite;
+
+	var allowedTypeKeys:Map<FlxKey, String> = [
+		ZERO => '0', ONE => '1', TWO => '2', THREE => '3', FOUR => '4', FIVE => '5', SIX => '6', SEVEN => '7', EIGHT => '8', NINE => '9',
+		NUMPADZERO => '0', NUMPADONE => '1', NUMPADTWO => '2', NUMPADTHREE => '3', NUMPADFOUR => '4', NUMPADFIVE => '5', NUMPADSIX => '6',
+		NUMPADSEVEN => '7', NUMPADEIGHT => '8', NUMPADNINE => '9', A => 'A', B => 'B', C => 'C', D => 'D', E => 'E', F => 'F'];
 
 	override function update(elapsed:Float) {
 		if (controls.BACK) {
@@ -160,20 +174,71 @@ class NotesSubStateWheel extends MusicBeatSubstate
 			// FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
 		}
 
-		var add:Int = 0;
-		if(controls.UI_LEFT_P) add = -1;
-		else if(controls.UI_RIGHT_P) add = 1;
-		if(controls.UI_UP_P || controls.UI_DOWN_P)
+		if(hexTypeNum > -1)
 		{
-			onModeColumn = !onModeColumn;
-			modeBG.visible = onModeColumn;
-			notesBG.visible = !onModeColumn;
-		}
+			var keyPressed:FlxKey = cast (FlxG.keys.firstJustPressed(), FlxKey);
+			hexTypeVisibleTimer += elapsed;
+			var changed:Bool = false;
+			if(changed = FlxG.keys.justPressed.LEFT)
+				hexTypeNum--;
+			else if(changed = FlxG.keys.justPressed.RIGHT)
+				hexTypeNum++;
+			else if(allowedTypeKeys.exists(keyPressed))
+			{
+				//trace('keyPressed: $keyPressed, lil str: ' + allowedTypeKeys.get(keyPressed));
+				var curColor:String = alphabetHex.text;
+				var newColor:String = curColor.substring(0, hexTypeNum) + allowedTypeKeys.get(keyPressed) + curColor.substring(hexTypeNum + 1);
 
-		if(add != 0)
+				var colorHex:FlxColor = FlxColor.fromString('#' + newColor);
+				setShaderColor(colorHex);
+				_storedColor = getShaderColor();
+				updateColors();
+
+				// move you to next letter
+				hexTypeNum++;
+				changed = true;
+			}
+			else if(FlxG.keys.justPressed.ENTER)
+				hexTypeNum = -1;
+
+			var end:Bool = false;
+			if(changed)
+			{
+				if (hexTypeNum > 5) //Typed last letter
+				{
+					hexTypeNum = -1;
+					end = true;
+					hexTypeLine.visible = false;
+				}
+				else
+				{
+					if(hexTypeNum < 0) hexTypeNum = 0;
+					else if(hexTypeNum > 5) hexTypeNum = 5;
+					centerHexTypeLine();
+					hexTypeLine.visible = true;
+				}
+				FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
+			}
+			if(!end) hexTypeLine.visible = Math.floor(hexTypeVisibleTimer * 2) % 2 == 0;
+		}
+		else
 		{
-			if(onModeColumn) changeSelectionMode(add);
-			else changeSelectionNote(add);
+			var add:Int = 0;
+			if(controls.UI_LEFT_P) add = -1;
+			else if(controls.UI_RIGHT_P) add = 1;
+			if(controls.UI_UP_P || controls.UI_DOWN_P)
+			{
+				onModeColumn = !onModeColumn;
+				modeBG.visible = onModeColumn;
+				notesBG.visible = !onModeColumn;
+			}
+
+			if(add != 0)
+			{
+				if(onModeColumn) changeSelectionMode(add);
+				else changeSelectionNote(add);
+			}
+			hexTypeLine.visible = false;
 		}
 
 		// Copy/Paste buttons
@@ -192,6 +257,8 @@ class NotesSubStateWheel extends MusicBeatSubstate
 				if(FlxG.mouse.justPressed) Clipboard.text = getShaderColor().toHexString(false, false);
 				FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
 			}
+
+			hexTypeNum = -1;
 		}
 		else if (FlxG.mouse.overlaps(pasteButton))
 		{
@@ -200,9 +267,9 @@ class NotesSubStateWheel extends MusicBeatSubstate
 
 			if(FlxG.mouse.justPressed)
 			{
-				var newColor:Null<FlxColor> = FlxColor.fromString('#${Clipboard.text.trim().toUpperCase().replace('#', '')}');
-				//trace('#${Clipboard.text.trim().toUpperCase()}');
-				if(newColor != null && Clipboard.text.trim().replace('#', '').length == 6)
+				var formattedText = Clipboard.text.trim().toUpperCase().replace('#', '').replace('0x', '');
+				var newColor:Null<FlxColor> = FlxColor.fromString('#' + formattedText);
+				if(newColor != null && formattedText.length == 6)
 				{
 					setShaderColor(newColor);
 					FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
@@ -212,11 +279,14 @@ class NotesSubStateWheel extends MusicBeatSubstate
 				else //errored
 					FlxG.sound.play(Paths.sound('cancelMenu'), 0.6);
 			}
+
+			hexTypeNum = -1;
 		}
 
 		// Click
 		if(FlxG.mouse.justPressed)
 		{
+			hexTypeNum = -1;
 			if (FlxG.mouse.overlaps(modeNotes))
 			{
 				modeNotes.forEachAlive(function(note:FlxSprite) {
@@ -267,6 +337,19 @@ class NotesSubStateWheel extends MusicBeatSubstate
 				//updateNotes(true);
 				//FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
 			}
+			else if(FlxG.mouse.y >= hexTypeLine.y && FlxG.mouse.y < hexTypeLine.y + hexTypeLine.height &&
+					Math.abs(FlxG.mouse.x - 1000) <= 84)
+			{
+				hexTypeNum = 0;
+				for (letter in alphabetHex.letters)
+				{
+					if(letter.x - letter.offset.x + letter.width <= FlxG.mouse.x) hexTypeNum++;
+					else break;
+				}
+				if(hexTypeNum > 5) hexTypeNum = 5;
+				hexTypeLine.visible = true;
+				centerHexTypeLine();
+			}
 			else holdingOnObj = null;
 		}
 		// holding
@@ -304,13 +387,30 @@ class NotesSubStateWheel extends MusicBeatSubstate
 				}
 			} 
 		}
-		else if(controls.RESET)
+		else if(controls.RESET && hexTypeNum < 0)
 		{
 			setShaderColor(defaultColumnColors[curSelectedNote][curSelectedMode]);
 			FlxG.sound.play(Paths.sound('cancelMenu'), 0.6);
 			updateColors();
 		}
 		super.update(elapsed);
+	}
+
+	function centerHexTypeLine()
+	{
+		//trace(hexTypeNum);
+		if(hexTypeNum > 0)
+		{
+			var letter = alphabetHex.letters[hexTypeNum-1];
+			hexTypeLine.x = letter.x - letter.offset.x + letter.width;
+		}
+		else
+		{
+			var letter = alphabetHex.letters[0];
+			hexTypeLine.x = letter.x - letter.offset.x;
+		}
+		hexTypeLine.x += hexTypeLine.width;
+		hexTypeVisibleTimer = 0;
 	}
 
 	function changeSelectionMode(change:Int = 0) {
