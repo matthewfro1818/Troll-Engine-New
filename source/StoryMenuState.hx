@@ -1,13 +1,10 @@
 package;
 
 import ChapterData;
-import flixel.system.FlxSound;
 import flixel.addons.display.shapes.FlxShapeBox;
 import flixel.group.FlxGroup;
-import flixel.math.*;
+import flixel.math.FlxPoint;
 import flixel.text.FlxText;
-import flixel.tweens.FlxEase;
-import flixel.tweens.FlxTween;
 import flixel.ui.FlxButton;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;

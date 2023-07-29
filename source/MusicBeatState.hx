@@ -2,8 +2,8 @@ package;
 
 import haxe.io.Path;
 import flixel.addons.transition.FlxTransitionableState;
-import flixel.system.FlxSound;
 import flixel.addons.ui.FlxUIState;
+import openfl.media.Sound;
 import flash.ui.Mouse;
 import flash.ui.MouseCursor;
 

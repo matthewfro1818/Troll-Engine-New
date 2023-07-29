@@ -1,4 +1,4 @@
-package flixel.system;
+package flixel.sound;
 
 import lime.system.CFFIPointer;
 import lime.media.openal.ALEffect;
@@ -95,7 +95,7 @@ class FlxSound extends FlxBasic
 	public var amplitudeLeft(default, null):Float;
 
 	/**
-	 * Just the amplitude of the left stereo channel
+	 * Just the amplitude of the right stereo channel
 	 */
 	public var amplitudeRight(default, null):Float;
 
@@ -616,7 +616,7 @@ class FlxSound extends FlxBasic
 	/**
 	 * Call after adjusting the volume to update the sound channel's settings.
 	 */
-	@:allow(flixel.system.FlxSoundGroup)
+	 @:allow(flixel.sound.FlxSoundGroup)
 	function updateTransform():Void
 	{
 		if (_transform != null)
