@@ -117,7 +117,7 @@ class Cache
 			case 'SONG':
 				Paths.returnSound("songs", toLoad.path, toLoad.library);
 			default:
-				Paths.returnGraphic(toLoad.path, toLoad.library);
+				Paths.image(toLoad.path, toLoad.library);
 		}
 		
 		#if traceLoading

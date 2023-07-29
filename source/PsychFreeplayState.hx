@@ -71,6 +71,7 @@ class PsychFreeplayState extends MusicBeatState
 				addSong('Prey', 0, 'dad',FlxColor.fromRGB(146, 113, 253), 'Normal', 'ViranModchart');
 				addSong('Endless', 0, 'dad',FlxColor.fromRGB(146, 113, 253), '', 'ViranModchart');
 				addSong('The Phoenix', 0, 'dad',FlxColor.fromRGB(146, 113, 253), 'Normal', 'ViranModchart');
+				addSong('BIG SHOT', 0, 'dad',FlxColor.fromRGB(146, 113, 253), 'Normal', 'ViranModchart');
 			case 0:
 				var dadColor = FlxColor.fromRGB(146, 113, 253);
 				var spook = FlxColor.fromRGB(34, 51, 68);
@@ -542,7 +543,7 @@ class PsychSongMetadata
 
 class FreeplaySelectState extends MusicBeatState
 {
-	var freeplayCats:Array<String> = ['Friday Night Funkin', 'Viran Modchart'];
+	var freeplayCats:Array<String> = ['Friday Night Funkin', 'Modchart'];
 	var grpCats:FlxTypedGroup<AlphabetNew>;
 	var curSelected:Int = 0;
 	var BG:FlxSprite;

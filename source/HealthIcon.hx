@@ -12,13 +12,13 @@ class HealthIcon extends FlxSprite
 	private var isPlayer:Bool = false;
 	private var char:String = '';
 
-	public function new(char:String = 'bf', isPlayer:Bool = false)
+	public function new(char:String = 'bf', isPlayer:Bool = false, ?allowGPU:Bool = true)
 	{
 		super();
 
 		this.isPlayer = isPlayer;
 
-		changeIcon(char);
+		changeIcon(char, allowGPU);
 
 		scrollFactor.set();
 	}
@@ -42,39 +42,20 @@ class HealthIcon extends FlxSprite
 		animation.play(char);
 	}
 
-	public function swapOldIcon() 
-	{
-		if (!isOldIcon){
-			var oldIcon = Paths.image('icons/$char-old');
-			
-			if(oldIcon == null)
-				oldIcon = Paths.image('icons/char-$char-old'); // psych compat
-
-			if (oldIcon != null){
-				changeIconGraphic(oldIcon);
-				isOldIcon = true;
-				return;
-			}
-		}
-
-		changeIcon(char);
-		isOldIcon = false;
-	}
-
 	private var iconOffsets:Array<Float> = [0, 0];
-	public function changeIcon(char:String) {
+	public function changeIcon(char:String, ?allowGPU:Bool = true) {
 		var file:Null<FlxGraphic> = Paths.image('icons/$char');
 
 		if(file == null)
-			file = Paths.image('icons/icon-$char'); // psych compat
+			file = Paths.image('icons/icon-$char', allowGPU); // psych compat
 
 		if(file == null) 
-			file = Paths.image('icons/face'); // Prevents crash from missing icon
+			file = Paths.image('icons/face', allowGPU); // Prevents crash from missing icon
 			
 		changeIconGraphic(file);
 		this.char = char;
 
-		antialiasing = char.endsWith("-pixel") ? false : ClientPrefs.globalAntialiasing;
+		antialiasing = char.endsWith("-pixel") ? false : null;
 	}
 
 	override function updateHitbox()

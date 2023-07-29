@@ -11,7 +11,6 @@ import playfields.*;
 
 import flixel.util.FlxColor;
 import flixel.FlxG;
-import flixel.tweens.*;
 import flixel.math.FlxMath;
 
 import lime.app.Application;
@@ -81,13 +80,6 @@ class FunkinHScript extends FunkinScript
 
 	var interpreter:Interp = new Interp();
 
-	override public function scriptTrace(text:String) 
-	{
-		haxe.Log.trace(text, interpreter.posInfos());
-	}
-	
-
-	var dummyManager:JudgmentManager = new JudgmentManager();
 	public function new(parsed:Expr, ?name:String = "Script", ?additionalVars:Map<String, Any>, ?doExecute:Bool=true)
 	{
 		scriptType = 'hscript';
@@ -119,8 +111,8 @@ class FunkinHScript extends FunkinScript
 		set("FlxMath", flixel.math.FlxMath);
 		set("FlxSound", flixel.system.FlxSound);
 		set("FlxTimer", flixel.util.FlxTimer);
-		set("FlxTween", FlxTween);
-		set("FlxEase", FlxEase);
+		set("FlxTween", flixel.tweens.FlxTween);
+		set("FlxEase", flixel.tweens.FlxEase);
 		set("FlxSave", flixel.util.FlxSave); // should probably give it 1 save instead of giving it FlxSave
 		set("FlxBar", flixel.ui.FlxBar);
 
@@ -280,6 +272,7 @@ class FunkinHScript extends FunkinScript
 				set("global", state.variables);
 				set("getInstance", getInstance);
 
+				set("judgeManager", PlayState.instance.judgeManager);
 				set("initPlayfield", state.initPlayfield);
 				set("newPlayField", function(){
 					var field = new PlayField(state.modManager);
@@ -291,38 +284,52 @@ class FunkinHScript extends FunkinScript
 				});
 
 			}
-			else if ((state is ChartingState) && state == ChartingState.instance){
-				var state:ChartingState = ChartingState.instance;
-				set("game", state);
-				set("global", state.variables);
-				set("getInstance", flixel.FlxG.get_state);
-			}else{
-				set("game", null);
-				set("global", null);
-				set("getInstance", flixel.FlxG.get_state);
+			else{
+				if ((state is ChartingState) && state == ChartingState.instance){
+					var state:ChartingState = ChartingState.instance;
+					set("game", state);
+					set("global", state.variables);
+					set("getInstance", flixel.FlxG.get_state);
+				}else{
+					set("game", null);
+					set("global", null);
+					set("getInstance", flixel.FlxG.get_state);
+				}
+
+				set("judgeManager", new JudgmentManager()); // dummy manager
 			}
 		}
 
 		// FNF-specific things
+		set("PlayState", PlayState);
+		set("GameOverSubstate", GameOverSubstate);
+		set("Song", Song);
+
+		set("Note", Note);
 		set("NoteObject", NoteObject);
+		set("NoteSplash", NoteSplash);
+		set("StrumNote", StrumNote);
 		set("PlayField", PlayField);
 		set("NoteField", NoteField);
 		set("ProxyField", proxies.ProxyField);
 		set("ProxySprite", proxies.ProxySprite);
-		set("Paths", Paths);
 		set("AttachedSprite", AttachedSprite);
 		set("AttachedText", AttachedText);
+		
+		set("Paths", Paths);
 		set("Conductor", Conductor);
-		set("Note", Note);
-		set("Song", Song);
-		set("StrumNote", StrumNote);
-		set("NoteSplash", NoteSplash);
+
 		set("ClientPrefs", ClientPrefs);
+		set("CoolUtil", CoolUtil);
+
 		set("Alphabet", Alphabet);
 		set("BGSprite", BGSprite);
-		set("CoolUtil", CoolUtil);
 		set("Character", Character);
 		set("Boyfriend", Boyfriend);
+		set("HealthIcon", HealthIcon);
+
+		set("Stage", Stage);
+		set("StageData", Stage.StageData);
 
 		set("Wife3", PlayState.Wife3);
 		set("Judgement", {
@@ -339,10 +346,6 @@ class FunkinHScript extends FunkinScript
 			CUSTOM_MINE: Judgment.CUSTOM_MINE
 		});
 
-		if ((state is PlayState))
-			set("judgeManager", PlayState.instance.judgeManager);
-		else
-			set("judgeManager", dummyManager);
 		set("HScriptModifier", modchart.HScriptModifier);
 		set("SubModifier", modchart.SubModifier);
 		set("NoteModifier", modchart.NoteModifier);
@@ -356,16 +359,11 @@ class FunkinHScript extends FunkinScript
 		set("EaseEvent", modchart.events.EaseEvent);
 		set("SetEvent", modchart.events.SetEvent);
 
-		set("StageData", Stage.StageData);
-		#if VIDEOS_ALLOWED
-		set("MP4Handler", FlxVideo);
-		#end
-		set("PlayState", PlayState);
+		set("MP4Handler",#if VIDEOS_ALLOWED FlxVideo #else null #end);
+
 		set("FunkinLua", FunkinLua);
 		set("FunkinHScript", FunkinHScript);
 		set("HScriptSubstate", HScriptSubstate);
-		set("GameOverSubstate", GameOverSubstate);
-		set("HealthIcon", HealthIcon);
 
 		if (additionalVars != null){
 			for (key in additionalVars.keys())
@@ -386,6 +384,11 @@ class FunkinHScript extends FunkinScript
 		}
 	}
 
+	override public function scriptTrace(text:String) 
+	{
+		haxe.Log.trace(text, interpreter.posInfos());
+	}
+
 	public function executeCode(script:String):Dynamic {
 		try
 		{
@@ -401,6 +404,8 @@ class FunkinHScript extends FunkinScript
 
 	override public function stop(){
 		// idk if there's really a stop function or anythin for hscript so
+		if (interpreter != null && interpreter.variables != null)
+			interpreter.variables.clear();
 		interpreter = null;
 	}
 
@@ -493,7 +498,7 @@ class HScriptSubstate extends MusicBeatSubstate
 			variables.set("this", this);
 			variables.set("add", add);
 			variables.set("remove", remove);
-			variables.set("getControls", function(){ return controls;}); // i get it now
+			variables.set("get_controls", get_controls);
 			variables.set("close", close);
 
 			if (additionalVars != null){

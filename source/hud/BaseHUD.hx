@@ -129,11 +129,19 @@ class BaseHUD extends FlxSpriteGroup {
 	public var timeBar:FlxBar;
 	public var timeTxt:FlxText;
 	private var timeBarBG:FlxSprite;
+	public var scoreBG:FlxSprite;
 
 	public function new(iP1:String, iP2:String, songName:String, stats:Stats) {
 		super();
 		this.stats = stats;
 		this.songName = songName;
+
+		if (ClientPrefs.etternaHUD == 'ITG')
+		{
+			scoreBG = new FlxSprite(0, 0).makeGraphic(FlxG.width, 136, 0xFF000000);
+			scoreBG.alpha = 0.6;
+			add(scoreBG);
+		}
 
 		healthBar = new FNFHealthBar(iP1, iP2);
 		if (ClientPrefs.etternaHUD == 'ITG')
@@ -145,8 +153,6 @@ class BaseHUD extends FlxSpriteGroup {
 	}
 
 	override public function update(elapsed:Float){
-		if (FlxG.keys.justPressed.NINE)
-			iconP1.swapOldIcon();
 
 		if (updateTime)
 		{
@@ -237,7 +243,7 @@ class BaseHUD extends FlxSpriteGroup {
 		if (ClientPrefs.etternaHUD == 'ITG')
 		{
 			timeTxt = new FlxText(FlxG.width * 0.5 - 200, 19 - 5, 400, songName, 32);
-			timeTxt.setFormat(Paths.font(gameFont), 32, 0xFFFFFFFF, CENTER, FlxTextBorderStyle.OUTLINE, 0xFF000000);
+			timeTxt.setFormat(Paths.font("miso-bold.ttf"), 32, 0xFFFFFFFF, CENTER, FlxTextBorderStyle.OUTLINE, 0xFF000000);
 			timeTxt.scrollFactor.set();
 			timeTxt.borderSize = 2;
 

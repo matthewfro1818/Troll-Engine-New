@@ -1,0 +1,71 @@
+var modManager = game.modManager;
+
+function onCountdownStarted(){
+    if (disableModcharts) {
+		getInstance().saveScore = false;
+		return;
+	}
+
+    modManager.queueEase(0, 0 + 4, 'opponentSwap', 0.5, 'expoOut');
+    modManager.queueSet(4, "alpha", 1, 1);
+    modManager.queueEase(0, 0 + 4, 'sawtooth', 1, 'expoOut');
+    modManager.queueEase(128, 128 + 4, 'sawtooth',0, 'expoOut');
+    modManager.queueSet(128, 'beat', 1);
+
+    var tinyscream = [
+        140,
+        156,
+        172,
+        204,
+        220,
+        236
+    ];
+
+    var tinyScreamVal = ClientPrefs.downScroll ? -50 : 50;
+    var tinyScreamVal2 = ClientPrefs.downScroll ? 50 : -50;
+
+    for (i in 0...tinyscream.length){
+        var step = tinyscream[i];
+        modManager.queueSet(step, 'centerrotateZ', 30);
+        modManager.queueEase(step, step + 2, 'centerrotateZ', 0, 'expoOut');
+
+        modManager.queueSet(step + 2, 'transform0Y-a', tinyScreamVal);
+        modManager.queueSet(step + 2, 'transform1Y-a', tinyScreamVal2);
+        modManager.queueSet(step + 2, 'transform2Y-a', tinyScreamVal);
+        modManager.queueSet(step + 2, 'transform3Y-a', tinyScreamVal2);
+
+        for(i in 0...4)
+            modManager.queueEase(step + 2,step + 4, 'transform' + i +'Y-a', 0);
+    }
+
+    modManager.queueEase(183, 185, 'centerrotateZ', 40, 'expoIn');
+    modManager.queueEase(185, 187, 'centerrotateZ', 0, 'expoOut');
+    modManager.queueEase(187, 189, 'centerrotateZ', -40, 'expoIn');
+    modManager.queueEase(189, 191, 'centerrotateZ', 0, 'expoOut');
+
+    var threeMovesVal = ClientPrefs.downScroll ? -200 : 200;
+    var threeMovesOGVal = ClientPrefs.downScroll ? 200 : -200;
+
+    var scrollVal = 1;
+    modManager.queueEase(258,262, 'transform0Y-a', threeMovesVal, 'expoOut');
+    modManager.queueEase(261,263, 'transform0Y-a', threeMovesVal, 'expoOut');
+    modManager.queueSet(266, 'transform0Y-a', 0);
+    modManager.queueEase(264,266, 'reverse0', scrollVal, 'expoOut');
+    modManager.queueEase(264,266, 'reverse1', scrollVal, 'expoOut');
+    modManager.queueEase(267,269, 'reverse3', scrollVal, 'expoOut');
+    modManager.queueEase(270,272, 'reverse2', scrollVal, 'expoOut');
+
+    modManager.queueEase(274,276, 'transform3Y-a', threeMovesOGVal , 'expoOut');
+    modManager.queueSet(279, 'transform3Y-a', 0);
+    modManager.queueEase(277,279, 'reverse3', 0, 'expoOut');
+    modManager.queueEase(280,282, 'reverse2', 0, 'expoOut');
+    modManager.queueEase(283,285, 'reverse1', 0, 'expoOut');
+    modManager.queueEase(286,288, 'reverse0', 0, 'expoOut');
+
+    modManager.queueEase(290,292, 'transform3Y-a', threeMovesVal , 'expoOut');
+    modManager.queueSet(295, 'transform3Y-a', 0);
+    modManager.queueEase(293,295, 'reverse3', scrollVal, 'expoOut');
+    modManager.queueEase(296,298, 'reverse0', scrollVal, 'expoOut');
+    modManager.queueEase(299,301, 'reverse2', scrollVal, 'expoOut');
+    modManager.queueEase(302,304, 'reverse1', scrollVal, 'expoOut');
+}

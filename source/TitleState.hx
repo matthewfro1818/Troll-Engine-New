@@ -102,7 +102,7 @@ class TitleState extends MusicBeatState
 		titleText.animation.play('idle');
 
 		titleText.updateHitbox();
-		titleText.screenCenter(X);
+		//titleText.screenCenter(X);
 
 		//
 		blackScreen = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
@@ -441,7 +441,6 @@ class TitleState extends MusicBeatState
 	}
 }
 
-// ...kinda unnecessary to make a whole class
 class RandomTitleLogo extends FlxSprite
 {
 	public var titleName:String = 'logoBumpin';

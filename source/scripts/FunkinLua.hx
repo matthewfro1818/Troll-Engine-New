@@ -1158,8 +1158,8 @@ class FunkinLua extends FunkinScript
 			}
 
 		});
-		addCallback("precacheImage", function(name:String) {
-			Paths.returnGraphic(name);
+		addCallback("precacheImage", function(name:String, ?allowGPU:Bool = true) {
+			Paths.image(name, allowGPU);
 		});
 		addCallback("precacheSound", function(name:String) {
 			CoolUtil.precacheSound(name);

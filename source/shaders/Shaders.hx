@@ -7,11 +7,6 @@ import flixel.system.FlxAssets.FlxShader;
 import flixel.util.FlxColor;
 import openfl.display.BitmapData;
 
-typedef ShaderEffect = {
-	var shader:Dynamic;
-}
-
-
 class VhsEffect extends FlxBasic
 {
 	public var shader(default, null):VHS = new VHS();

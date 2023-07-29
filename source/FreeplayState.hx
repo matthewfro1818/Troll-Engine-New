@@ -1,8 +1,8 @@
 package;
 
-import editors.ChartingState;
 import Paths.ContentMetadata;
 import haxe.Json;
+import editors.ChartingState;
 import flixel.*;
 import flixel.addons.display.shapes.FlxShapeBox;
 import flixel.addons.transition.FlxTransitionableState;
@@ -64,8 +64,8 @@ class FreeplayState extends MusicBeatState
 	private var categoryIDs:Array<String> = []; // "The order of both values and keys in any type of map is undefined"
 
 	static var lastCamY:Float = 360;
-	var camFollow = new FlxPoint(640, lastCamY);
-	var camFollowPos = new FlxObject(640, lastCamY);
+	var camFollow = new FlxPoint(FlxG.width * 0.5, lastCamY);
+	var camFollowPos = new FlxObject(FlxG.width * 0.5, lastCamY);
 
 	var selectedSong:Null<SongMetadata> = null;
 	var buttons:Array<FreeplaySongButton> = [];
@@ -79,8 +79,8 @@ class FreeplayState extends MusicBeatState
 	var hintText:FlxText;
 
 	function setCategory(id, name){
-		var catTitle = new FlxText(0, 50, FlxG.width, name, 32, true);
-		catTitle.setFormat(Paths.font("Bold Normal Text.ttf"), 32, 0xFFF4CC34, FlxTextAlign.CENTER, FlxTextBorderStyle.NONE);
+		var catTitle = new FlxText(0, 50, 0, name, 32, true);
+		catTitle.setFormat(Paths.font("calibrib.ttf"), 32, 0xFFF4CC34, FlxTextAlign.CENTER, FlxTextBorderStyle.NONE);
 		catTitle.underline = true;
 		catTitle.scrollFactor.set();
 		catTitle.screenCenter(X);
@@ -118,12 +118,12 @@ class FreeplayState extends MusicBeatState
 
 				persistentUpdate = false;
 
-/* 				if (FlxG.keys.pressed.ALT){
-					var alters = SongChartSelec.getCharts(songButton.metadata);
-					if (alters.length > 0)
-						switchTo(new SongChartSelec(songButton.metadata, alters));
-				}else */
-				playSong(songButton.metadata);
+ 				if (FlxG.keys.pressed.ALT){
+					var altDiffs = SongChartSelec.getCharts(songButton.metadata);
+					if (altDiffs.length > 0)
+						switchTo(new SongChartSelec(songButton.metadata, altDiffs));
+				}else
+					playSong(songButton.metadata);
 			};
 		}			
 	}
@@ -175,6 +175,20 @@ class FreeplayState extends MusicBeatState
 		FlxG.camera.bgColor = FlxColor.BLACK;
 
 		////
+		var buttonSize = 194;
+		var spacing = 50;
+		var bSpace = buttonSize + spacing;
+
+		var buttons = Math.floor(FlxG.width / bSpace);
+		var baseX = (FlxG.width - (bSpace * buttons - spacing)) * 0.5;
+
+		FreeplayCategory.posArray = [
+			for (i in 0...buttons){
+				baseX + bSpace * i;
+			}
+		];
+
+		////
 		setCategory("main", "MAIN STORY");
 		setCategory("side", "SIDE STORIES");
 		setCategory("remix", "REMIXES / COVERS");
@@ -195,6 +209,8 @@ class FreeplayState extends MusicBeatState
 			var defaultCategory:String = '';
 			if (rawJson != null && rawJson.length > 0)
 			{
+
+				// TODO: make it add the chapter songs automatically, too
 				var daJson:Dynamic = Json.parse(rawJson);
 				if (Reflect.field(daJson, "freeplayCategories") != null || Reflect.field(daJson, "freeplaySongs") != null)
 				{
@@ -275,7 +291,11 @@ class FreeplayState extends MusicBeatState
 						while (daDiffs.length>0)
 						{
 							var diff = daDiffs.pop().trim();
-							var input = diff.toLowerCase() == 'normal'?'':'-$diff';
+							#if PE_MOD_COMPATIBILITY
+							var input = diff == 'Normal' ? '' : '-$diff';
+							#else
+							var input = diff.toLowerCase() == 'normal' ? '' : '-$diff';
+							#end
 							var json = '${song[0]}${input}';
 							var rawPath = Paths.formatToSongPath(song[0]) + '/' + Paths.formatToSongPath(json);
 
@@ -331,7 +351,7 @@ class FreeplayState extends MusicBeatState
 			#end
 
 
-			/*if (defaultCategory.length > 0){
+			if (defaultCategory.length > 0){
 				var dir = Paths.mods(mod + "/songs");
 				Paths.iterateDirectory(dir, function(file:String){
 					if (FileSystem.isDirectory(haxe.io.Path.join([dir, file])) && !songsAdded.contains(file.toLowerCase().replace(" ", "-"))){
@@ -346,7 +366,7 @@ class FreeplayState extends MusicBeatState
 					
 
 				});
-			}*/
+			}
 		}
 		Paths.currentModDirectory = '';
 		#end
@@ -377,7 +397,7 @@ class FreeplayState extends MusicBeatState
 		add(hintBg);
 
 		hintText = new FlxText(FlxG.width, FlxG.height - 20, 0, "Press CTRL to open the Gameplay Modifiers menu | Press R to reset a song's score.", 18);
-		hintText.font = Paths.font("Normal Text.ttf");
+		hintText.font = Paths.font("calibri.ttf");
 		hintText.antialiasing = false;
 		hintText.scrollFactor.set();
 		add(hintText);
@@ -455,10 +475,10 @@ class FreeplayState extends MusicBeatState
 		button.yellowBorder = new FlxShapeBox(button.x - 3, button.y - 3, 200, 200, {thickness: 6, color: 0xFFF4CC34}, FlxColor.TRANSPARENT);
 
 		button.nameText = new FlxText(button.x, button.y - 32, button.width, displayName == null ? songName : displayName, 24);
-		button.nameText.setFormat(Paths.font("Normal Text.ttf"), 18, FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.NONE);
+		button.nameText.setFormat(Paths.font("calibri.ttf"), 18, FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.NONE);
 
 		button.scoreText = new FlxText(button.x, button.y + button.height + 12, button.width, "", 24);
-		button.scoreText.setFormat(Paths.font("Normal Text.ttf"), 18, FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.NONE);
+		button.scoreText.setFormat(Paths.font("calibri.ttf"), 18, FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.NONE);
 
 		category.add(button.yellowBorder);
 		category.add(button.nameText);
@@ -580,8 +600,7 @@ class FreeplaySongButton extends TGTSquareButton{
 	public function updateHighscore()
 	{
 		var ratingPercent = Highscore.getRating(metadata.songName, 1);
-		var ratingScore =  Highscore.getScore(metadata.songName, 1);
-		scoreText.text = ratingScore + " (" + Highscore.floorDecimal(ratingPercent * 100, 2) + '%)';
+		scoreText.text = Highscore.floorDecimal(ratingPercent * 100, 2) + '%';
 		scoreText.color = ratingPercent == 1 ? 0xFFF4CC34 : Highscore.hasValidScore(metadata.songName) ? 0xFFFFFFFF : 0xFF8B8B8B;
 	}
 
@@ -593,7 +612,7 @@ class FreeplaySongButton extends TGTSquareButton{
 }
 
 class FreeplayCategory extends flixel.group.FlxSpriteGroup{
-	static var posArray = [51, 305, 542, 788, 1034]; // Fuck it
+	public static var posArray:Array<Float> = [51, 305, 542, 788, 1034]; // Fuck it
 	
 	public var songsInCategory:Array<String> = [];
 	public var buttonArray:Array<FreeplaySongButton> = [];
@@ -640,11 +659,10 @@ class FreeplayCategory extends flixel.group.FlxSpriteGroup{
 	}
 }
 
-/// ouhghhh just a little experiment
 class SongChartSelec extends MusicBeatState
 {
 	var songMeta:SongMetadata;
-	var alters:Array<String>;
+	var alts:Array<String>;
 
 	var texts:Array<FlxText> = [];
 
@@ -657,17 +675,17 @@ class SongChartSelec extends MusicBeatState
 		curSel += diff;
 		
 		if (curSel < 0)
-			curSel += alters.length;
-		else if (curSel >= alters.length)
-			curSel -= alters.length;
+			curSel += alts.length;
+		else if (curSel >= alts.length)
+			curSel -= alts.length;
 
 		texts[curSel].color = 0xFFFFFF00;
 	}
 
 	override function create()
 	{
-		for (id in 0...alters.length){
-			var alt = alters[id];
+		for (id in 0...alts.length){
+			var alt = alts[id];
 			var text = new FlxText(20, 20 + id * 20 , FlxG.width - 20, alt, 16);
 
 			texts[id] = text;
@@ -688,19 +706,19 @@ class SongChartSelec extends MusicBeatState
 			MusicBeatState.switchState(new FreeplayState());
 
 		if (controls.ACCEPT){
-			var daDiff = alters[curSel];
+			var daDiff = alts[curSel];
 			FreeplayState.playSong(songMeta, daDiff == "normal" ? null : daDiff);
 		}
 
 		super.update(e);
 	} 
 
-	public function new(WHO:SongMetadata, alters) 
+	public function new(WHO:SongMetadata, alts) 
 	{
 		super();
 		
 		songMeta = WHO;
-		this.alters = alters;
+		this.alts = alts;
 	}
 
 	public static function getCharts(metadata:SongMetadata) // dumb name

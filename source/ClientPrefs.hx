@@ -62,6 +62,13 @@ class ClientPrefs
 				value: false,
 				data: []
 			},
+			"cacheOnGPU" => {
+				display: "Cache On GPU",
+				desc: "When toggled, It will cache on GPU.",
+				type: Toggle,
+				value: false,
+				data: []
+			},
 			"judgePreset" => {
 				display: "Judgement Preset",
 				desc: "Preset for the judgement windows.",
@@ -398,6 +405,15 @@ class ClientPrefs
 				value: "Default",
 				data: [
 					"options" => ["Default", "Advanced", "ITG"]
+				]
+			},
+			"noteType" => {
+				display: "Note Skin",
+				desc: "Changes how the Note looks.",
+				type: Dropdown,
+				value: "Default",
+				data: [
+					"options" => ["Default", "Scalable"]
 				]
 			},
 

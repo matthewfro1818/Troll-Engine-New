@@ -244,10 +244,10 @@ class PauseSubState extends MusicBeatSubstate
 						if(holdTime > 0.5)
 							curTime += 45000 * elapsed * (controls.UI_LEFT ? -1 : 1) * speed;
 
-						if (curTime >= FlxG.sound.music.length) 
-							curTime -= FlxG.sound.music.length;
+						if (curTime >= PlayState.instance.songLength) 
+							curTime -= PlayState.instance.songLength;
 						else if (curTime < 0)
-							curTime += FlxG.sound.music.length;
+							curTime += PlayState.instance.songLength;
 
 						updateSkipTimeText();
 					}
@@ -321,20 +321,17 @@ class PauseSubState extends MusicBeatSubstate
 						menuItems = difficultyChoices;
 						regenMenu();
 					case "Restart Song":
-
-						if (FlxG.keys.pressed.SHIFT){					
-							PlayState.SONG = Song.loadFromJson(PlayState.SONG.song, PlayState.SONG.song);
+						if (FlxG.keys.pressed.SHIFT){
 
 							Paths.clearStoredMemory();
 							Paths.clearUnusedMemory();
-
-							MusicBeatState.resetState();
-						}else
-							restartSong();
+						}
+						restartSong();
 					case "Leave Charting Mode":
+						PlayState.SONG = Song.loadFromJson(PlayState.SONG.song, PlayState.SONG.song);
+						PlayState.chartingMode = false;
 
 						restartSong();
-						PlayState.chartingMode = false;
 					case 'Skip Time':
 						if(curTime < Conductor.songPosition)
 						{
@@ -361,21 +358,7 @@ class PauseSubState extends MusicBeatSubstate
 						PlayState.instance.botplayTxt.alpha = 1;
 						PlayState.instance.botplaySine = 0; */
 					case "Exit to menu":
-
-						PlayState.deathCounter = 0;
-						PlayState.seenCutscene = false;
-						if(PlayState.isStoryMode) {
-							MusicBeatState.switchState(new StoryMenuState());
-						} else {
-							MusicBeatState.switchState(new PsychFreeplayState());
-						}
-						PlayState.instance.cancelMusicFadeTween();
-
-						PlayState.changedDifficulty = false;
-
-						MusicBeatState.playMenuMusic(true);
-						
-						PlayState.chartingMode = false;
+						PlayState.gotoMenus();
 				}
 			}
 		}
@@ -486,6 +469,6 @@ class PauseSubState extends MusicBeatSubstate
 
 	function updateSkipTimeText()
 	{
-		skipTimeText.text = FlxStringUtil.formatTime(Math.max(0, Math.floor(curTime / 1000)), false) + ' / ' + FlxStringUtil.formatTime(Math.max(0, Math.floor(FlxG.sound.music.length / 1000)), false);
+		skipTimeText.text = FlxStringUtil.formatTime(Math.max(0, Math.floor(curTime / 1000)), false) + ' / ' + FlxStringUtil.formatTime(Math.max(0, Math.floor(PlayState.instance.songLength / 1000)), false);
 	}
 }

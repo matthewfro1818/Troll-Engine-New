@@ -77,7 +77,6 @@ class Note extends NoteObject
 	public var quant:Int = 4;
 	public var extraData:Map<String, Dynamic> = [];
 	public var isQuant:Bool = false; // mainly for color swapping, so it changes color depending on which set (quants or regular notes)
-	public var canQuant:Bool = true;
 	
 	// basic stuff
 	public var beat:Float = 0;
@@ -94,17 +93,17 @@ class Note extends NoteObject
 	public var prevNote:Note;
 	public var nextNote:Note;
 	public var spawned:Bool = false;
+	public var causedMiss:Bool = false;
 	function get_canBeHit()return PlayState.instance.judgeManager.judgeNote(this)!=UNJUDGED;
 	
 	
 	// note type/customizable shit
-	
+	public var canQuant:Bool = true; // whether a quant texture should be searched for or not
 	public var noteType(default, set):String = null;  // the note type
-	public var causedMiss:Bool = false;
 
 	public var blockHit:Bool = false; // whether you can hit this note or not
 	#if PE_MOD_COMPATIBILITY
-	public var lowPriority:Bool = false; // Unused. shadowmario's shitty workaround for really bad mine placement, yet still no *real* hitbox customization lol!
+	public var lowPriority:Bool = false; // Shadowmario's shitty workaround for really bad mine placement, yet still no *real* hitbox customization lol! Only used when PE Mod Compat is enabled in project.xml
 	#end
 	@:isVar
 	public var noteSplashDisabled(get, set):Bool = false; // disables the notesplash when you hit this note
@@ -117,6 +116,9 @@ class Note extends NoteObject
 
 	public var noteSplashBehaviour:SplashBehaviour = DEFAULT;
 	public var usesDefaultColours:Bool = true; // whether this note uses the default note colours (lets you change colours in options menu)
+	// This automatically gets set if a notetype changes the ColorSwap values
+
+	public var requiresTap:Bool = true; // If you need to tap the note to hit it, or just have the direction be held when it can be judged to hit.
 	public var noteSplashTexture:String = null; // spritesheet for the notesplash
 	//public var ratingDisabled:Bool = false; // disables judging this note
 	public var missHealth:Float = 0; // damage when hitCausesMiss = true and you hit this note	
@@ -252,6 +254,16 @@ class Note extends NoteObject
 			rgbShader.r = ClientPrefs.columnColors[noteData % 4][0];
 			rgbShader.g = ClientPrefs.columnColors[noteData % 4][1];
 			rgbShader.b = ClientPrefs.columnColors[noteData % 4][2];
+		}
+
+		switch (ClientPrefs.noteType)
+		{
+			case 'Scalable':
+				if (isSustainNote)
+					rgbShader.enabled = false;
+
+				rgbShader.b = FlxColor.BLACK;
+				rgbShader.g = 0xafafaf;
 		}
 
 		if (noteScript != null && noteScript is FunkinHScript)
@@ -398,8 +410,13 @@ class Note extends NoteObject
 		if (isSustainNote && prevNote != null)
 		{
 			sustainMult = 0.5; // early hit mult but just so note-types can set their own and not have sustains fuck them
-			alpha = 0.6;
-			// multAlpha = 0.6;
+			if (ClientPrefs.noteType == "Scalable") {
+				alpha = 1;
+				// multAlpha = 1;
+			} else {
+				alpha = 0.6;
+				// multAlpha = 0.6;
+			}
 			hitsoundDisabled = true;
 			copyAngle = false;
 			//if(ClientPrefs.downScroll) flipY = true;
@@ -472,55 +489,64 @@ class Note extends NoteObject
 			isQuant = false;
 		}
 	
-		switch (skin)
+		switch (ClientPrefs.noteType)
 		{
-			case 'pixel':
-				if (isSustainNote)
-				{
-					loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets' + 'ENDS'));
-					width = width / 4;
-					height = height / 2;
-					originalHeightForCalcs = height;
-					loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets' + 'ENDS'), true, Math.floor(width), Math.floor(height));
-				}
-				else
-				{
-					loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'));
-					width = width / 4;
-					height = height / 5;
-					loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'), true, Math.floor(width), Math.floor(height));
-				}
-	
-				if (isSustainNote)
-				{
-					offsetX += lastNoteOffsetXForPixelAutoAdjusting;
-					lastNoteOffsetXForPixelAutoAdjusting = (width - 7) * (PlayState.daPixelZoom / 2);
-					offsetX -= lastNoteOffsetXForPixelAutoAdjusting;
-				}
-	
-				loadPixelNoteAnims();
-	
-				setGraphicSize(Std.int(width * PlayState.daPixelZoom));
-				updateHitbox();
-	
-				antialiasing = false;
-				usesDefaultColours = false;
-				pixelNote = true;
-			default:
-				frames = Paths.getSparrowAtlas('noteSkin/NOTE_assets');
+			case 'Scalable': // Force use the skin
+				frames = Paths.getSparrowAtlas('noteSkin/ScalableNOTE_assets');
 				loadNoteAnims();
-	
+			
 				pixelNote = false;
-		}
-	
-		if (!inEditor && PlayState.instance != null)
-			skinScript = PlayState.instance.noteskinScripts.get(skin);
-		else if(inEditor && ChartingState.instance!=null)
-			skinScript = ChartingState.instance.noteskinScripts.get(skin);
-	
-		if (skinScript != null && skinScript is FunkinHScript){
-			var skinScript:FunkinHScript = cast skinScript;
-			skinScript.executeFunc("ReloadNoteSkin", [this], this);
+			default:
+				switch (skin)
+				{
+					case 'pixel':
+						if (isSustainNote)
+						{
+							loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets' + 'ENDS'));
+							width = width / 4;
+							height = height / 2;
+							originalHeightForCalcs = height;
+							loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets' + 'ENDS'), true, Math.floor(width), Math.floor(height));
+						}
+						else
+						{
+							loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'));
+							width = width / 4;
+							height = height / 5;
+							loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'), true, Math.floor(width), Math.floor(height));
+						}
+			
+						if (isSustainNote)
+						{
+							offsetX += lastNoteOffsetXForPixelAutoAdjusting;
+							lastNoteOffsetXForPixelAutoAdjusting = (width - 7) * (PlayState.daPixelZoom / 2);
+							offsetX -= lastNoteOffsetXForPixelAutoAdjusting;
+						}
+			
+						loadPixelNoteAnims();
+			
+						setGraphicSize(Std.int(width * PlayState.daPixelZoom));
+						updateHitbox();
+			
+						antialiasing = false;
+						usesDefaultColours = false;
+						pixelNote = true;
+					default:					
+						frames = Paths.getSparrowAtlas('noteSkin/NOTE_assets');
+						loadNoteAnims();
+			
+						pixelNote = false;
+				}
+
+				if (!inEditor && PlayState.instance != null)
+					skinScript = PlayState.instance.noteskinScripts.get(skin);
+				else if(inEditor && ChartingState.instance!=null)
+					skinScript = ChartingState.instance.noteskinScripts.get(skin);
+			
+				if (skinScript != null && skinScript is FunkinHScript){
+					var skinScript:FunkinHScript = cast skinScript;
+					skinScript.executeFunc("ReloadNoteSkin", [this], this);
+				}
 		}
 	
 		addCustomNote(type);

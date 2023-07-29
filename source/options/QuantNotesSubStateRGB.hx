@@ -107,7 +107,7 @@ class QuantNotesSubStateRGB extends MusicBeatSubstate
 		bg.scrollFactor.set(0, 0);
 		bg.setGraphicSize(Std.int(bg.width * 0.6));
 		bg.screenCenter();
-		bg.antialiasing = ClientPrefs.globalAntialiasing;
+		// bg.antialiasing = ClientPrefs.globalAntialiasing;
 		bg.active = false;
 		//add(bg);
 
@@ -146,7 +146,7 @@ class QuantNotesSubStateRGB extends MusicBeatSubstate
 			note.animation.addByPrefix('idle', animations[i % 4]);
 			note.animation.play('idle');
 			note.angle = quantAngles[i % 4];
-			note.antialiasing = ClientPrefs.globalAntialiasing;
+			// note.antialiasing = ClientPrefs.globalAntialiasing;
 			grpNotes.add(note);
 
 			var newShader:RGBPalette = new RGBPalette();

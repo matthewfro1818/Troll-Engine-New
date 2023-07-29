@@ -49,6 +49,7 @@ class OptionsSubstate extends MusicBeatSubstate
 		"hitWindow",
 		"judgeDiff", 
 		"noteSkin",
+		"noteType",
 		"etternaHUD"
 	];
 	
@@ -294,6 +295,7 @@ class OptionsSubstate extends MusicBeatSubstate
 					"midScroll",
 					"noteSplashes",
 					"noteSkin",
+					"noteType",
 					"customizeColours"
 				]
 			],
@@ -335,6 +337,7 @@ class OptionsSubstate extends MusicBeatSubstate
 				[
 					"lowQuality",
 					"globalAntialiasing",
+					"cacheOnGPU",
 					"multicoreLoading",
 					"optimizeHolds",
 					"holdSubdivs",

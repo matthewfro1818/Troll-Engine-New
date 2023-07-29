@@ -16,10 +16,11 @@ class ITGHUD extends BaseHUD {
 	public var judgeNames:Map<String, FlxText> = [];
 	
 	public var scoreTxt:FlxText;
+	public var scoreTxtRight:FlxText;
+
 	public var hitbar:Hitbar;
 
 	var hitbarTween:FlxTween;
-	var scoreTxtTween:FlxTween;
 
 	var songHighscore:Int = 0;
 	var songWifeHighscore:Float = 0;
@@ -43,16 +44,21 @@ class ITGHUD extends BaseHUD {
 		songHighscore = Highscore.getScore(songName,PlayState.difficulty);
 		songWifeHighscore = Highscore.getNotesHit(songName,PlayState.difficulty);
 
-		bpmText = new FlxText(FlxG.width * 0.5 - 200, 19 + 35, 400, Std.string(PlayState.SONG.bpm), 30);
-		bpmText.setFormat(Paths.font(gameFont), 30, 0xFFFFFFFF, CENTER, FlxTextBorderStyle.OUTLINE, 0xFF000000);
-		bpmText.scrollFactor.set();
-		bpmText.borderSize = 2;
+		var bpmSizeText:Int = ClientPrefs.hitbar ? 30 : 55;
 
-		scoreTxt = new FlxText(0, ClientPrefs.downScroll ? ClientPrefs.hitbar ? healthBarBG.y + 108  : healthBarBG.y + 78 : healthBarBG.y + 78, FlxG.width, "", 20);
-		scoreTxt.setFormat(Paths.font(gameFont), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		bpmText = new FlxText(FlxG.width * 0.5 - 200, 50, 400, Std.string(PlayState.SONG.bpm),bpmSizeText);
+		bpmText.setFormat(Paths.font('miso-bold.ttf'), bpmSizeText, 0xFFFFFFFF, CENTER, FlxTextBorderStyle.OUTLINE, 0xFF000000);
+		bpmText.scrollFactor.set();
+
+		scoreTxt = new FlxText(0, healthBarBG.y + 38, healthBar.width, "", 96);
+		scoreTxt.setFormat(Paths.font("wendy.ttf"), 96, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		scoreTxt.scrollFactor.set();
-		scoreTxt.borderSize = 1.25;
 		scoreTxt.visible = scoreTxt.alpha > 0;
+
+		scoreTxtRight = new FlxText(1000, healthBarBG2.y + 38, healthBar2.width, "", 96);
+		scoreTxtRight.setFormat(Paths.font("wendy.ttf"), 96, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		scoreTxtRight.scrollFactor.set();
+		scoreTxtRight.visible = scoreTxtRight.alpha > 0;
 
 		if (ClientPrefs.judgeCounter != 'Off')
 		{
@@ -97,6 +103,7 @@ class ITGHUD extends BaseHUD {
 		}
 
 		add(scoreTxt);
+		add(scoreTxtRight);
 		add(bpmText);
 	}
 
@@ -105,14 +112,6 @@ class ITGHUD extends BaseHUD {
 		super.changedOptions(changed);
 
 		hitbar.visible = ClientPrefs.hitbar;
-
-		if (ClientPrefs.downScroll) {
-			if (ClientPrefs.hitbar)
-				scoreTxt.y = healthBarBG.y + 78;
-			else
-				scoreTxt.y = healthBarBG.y + 108;
-		}else
-			scoreTxt.y = healthBarBG.y + 78;
 		
 		if (ClientPrefs.hitbar)
 		{
@@ -138,12 +137,8 @@ class ITGHUD extends BaseHUD {
 			isHighscore = songHighscore != 0 && score > songHighscore;
 
 
-		scoreTxt.text = (isHighscore ? 'Hi-score: ' : 'Score: ')
-			+ '$shownScore | Combo Breaks: $comboBreaks | Rating: '
-			+ (grade != '?' ? Highscore.floorDecimal(ratingPercent * 100, 2)
-				+ '% / ${grade} [${(ratingFC == 'CFC' && ClientPrefs.wife3) ? "FC" : ratingFC}]' : grade);
-		if (ClientPrefs.npsDisplay)
-			scoreTxt.text += ' | NPS: ${nps} / ${npsPeak}';
+		scoreTxt.text = grade != '?' ? '${Highscore.floorDecimal(ratingPercent * 100, 2)}': '0.00';
+		scoreTxtRight.text = grade != '?' ? '${Highscore.floorDecimal(ratingPercent * 100, 2)}': '0.00';
 
 		for (k in judgements.keys())
 		{
@@ -160,35 +155,6 @@ class ITGHUD extends BaseHUD {
 
 		if (ClientPrefs.hitbar)
 			hitbar.addHit(hitTime);
-		if (ClientPrefs.scoreZoom)
-		{
-			if (scoreTxtTween != null)
-				scoreTxtTween.cancel();
-
-			var judgeName = judgeNames.get(judge.internalName);
-			var judgeTxt = judgeTexts.get(judge.internalName);
-			if (judgeName != null)
-			{
-				FlxTween.cancelTweensOf(judgeName.scale);
-				judgeName.scale.set(1.075, 1.075);
-				FlxTween.tween(judgeName.scale, {x: 1, y: 1}, 0.2);
-			}
-			if (judgeTxt != null)
-			{
-				FlxTween.cancelTweensOf(judgeTxt.scale);
-				judgeTxt.scale.set(1.075, 1.075);
-				FlxTween.tween(judgeTxt.scale, {x: 1, y: 1}, 0.2);
-			}
-
-			scoreTxt.scale.x = 1.075;
-			scoreTxt.scale.y = 1.075;
-			scoreTxtTween = FlxTween.tween(scoreTxt.scale, {x: 1, y: 1}, 0.2, {
-				onComplete: function(twn:FlxTween)
-				{
-					scoreTxtTween = null;
-				}
-			});
-		}
 	}
 
 	function statChanged(stat:String, val:Dynamic)

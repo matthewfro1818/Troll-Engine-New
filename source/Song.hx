@@ -4,13 +4,19 @@ import haxe.Json;
 import haxe.format.JsonParser;
 import lime.utils.Assets;
 import Section.SwagSection;
-import PlayState.SongCreditdata;
 using StringTools;
 #if sys
 import sys.FileSystem;
 import sys.io.File;
 #end
 
+typedef SongCreditdata = // beacuse SongMetadata is stolen
+{
+	?artist:String,
+	?charter:String,
+	?modcharter:String,
+	?extraInfo:Array<String>,
+}
 
 typedef SwagSong =
 {

@@ -129,7 +129,7 @@ class NotesSubStateRGB extends MusicBeatSubstate
 			var animations:Array<String> = ['purple0', 'blue0', 'green0', 'red0'];
 			note.animation.addByPrefix('idle', animations[i]);
 			note.animation.play('idle');
-			note.antialiasing = ClientPrefs.globalAntialiasing;
+			// note.antialiasing = ClientPrefs.globalAntialiasing;
 			grpNotes.add(note);
 
 			var newShader:RGBPalette = new RGBPalette();

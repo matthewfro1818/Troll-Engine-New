@@ -26,19 +26,19 @@ function onCountdownStarted(){
     for (i in 0...drums.length){
         var step = drums[i];
         modManager.queueSet(step, 'fieldYaw', 65);
-        modManager.queueEase(step, step + 4, 'fieldYaw', 0, 'cubeOut');
+        modManager.queueEase(step, step + 6, 'fieldYaw', 0, 'cubeOut');
 
         modManager.queueSet(step, 'fieldPitch', 65);
-        modManager.queueEase(step, step + 4, 'fieldPitch', 0, 'cubeOut');
+        modManager.queueEase(step, step + 6, 'fieldPitch', 0, 'cubeOut');
     }
 
     for (i in 0...drums2.length){
         var step = drums2[i];
         modManager.queueSet(step, 'fieldYaw', -65);
-        modManager.queueEase(step, step + 4, 'fieldYaw', 0, 'cubeOut');
+        modManager.queueEase(step, step + 6, 'fieldYaw', 0, 'cubeOut');
 
         modManager.queueSet(step, 'fieldPitch', -65);
-        modManager.queueEase(step, step + 4, 'fieldPitch', 0, 'cubeOut');
+        modManager.queueEase(step, step + 6, 'fieldPitch', 0, 'cubeOut');
     }
 
     modManager.queueEase(288, 288 + 4, 'invert', 1, 'cubeOut');
@@ -204,8 +204,8 @@ function onCreatePost()
     }
 
     if (ClientPrefs.shaders != 'None') {
-        vhsShaders = newShader("vcr");
-        //vhsShaders.data.iTime.value = [0];
+        vhsShaders = newShader("vhs");
+        vhsShaders.data.iTime.value = [0];
 
         vhsFilter = new ShaderFilter(vhsShaders);
         FlxG.game.setFilters([vhsFilter]);
