@@ -1,5 +1,4 @@
 package;
-
 #if !macro
 import Controls.KeyboardScheme;
 import flixel.util.FlxSave;
@@ -335,7 +334,7 @@ class ClientPrefs
 			},
 			"showWifeScore" => {
 				display: "Accuracy Score Display",
-				desc: "When toggled, the score will be displayed as the total notes hit instead of the standard judgment-based scoring.\nOnly really useful on Wife3.",
+				desc: "When toggled, the score will be displayed as the internal accuracy score, instead of the normal judgement-based scoring.\nOnly really useful on Wife3.",
 				type: Toggle,
 				value: false,
 				data: []
@@ -610,6 +609,22 @@ class ClientPrefs
 		[0x00ff9d, 0xFFFFFFFF, 0x1580b7], // 192nd
 	];*/
 
+	public static var quantITGColors:Array<Array<Int>> = [
+		[0xff3a00, 0x000000], // 4th
+		[0x0040ff, 0x000000], // 8th
+		[0x6b06fe, 0x000000], // 12th
+		[0x01b427, 0x000000], // 16th
+
+		[0x00c7ad, 0x000000], // 20th
+		[0xfc73bc, 0x000000], // 24th
+		[0xf46700, 0x000000], // 32nd
+		[0x47f2ff, 0x000000], // 48th
+
+		[0x737373, 0x000000], // 64th
+		[0x00c7ad, 0x000000], // 96th
+		[0x00c7ad, 0x000000], // 192nd
+	];
+
 	public static var quantColors:Array<Array<Int>> = [
 		[0xf9393f, 0x651038], // 4th
 		[0x00ffff, 0x004a54], // 8th
@@ -758,6 +773,9 @@ class ClientPrefs
 
 		if (Main.fpsVar != null)
 			Main.fpsVar.visible = ClientPrefs.showFPS;
+
+		if (Main.bread != null)
+			Main.bread.visible = ClientPrefs.bread;
 
 		FlxSprite.defaultAntialiasing = ClientPrefs.globalAntialiasing;
 

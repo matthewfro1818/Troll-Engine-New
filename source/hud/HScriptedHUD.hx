@@ -81,7 +81,7 @@ class HScriptedHUD extends BaseHUD {
 
 	public static function fromFile(iP1:String, iP2:String, songName:String, stats:Stats, fileName:String):Null<HScriptedHUD>
 	{
-		var fileName:String = '$fileName.hscript';
+		var fileName:String = '$fileName.hx';
 		for (file in [#if MODS_ALLOWED Paths.modFolders(fileName), #end Paths.getPreloadPath(fileName)])
 		{
 			if (!Paths.exists(file))
@@ -96,7 +96,7 @@ class HScriptedHUD extends BaseHUD {
 
 	public static function fromName(iP1:String, iP2:String, songName:String, stats:Stats, scriptName:String):Null<HScriptedHUD>
 	{
-		var fileName:String = 'scripts/$scriptName.hscript';
+		var fileName:String = 'scripts/$scriptName.hx';
 		for (file in [#if MODS_ALLOWED Paths.modFolders(fileName), #end Paths.getPreloadPath(fileName)])
 		{
 			if (!Paths.exists(file))

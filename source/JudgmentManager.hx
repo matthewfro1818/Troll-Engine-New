@@ -210,7 +210,7 @@ class JudgmentManager {
                 if(diff <= getWindow(HIT_MINE))
                     return HIT_MINE;
             default:
-				if (note.noteScript != null && note.noteScript.scriptType == 'hscript')
+				if (note.noteScript != null && note.noteScript.scriptType == 'hx')
 				{
 					var noteScript:FunkinHScript = cast note.noteScript;
 					var judge = noteScript.executeFunc("judgeNote", [note, diff], note);

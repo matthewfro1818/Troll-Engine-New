@@ -1,6 +1,7 @@
 // @author Nebula_Zorua
 
 package modchart;
+import flixel.tweens.FlxEase.EaseFunction;
 import modchart.Modifier.RenderInfo;
 import flixel.math.FlxPoint;
 import flixel.tweens.FlxEase;
@@ -14,7 +15,24 @@ import modchart.events.*;
 import playfields.NoteField;
 
 // Weird amalgamation of Schmovin' modifier system, Andromeda modifier system and my own new shit -neb
+// NEW: Now also has some features of mirin (aliases, nodes)
+
+
+/**
+ * So, what is a Node?
+ * A Node can be used to extend or otherwise modify modifiers
+ * (for example you can have a screen bounce aux mod + node w/ that aux mod as an input, and then change transformX)
+ */
+typedef Node = {
+	var lastSeen:Int; // to make sure it doesnt get hit multiple times per update
+    var in_mods:Array<String>; /// the modifiers that get input into this node
+    var out_mods:Array<String>; // the modifiers that get transformed by this node
+	var nodeFunc:(Array<Float>, Int)->Dynamic; // takes an array of the input mods' values, and returns an array of transformed modifier values, if out_mods.length > 0
+}
+
 class ModManager {
+	public function registerAux(name:String)return quickRegister(new SubModifier(name, this));
+    
 	public function registerDefaultModifiers()
 	{
 		var quickRegs:Array<Any> = [
@@ -28,9 +46,9 @@ class ModManager {
 			ConfusionModifier, 
 			OpponentModifier, 
 			TransformModifier, 
-			InfinitePathModifier, //Broken?
+			InfinitePathModifier,  // broken
 			PathModifier,
-			AccelModifier, 
+			AccelModifier,
 			PerspectiveModifier,
 			ZoomModifier
 		];
@@ -40,16 +58,19 @@ class ModManager {
 		quickRegister(new RotateModifier(this));
 		quickRegister(new RotateModifier(this, 'center', new Vector3(FlxG.width* 0.5, FlxG.height* 0.5)));
 		quickRegister(new LocalRotateModifier(this, 'local'));
-		quickRegister(new SubModifier("noteSpawnTime", this));
-		quickRegister(new SubModifier("drawDistance", this));
-		quickRegister(new SubModifier("flashR", this));
-		quickRegister(new SubModifier("flashG", this));
-		quickRegister(new SubModifier("flashB", this));
-
-		quickRegister(new SubModifier("xmod", this));
+		registerAux("noteSpawnTime");
+		registerAux("drawDistance");
+		registerAux("disableDrawDistMult");
+		registerAux("flashR");
+		registerAux("flashG");
+		registerAux("flashB");
+		registerAux("xmod");
+		registerAux("cmod");
+		registerAux("movePastReceptors");
 		for (i in 0...4){
-			quickRegister(new SubModifier("xmod" + i, this));
-			quickRegister(new SubModifier("noteSpawnTime" + i, this));
+			registerAux("xmod" + i);
+			registerAux("cmod" + i);
+			registerAux("noteSpawnTime" + i);
 		}
 
 		for (pN => mods in activeMods)
@@ -69,19 +90,22 @@ class ModManager {
 		setValue("drawDistance", FlxG.height * 1.1, mN); // MAY NOT REPRESENT ACTUAL DRAWDISTANCE: drawDistance is modified by the notefields aswell
 		// so when you set drawDistance is might be lower or higher than expected because of the draw distance mult. setting
 		setValue("xmod", 1, mN);
+		setValue("cmod", -1, mN);
 		setValue("scale", 1, mN);
 		setValue("scaleX", 1, mN);
 		setValue("scaleY", 1, mN);
 		for (i in 0...4){
+			setValue('cmod$i', -1, mN);
 			setValue('xmod$i', 1, mN);
 			setValue('scale${i}', 1, mN);
 			setValue('scale${i}X', 1, mN);
 			setValue('scale${i}Y', 1, mN);
 		}
-
+		setValue("movePastReceptors", 0); // effects shouldnt go on
 		setValue("flashR", 1, mN);
 		setValue("flashG", 1, mN);
 		setValue("flashB", 1, mN);
+		
 	}
 
 
@@ -91,27 +115,61 @@ class ModManager {
 
 	public var notemodRegister:Map<String, Modifier> = [];
 	public var miscmodRegister:Map<String, Modifier> = [];
-
     public var register:Map<String, Modifier> = [];
-
     public var modArray:Array<Modifier> = [];
+    public var activeMods:Array<Array<String>> = [[], []]; // by player    
+    public var tempActiveMods:Array<Array<String>> = [[], []];
+	public var lastActiveMods:Array<Array<String>> = [[], []]; // by player
+    public var aliases:Map<String, String> = [];
+    var nodeSeen:Int = 0;
 
-    public var activeMods:Array<Array<String>> = [[], []]; // by player
-    
+    public var nodes:Map<String, Array<Node>> = []; // maps nodes by their inputs
+    public var nodeArray:Array<Node> = [];
+
     inline public function quickRegister(mod:Modifier)
         registerMod(mod.getName(), mod);
 
+    public function registerAlias(alias:String, mod:String)aliases.set(alias, mod);
+
+    public function registerNode(node:Node){
+        var inputs = node.in_mods;
+		for(inp in inputs){
+            if(!nodes.exists(inp))
+                nodes.set(inp, []);
+            
+            nodes.get(inp).push(node);
+        }
+		nodeArray.push(node);
+    }
+
+	public function quickNode(inputs:Array<String>, nodeFunc:(Array<Dynamic>, Int) -> Dynamic, ?outputs:Array<String>){
+		if (outputs == null)
+			outputs=[];
+		registerNode({
+			lastSeen: -1,
+			in_mods: inputs,
+			out_mods: outputs,
+			nodeFunc: nodeFunc
+		});
+    }
+
+    public function getActualModName(m:String)return aliases.exists(m)?aliases.get(m):m;
+
     public function registerMod(modName:String, mod:Modifier, ?registerSubmods = true){
         register.set(modName, mod);
-		//registerByType.get(mod.getModType()).set(modName, mod);
 		switch (mod.getModType()){
 			case NOTE_MOD:
 				notemodRegister.set(modName, mod);
 			case MISC_MOD:
 				miscmodRegister.set(modName, mod);
 		}
+
 		timeline.addMod(modName);
 		modArray.push(mod);
+        
+        for(a => m in mod.getAliases())
+            registerAlias(a, m);
+        
 
 		if (registerSubmods){
 			for (name in mod.submods.keys())
@@ -137,18 +195,42 @@ class ModManager {
 		return modifier;
 	}
 
-    inline public function get(modName:String)
-        return register.get(modName);
-
+    inline public function get(modName:String)return register.get(getActualModName(modName));
+    
 	inline public function getPercent(modName:String, player:Int)
-		return !register.exists(modName)?0:register.get(modName).getPercent(player);
+		return !register.exists(getActualModName(modName))?0:get(modName).getPercent(player);
 
 	inline public function getValue(modName:String, player:Int)
-		return !register.exists(modName)?0:register.get(modName).getValue(player);
+		return !register.exists(getActualModName(modName))?0:get(modName).getValue(player);
 
     inline public function setPercent(modName:String, val:Float, player:Int=-1)
 		setValue(modName, val/100, player);
-    
+
+	public function getCMod(data:Int, player:Int, ?defaultSpeed:Float){
+		var daSpeed = getValue('cmod${data}', player);
+		if (daSpeed < 0){
+			daSpeed = getValue('cmod', player);
+
+			if (daSpeed < 0){
+				if (defaultSpeed == null)
+					return PlayState.instance.songSpeed;
+				else
+					return defaultSpeed;
+			}
+		}
+
+		return daSpeed;
+	}
+
+	public function getXMod(data:Int, player:Int)
+		return getValue("xmod", player) * getValue('xmod${data}', player);
+
+	inline public function getSpeed(dir:Int, player:Int, ?songSpeed:Float)
+		return getCMod(dir, player, songSpeed) * getXMod(dir, player);
+	
+	inline public function getNoteSpeed(note:Note, pN:Int, ?songSpeed:Float)
+		return getCMod(note.noteData, pN, songSpeed) * note.multSpeed * getXMod(note.noteData, pN);
+	
 
 	public function getActiveMods(pN:Int){
 		if(activeMods[pN]==null){
@@ -156,7 +238,14 @@ class ModManager {
 			setDefaultValues(pN);
 		}
 
-		return activeMods[pN];
+		/*if (tempActiveMods[pN] == null)
+			tempActiveMods[pN] = [];
+
+
+        if(tempActiveMods[pN].length > 0){
+			return activeMods[pN].concat(tempActiveMods[pN]);
+        }else*/
+			return activeMods[pN];
 	}
 	public function setValue(modName:String, val:Float, player:Int=-1){
 		if (player == -1)
@@ -166,7 +255,7 @@ class ModManager {
 		}
 		else
 		{
-			var daMod = register.get(modName);
+			var daMod = get(modName);
 			if(daMod==null)return;
 			var mod = daMod.parent==null?daMod:daMod.parent;
 			var name = mod.getName();
@@ -183,7 +272,7 @@ class ModManager {
             
 			var aMods = getActiveMods(player);
 
-			register.get(modName).setValue(val, player);
+			get(modName).setValue(val, player);
 			
 			if (!aMods.contains(name) && mod.shouldExecute(player, val)){
 				if (daMod.getName() != name)
@@ -205,12 +294,12 @@ class ModManager {
 					aMods.remove(daMod.getName());
 				if (modParent!=null){
 					if (modParent.shouldExecute(player, modParent.getValue(player))){
-						aMods.sort((a, b) -> Std.int(register.get(a).getOrder() - register.get(b).getOrder()));
+						aMods.sort((a, b) -> Std.int(get(a).getOrder() - get(b).getOrder()));
 						return;
 					}
 					for (subname => submod in modParent.submods){
 						if(submod.shouldExecute(player, submod.getValue(player))){
-							aMods.sort((a, b) -> Std.int(register.get(a).getOrder() - register.get(b).getOrder()));
+							aMods.sort((a, b) -> Std.int(get(a).getOrder() - get(b).getOrder()));
 							return;
 						}
 					}
@@ -219,7 +308,7 @@ class ModManager {
 					aMods.remove(daMod.getName());
 			}
 
-			aMods.sort((a, b) -> Std.int(register.get(a).getOrder() - register.get(b).getOrder()));
+			aMods.sort((a, b) -> Std.int(get(a).getOrder() - get(b).getOrder()));
 		}
     }
 
@@ -229,33 +318,122 @@ class ModManager {
 
 	public function update(elapsed:Float)
 	{
+		//tempActiveMods = [[], []];
 		if (FlxG.state == PlayState.instance){
 			for (mod in modArray)
 			{
+                //mod._internalUpdate();
 				if (mod.doesUpdate())
 					mod.update(elapsed, PlayState.instance.curDecBeat);
 			}
 		}else{
 			for (mod in modArray)
 			{
+                //mod._internalUpdate();
 				if (mod.doesUpdate())
 					mod.update(elapsed, 0);
 			}
 		}
+        
+		/*for (node in nodeArray){
+			if (node.out_mods.length > 0)
+			{
+                for(out in node.out_mods){
+                    for(pN in 0...activeMods.length){
+						if (tempActiveMods[pN] == null)
+							tempActiveMods[pN] = [];
+
+                        if (!tempActiveMods[pN].contains(out))
+                            tempActiveMods[pN].push(out);
+						if (!lastActiveMods[pN].contains(out))
+							lastActiveMods[pN].push(out);
+                    }
+                }
+            }
+        }
+
+        // honestly i can probably optimize this some day but for now its fine
+
+        if(nodeArray.length > 0){
+            for (pN => mods in lastActiveMods){ // dont use activeMods just incase the value has just rolled over to 0 so the node will have to be disabled
+                // alternatively i add a seperate array for activeNodes so nodes can get a final call in b4 being disabled + still have up-to-date active mod data
+                // honestly probably the best idea i'll do that tmrw
+				
+                var touched:Array<String> = [];
+                nodeSeen++;
+                var values:Map<String, Float> = []; // to prevent calling getValue over and over
+                
+                for(mod in mods){
+                    if(nodes.exists(mod)){
+                        for(node in nodes.get(mod)){
+                            if (node.lastSeen != nodeSeen){
+                                node.lastSeen = nodeSeen; // to prevent the node from being called over and over in the same frame by having multiple inputs
+
+                                // collect up all the input values from the in_mods array
+                                var inputValues:Array<Float> = []; 
+                                for(in_mod in node.in_mods){
+                                    if(!values.exists(in_mod))
+                                        values.set(in_mod, getValue(in_mod, pN));
+
+                                    inputValues.push(values.get(in_mod));
+                                }
+                                var returnValue:Dynamic = node.nodeFunc(inputValues, pN);
+                                if(node.out_mods.length > 0){ // if this has outputs then output them
+                                    if((returnValue is Array)){
+                                        var values:Array<Float> = cast returnValue;
+                                        for (idx in 0...values.length){ // goes over all the values
+                                            // better have only floats in here if you dont then THATS NOT MY FAULT IF IT CRASHES!!
+                                            var value:Float = values[idx];
+                                            var output:String = node.out_mods[idx];
+                                            var oM = get(output);
+											var perc:Null<Float> = cast oM._percents[pN];
+											if (node.in_mods.contains(output) || perc == null) // if the output is also an input then set it directly, otherwise add it
+                                                oM._percents[pN] = value;
+                                            else
+                                                oM._percents[pN] += value;
+
+											if (oM.shouldExecute(pN, oM._percents[pN]) && !touched.contains(output))
+                                                touched.push(output);
+
+                                            // honestly i should make it so anything that is outputted gets added to tempactivemods BEFORE doing any node stuff
+                                            // and then remove them if they didnt change after doing nodes
+                                            // so then nodes that get outputted by another node are set active
+                                            
+                                            
+                                        }
+                                    }
+                                }
+                            }
+                            
+                        }
+                    }
+                }
+
+                var toRemove:Array<String> = [];
+                for(shit in tempActiveMods[pN]){
+                    if (!touched.contains(shit))
+                        toRemove.push(shit);
+                }
+                for(shit in toRemove)
+                    tempActiveMods[pN].remove(shit);
+            }
+        }*/
 	}
 
-    public function updateTimeline(curStep:Float)
+    public function updateTimeline(curStep:Float){
+		lastActiveMods = activeMods.copy();
 		timeline.update(curStep);
+    }
 
-	public var playerAmount:Int = 2;
+ 	public var playerAmount:Int = 2;
 	public var playerOOBIsCentered:Bool = true; // Player Out of Bounds is centered
 
 	public function getBaseX(direction:Int, player:Float, receptorAmount:Int = 4):Float
 	{
 		if (playerOOBIsCentered && (player > (playerAmount-1) || player < 0))
 			player = 0.5; // replicating old behaviour for upcoming modcharts
-
-
+		
+		
 		var spaceWidth = FlxG.width / playerAmount;
 		var spaceX = spaceWidth * (playerAmount-1-player);
 
@@ -264,20 +442,6 @@ class ModManager {
 
 		return x;
 	}
-
-	/* 	public function getBaseX(direction:Int, player:Int):Float
-	{
-		var x:Float = (FlxG.width * 0.5) - Note.swagWidth - 54 + Note.swagWidth * direction;
-		switch (player)
-		{
-			case 0:
-				x += FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
-			case 1:
-				x -= FlxG.width * 0.5 - Note.swagWidth * 2 - 100;
-		}
-		x -= 56;
-		return x;
-	} */
 
 	public function updateObject(beat:Float, obj:FlxSprite, player:Int){
 		for (name in getActiveMods(player))
@@ -295,8 +459,10 @@ class ModManager {
 				mod.updateReceptor(beat, cast obj, player);
 			}
         }
+		
 		if ((obj is Note)){
 			obj.updateHitbox();
+
 			var cum:Note = cast obj;
 			if(!cum.isSustainNote){
 				obj.centerOrigin();
@@ -332,7 +498,6 @@ class ModManager {
 		pos.y = (Note.swagWidth / 2) + 50 + diff;
 		pos.z = 0;
 
-
  		for (name in getActiveMods(player)){
 			if (exclusions.contains(name))continue; // because some modifiers may want the path without reverse, for example. (which is actually more common than you'd think!)
 			var mod:Modifier = notemodRegister.get(name);
@@ -340,16 +505,20 @@ class ModManager {
 			if (!obj.alive)continue;
 			if (mod.ignorePos())continue;
 			pos = mod.getPos(diff, tDiff, beat, pos, data, player, obj, field);
-        } 
+        }
+
 
 		return pos;
     }
+
+	inline function lerp(a,b,c)
+		return a + (b - a) * c;
 
 	public function getFieldZoom(zoom:Float, beat:Float, songPos:Float, player:Int, field:NoteField, ?exclusions:Array<String>):Float
 	{
 		if (exclusions == null)
 			exclusions = [];
-	
+
 		for (name in getActiveMods(player))
 		{
 			if (exclusions.contains(name))continue;
@@ -357,7 +526,7 @@ class ModManager {
 			if (mod == null)continue;
 			if (mod.affectsField())zoom = mod.getFieldZoom(zoom, beat, songPos, player, field);
 		}
-	
+
 		return zoom;
 	}
 
@@ -375,7 +544,6 @@ class ModManager {
 			if (!obj.active) return vert;
 			if (mod.isRenderMod())
 				vert = mod.modifyVert(beat, vert, idx, obj, pos, player, data);
-			
 		}
 		return vert;
 	}
@@ -412,7 +580,7 @@ class ModManager {
 		return info;
 	}
 
-	public function queueEaseP(step:Float, endStep:Float, modName:String, percent:Float, style:String = 'linear', player:Int = -1, ?startVal:Float)
+	public function queueEaseP(step:Float, endStep:Float, modName:String, percent:Float, style:Dynamic = 'linear', player:Int = -1, ?startVal:Float)
 		queueEase(step, endStep, modName, percent * 0.01, style, player, startVal * 0.01);
 	
 	public function queueSetP(step:Float, modName:String, percent:Float, player:Int = -1)
@@ -420,20 +588,69 @@ class ModManager {
 	
 	
 
-	public function queueEase(step:Float, endStep:Float, modName:String, target:Float, style:String = 'linear', player:Int = -1, ?startVal:Float)
+    // could probably use a macro
+	static var EaseMap:Map<String, EaseFunction> = [
+        "backIn" => FlxEase.backIn,
+        "backInOut" => FlxEase.backInOut,
+        "backOut" => FlxEase.backOut,
+		"bounceIn" => FlxEase.bounceIn,
+        "bounceInOut" => FlxEase.bounceInOut,
+		"bounceOut" => FlxEase.bounceOut,
+        "circIn" => FlxEase.circIn,
+        "circInOut" => FlxEase.circInOut,
+        "circOut" => FlxEase.circOut,
+        "cubeIn" => FlxEase.cubeIn,
+        "cubeInOut" => FlxEase.cubeInOut,
+        "cubeOut" => FlxEase.cubeOut,
+        "elasticIn" => FlxEase.elasticIn,
+        "elasticInOut" => FlxEase.elasticInOut,
+        "elasticOut" => FlxEase.elasticOut,
+        "expoIn" => FlxEase.expoIn,
+        "expoInOut" => FlxEase.expoInOut,
+        "expoOut" => FlxEase.expoOut,
+        "quadIn" => FlxEase.quadIn,
+        "quadInOut" => FlxEase.quadInOut,
+        "quadOut" => FlxEase.quadOut,
+        "quartIn" => FlxEase.quartIn,
+        "quartInOut" => FlxEase.quartInOut,
+        "quartOut" => FlxEase.quartOut,
+        "quintIn" => FlxEase.quintIn,
+        "quintInOut" => FlxEase.quintInOut,
+        "quintOut" => FlxEase.quintOut,
+        "sineIn" => FlxEase.sineIn,
+        "sineInOut" => FlxEase.sineInOut,
+        "sineOut" => FlxEase.sineOut,
+        "smoothStepIn" => FlxEase.smoothStepIn,
+        "smoothStepInOut" => FlxEase.smoothStepInOut,
+        "smoothStepOut" => FlxEase.smoothStepOut,
+        "smootherStepIn" => FlxEase.smootherStepIn,
+        "smootherStepInOut" => FlxEase.smootherStepInOut,
+        "smootherStepOut" => FlxEase.smootherStepOut,
+
+        "linear" => FlxEase.linear,
+        "instant" => ((t:Float) -> return 1),
+    ];
+
+	public function queueEase(step:Float, endStep:Float, modName:String, target:Float, style:Dynamic = 'linear', player:Int = -1, ?startVal:Float)
 	{
 		if(player==-1){
 			for (pN => mods in activeMods)
 				queueEase(step, endStep, modName, target, style, pN);
 		}else{
-			var easeFunc = FlxEase.linear;
+			var easeFunc:EaseFunction = FlxEase.linear;
 
-			try
-			{
-				var newEase = Reflect.getProperty(FlxEase, style);
-				if (newEase != null)
-					easeFunc = newEase;
-			}
+            if((style is String)){
+                // most common use of the style var is to just use an existing FlxEase
+                try
+                {
+					if (EaseMap.exists(style))
+						easeFunc = EaseMap.get(style);
+                }
+            }else if(Reflect.isFunction(style)){ // i cant use easefunction for some reason so yeah just please provide an easefunction and nothing else :pray:
+                // probably gonna be useful SOMEWHERE
+                // maybe custom eases?
+                easeFunc = style;
+            }
 			
 
 			timeline.addEvent(new ModEaseEvent(step, endStep, modName, target, easeFunc, player, this));

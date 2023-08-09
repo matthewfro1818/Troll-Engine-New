@@ -42,7 +42,7 @@ end
 
 local tipsyVal = 0.5
 
-function onCountdownStarted() -- creates the modchart itself
+function generateModchart() -- creates the modchart itself
     if (disableModcharts) then
         return
     end

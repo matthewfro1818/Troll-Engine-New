@@ -15,8 +15,9 @@ class ITGHUD extends BaseHUD {
     public var judgeTexts:Map<String, FlxText> = [];
 	public var judgeNames:Map<String, FlxText> = [];
 	
+	public var accTxt:FlxText;
+	public var accTxtRight:FlxText;
 	public var scoreTxt:FlxText;
-	public var scoreTxtRight:FlxText;
 
 	public var hitbar:Hitbar;
 
@@ -50,15 +51,25 @@ class ITGHUD extends BaseHUD {
 		bpmText.setFormat(Paths.font('miso-bold.ttf'), bpmSizeText, 0xFFFFFFFF, CENTER, FlxTextBorderStyle.OUTLINE, 0xFF000000);
 		bpmText.scrollFactor.set();
 
-		scoreTxt = new FlxText(0, healthBarBG.y + 38, healthBar.width, "", 96);
-		scoreTxt.setFormat(Paths.font("wendy.ttf"), 96, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		scoreTxt.scrollFactor.set();
-		scoreTxt.visible = scoreTxt.alpha > 0;
+		accTxt = new FlxText(0, healthBarBG.y + 38, healthBar.width, "", 96);
+		accTxt.setFormat(Paths.font("wendy.ttf"), 96, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		accTxt.scrollFactor.set();
+		accTxt.visible = accTxt.alpha > 0;
 
-		scoreTxtRight = new FlxText(1000, healthBarBG2.y + 38, healthBar2.width, "", 96);
-		scoreTxtRight.setFormat(Paths.font("wendy.ttf"), 96, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		scoreTxtRight.scrollFactor.set();
-		scoreTxtRight.visible = scoreTxtRight.alpha > 0;
+		accTxtRight = new FlxText(1000, healthBarBG2.y + 38, healthBar2.width, "", 96);
+		accTxtRight.setFormat(Paths.font("wendy.ttf"), 96, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		accTxtRight.scrollFactor.set();
+		accTxtRight.visible = accTxtRight.alpha > 0;
+
+		var tWidth = 200;
+		scoreTxt = new FlxText(0, 0, tWidth, "0", 20);
+		scoreTxt.setFormat(Paths.font(gameFont), 40, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		scoreTxt.screenCenter(Y);
+		scoreTxt.y -= 120;
+		scoreTxt.x += 20 - 15;
+		scoreTxt.scrollFactor.set();
+		scoreTxt.borderSize = 1.25;
+		add(scoreTxt);
 
 		if (ClientPrefs.judgeCounter != 'Off')
 		{
@@ -92,6 +103,8 @@ class ITGHUD extends BaseHUD {
 		hitbar = new Hitbar();
 		hitbar.alpha = alpha;
 		hitbar.visible = ClientPrefs.hitbar;
+		statChanged("totalNotesHit", stats.totalNotesHit);
+		statChanged("score", stats.score);
 		add(hitbar);
 		if (ClientPrefs.hitbar)
 		{
@@ -102,8 +115,8 @@ class ITGHUD extends BaseHUD {
 				hitbar.y += 330;
 		}
 
-		add(scoreTxt);
-		add(scoreTxtRight);
+		add(accTxt);
+		add(accTxtRight);
 		add(bpmText);
 	}
 
@@ -137,8 +150,8 @@ class ITGHUD extends BaseHUD {
 			isHighscore = songHighscore != 0 && score > songHighscore;
 
 
-		scoreTxt.text = grade != '?' ? '${Highscore.floorDecimal(ratingPercent * 100, 2)}': '0.00';
-		scoreTxtRight.text = grade != '?' ? '${Highscore.floorDecimal(ratingPercent * 100, 2)}': '0.00';
+		accTxt.text = grade != '?' ? '${Highscore.floorDecimal(ratingPercent * 100, 2)}': '0.00';
+		accTxtRight.text = grade != '?' ? '${Highscore.floorDecimal(ratingPercent * 100, 2)}': '0.00';
 
 		for (k in judgements.keys())
 		{
@@ -153,6 +166,14 @@ class ITGHUD extends BaseHUD {
 	{
 		var hitTime = note.strumTime - Conductor.songPosition + ClientPrefs.ratingOffset;
 
+		hitbar.addHit(-hitTime);
+		if (ClientPrefs.scoreZoom)
+		{
+			FlxTween.cancelTweensOf(scoreTxt.scale);
+			scoreTxt.scale.set(1.075, 1.075);
+			FlxTween.tween(scoreTxt.scale, {x: 1, y: 1}, 0.2);
+		}
+
 		if (ClientPrefs.hitbar)
 			hitbar.addHit(hitTime);
 	}
@@ -161,6 +182,36 @@ class ITGHUD extends BaseHUD {
 		{
 			switch (stat)
 			{
+				case 'totalNotesHit':
+					if (ClientPrefs.showWifeScore)
+					{
+						var disp:Int = Math.floor(val * 100);
+						var displayedScore = Std.string(disp);
+						if (displayedScore.length > 7)
+						{
+							if (disp < 0)
+								displayedScore = '-999999';
+							else
+								displayedScore = '9999999';
+						}
+
+						scoreTxt.text = displayedScore;
+						scoreTxt.color = !PlayState.instance.saveScore ? 0x818181 : ((songWifeHighscore != 0 && val > songWifeHighscore) ? 0xFFD800 : 0xFFFFFF);
+					}
+				case 'score':
+					if(!ClientPrefs.showWifeScore){
+						var displayedScore = Std.string(val);
+						if (displayedScore.length > 7)
+						{
+							if (val < 0)
+								displayedScore = '-999999';
+							else
+								displayedScore = '9999999';
+						}
+	
+						scoreTxt.text = displayedScore;
+						scoreTxt.color = !PlayState.instance.saveScore ? 0x818181 : ((songHighscore != 0 && val > songHighscore) ? 0xFFD800 : 0xFFFFFF);
+					}
 				case 'misses':
 					misses = val;
 					var judgeName = judgeNames.get('miss');

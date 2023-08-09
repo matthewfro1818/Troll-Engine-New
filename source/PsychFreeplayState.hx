@@ -49,6 +49,8 @@ class PsychFreeplayState extends MusicBeatState
 
 	private var iconArray:Array<HealthIcon> = [];
 
+	public var showIcon:Bool = false;
+
 	var bg:FlxSprite;
 	var intendedColor:Int;
 	var colorTween:FlxTween;
@@ -79,6 +81,7 @@ class PsychFreeplayState extends MusicBeatState
 				var chrismas = FlxColor.fromRGB(160, 209, 255);
 				var senpai = FlxColor.fromRGB(255, 120, 191);
 				var tankman = FlxColor.fromRGB(246, 182, 4);
+				addSong('Test', 0, 'bf',FlxColor.fromRGB(49,176,209), 'Normal');
 				addWeek(['Bopeebo', 'Fresh', 'Dad Battle'], 1, [dadColor, dadColor, dadColor], ['dad', 'dad', 'dad'], ['Normal', 'Normal', 'Normal']);
 				addWeek(['Spookeez', 'South', 'Monster'], 2, [spook, spook, spook], ['spooky', 'spooky', 'monster'], ['Normal', 'Normal', 'Normal']);
 				addWeek(['Pico', 'Philly Nice', 'Blammed'], 3, [pico, pico, pico], ['pico', 'pico', 'pico'], ['Normal', 'Normal', 'Normal']);
@@ -97,8 +100,10 @@ class PsychFreeplayState extends MusicBeatState
 
 		for (i in 0...songs.length)
 		{
-			var songText:AlphabetNew = new AlphabetNew(90, 320, songs[i].songName, true);
+			var songText:AlphabetNew = new AlphabetNew(FlxG.width / 2, 320, songs[i].songName, true);
 			songText.targetY = i;
+			songText.alignment = CENTERED;
+			songText.distancePerItem.x = 0;
 			grpSongs.add(songText);
 
 			songText.scaleX = Math.min(1, 980 / songText.width);
@@ -108,7 +113,7 @@ class PsychFreeplayState extends MusicBeatState
 			var icon:HealthIcon = new HealthIcon(songs[i].songCharacter);
 			icon.sprTracker = songText;
 
-			
+
 			// too laggy with a lot of songs, so i had to recode the logic for it
 			songText.visible = songText.active = songText.isMenuItem = false;
 			icon.visible = icon.active = false;
@@ -144,7 +149,12 @@ class PsychFreeplayState extends MusicBeatState
 		
 		changeSelection();
 
-		var swag:AlphabetNew = new AlphabetNew(1, 0, "swag");
+		if (!showIcon) {
+			for (i in 0...iconArray.length)
+			{
+				iconArray[i].alpha = 0;
+			}
+		}
 
 		var textBG:FlxSprite = new FlxSprite(0, FlxG.height - 26).makeGraphic(FlxG.width, 26, 0xFF000000);
 		textBG.alpha = 0.6;
@@ -445,12 +455,13 @@ class PsychFreeplayState extends MusicBeatState
 
 		var bullShit:Int = 0;
 
-		for (i in 0...iconArray.length)
-		{
-			iconArray[i].alpha = 0.6;
+		if (showIcon) {
+			for (i in 0...iconArray.length)
+			{
+				iconArray[i].alpha = 0.6;
+			}
+			iconArray[curSelected].alpha = 1;
 		}
-
-		iconArray[curSelected].alpha = 1;
 
 		for (item in grpSongs.members)
 		{
@@ -557,13 +568,14 @@ class FreeplaySelectState extends MusicBeatState
 		add(grpCats);
 		for (i in 0...freeplayCats.length)
 		{
-			var catsText:AlphabetNew = new AlphabetNew(90, 320, freeplayCats[i], true);
+			var catsText:AlphabetNew = new AlphabetNew(FlxG.width / 2, 320, freeplayCats[i], true);
 			catsText.targetY = i - curSelected;
-			catsText.isMenuItem = true;
+			catsText.alignment = CENTERED;
+			catsText.distancePerItem.x = 0;
 			grpCats.add(catsText);
-			catsText.snapToPosition();
 		}
 		changeSelection();
+		updateTexts();
 		super.create();
 	}
 
@@ -641,6 +653,7 @@ class FreeplaySelectState extends MusicBeatState
 			}
 
 		}
+		updateTexts(elapsed);
 		super.update(elapsed);
 	}
 
@@ -662,15 +675,36 @@ class FreeplaySelectState extends MusicBeatState
 
 		for (item in grpCats.members)
 		{
-			item.targetY = bullShit - curSelected;
 			bullShit++;
-
 			item.alpha = 0.6;
-			if (item.targetY == 0)
-			{
+			if (item.targetY == curSelected)
 				item.alpha = 1;
-			}
 		}
 		FlxG.sound.play(Paths.sound('scrollMenu'));
+	}
+
+	var _drawDistance:Int = 4;
+	var _lastVisibles:Array<Int> = [];
+	var lerpSelected:Float = 0;
+	public function updateTexts(elapsed:Float = 0.0)
+	{
+		lerpSelected = FlxMath.lerp(lerpSelected, curSelected, FlxMath.bound(elapsed * 9.6, 0, 1));
+		for (i in _lastVisibles)
+		{
+			grpCats.members[i].visible = grpCats.members[i].active = false;
+		}
+		_lastVisibles = [];
+
+		var min:Int = Math.round(Math.max(0, Math.min(freeplayCats.length, lerpSelected - _drawDistance)));
+		var max:Int = Math.round(Math.max(0, Math.min(freeplayCats.length, lerpSelected + _drawDistance)));
+		for (i in min...max)
+		{
+			var item:AlphabetNew = grpCats.members[i];
+			item.visible = item.active = true;
+			item.x = ((item.targetY - lerpSelected) * item.distancePerItem.x) + item.startPosition.x;
+			item.y = ((item.targetY - lerpSelected) * 1.3 * item.distancePerItem.y) + item.startPosition.y;
+
+			_lastVisibles.push(i);
+		}
 	}
 }

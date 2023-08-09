@@ -12,6 +12,9 @@ class FlxShaderToyRuntimeShader extends FlxRuntimeShader {
     uniform float iTimeDelta;
     uniform float iFrame;
     uniform vec4 iMouse;
+    //uniform float iChannelTime[4];
+    //uniform vec3 iChannelResolution[4];
+    //uniform sampler2D iChanneli;
     ';
     public static final exampleFrag:String = '
     void mainImage( out vec4 fragColor, in vec2 fragCoord )

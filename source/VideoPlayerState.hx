@@ -1,8 +1,10 @@
 package;
 
-#if VIDEOS_ALLOWED
-import hxcodec.flixel.FlxVideo;
-#end
+#if !VIDEOS_ALLOWED
+#elseif (hxCodec >= "3.0.0") import hxcodec.flixel.FlxVideo as FlxVideo;
+#elseif (hxCodec >= "2.6.1") import hxcodec.VideoHandler as FlxVideo;
+#elseif (hxCodec == "2.6.0") import VideoHandler;
+#elseif (hxCodec) import vlc.MP4Handler as FlxVideo; #end
 
 // is this stupid or
 class VideoPlayerState extends MusicBeatState

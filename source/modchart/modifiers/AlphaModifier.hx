@@ -36,7 +36,7 @@ class AlphaModifier extends NoteModifier {
   }
 
   function getVisibility(yPos:Float,player:Int,note:Note):Float{
-    var distFromCenter = yPos;
+    var distFromCenter = yPos - (FlxG.height * 0.5);
     var alpha:Float = 0;
 
     if(yPos<0 && getSubmodValue("stealthPastReceptors", player)==0)
@@ -65,7 +65,7 @@ class AlphaModifier extends NoteModifier {
     }
 
     if(getSubmodValue("randomVanish",player)!=0){
-      var realFadeDist:Float = 240;
+      var realFadeDist:Float = 120;
       // TODO: make this randomize the notes
       alpha += CoolUtil.scale(Math.abs(distFromCenter),realFadeDist,2*realFadeDist,-1,0)*getSubmodValue("randomVanish",player);
     }

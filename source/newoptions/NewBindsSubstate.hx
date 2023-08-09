@@ -32,8 +32,8 @@ class NewBindsSubstate extends MusicBeatSubstate  {
 		['Back', 'back'],
 		['Misc.'],
 		['Mute', 'volume_mute'],
-		['Vol Up', 'volume_up'],
-		['Vol Down', 'volume_down'],
+		['Volume Up', 'volume_up'],
+		['Volume Down', 'volume_down'],
 		['Debug'],
 		// honestly might just replace this with one debug thing
 		// and make it so pressing it in playstate will open a debug menu w/ a bunch of stuff
@@ -257,7 +257,7 @@ class NewBindsSubstate extends MusicBeatSubstate  {
                             bindIndex = index;
 
 							unbindText.visible = forcedBind.contains(internal);
-							popupText.text = 'Press any key to bind, or press [ESCAPE] to cancel.';
+							popupText.text = 'Press any key to bind, or press [BACKSPACE] to cancel.';
 							if (ClientPrefs.keyBinds.get(internal)[id]!=NONE)
                                 popupText.text += '\nPress [${InputFormatter.getKeyName(ClientPrefs.keyBinds.get(internal)[id])}] to unbind.';
 
@@ -321,7 +321,7 @@ class NewBindsSubstate extends MusicBeatSubstate  {
 			if (overCam != null)
 				overCam.alpha = FlxMath.lerp(overCam.alpha, 1, lerpVal);
 			var keyPressed:FlxKey = FlxG.keys.firstJustPressed();
-			if (keyPressed == ESCAPE)
+			if (keyPressed == BACKSPACE)
 			{
 				bindID = 0;
 				bindIndex = -1;

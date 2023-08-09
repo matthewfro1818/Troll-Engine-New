@@ -15,7 +15,7 @@ import flixel.util.FlxStringUtil;
 
 class PauseSubState extends MusicBeatSubstate
 {
-	var grpMenuShit:FlxTypedGroup<Alphabet>;
+	var grpMenuShit:FlxTypedGroup<AlphabetNew>;
 
 	var menuItems:Array<String> = [];
 	var menuItemsOG:Array<String> = ['Resume', 'Restart Song', 'Change Difficulty', 'Options', 'Exit to menu'];
@@ -24,7 +24,7 @@ class PauseSubState extends MusicBeatSubstate
 
 	var pauseMusic:FlxSound;
 	var skipTimeText:Null<FlxText> = null;
-	var skipTimeTracker:Alphabet;
+	var skipTimeTracker:AlphabetNew;
 	var curTime:Float = Math.max(0, Conductor.songPosition);
 	//var botplayText:FlxText;
 
@@ -90,11 +90,25 @@ class PauseSubState extends MusicBeatSubstate
 
 
 		pauseMusic = new FlxSound();
-		if(songName != null) 
+		var songName = songName;
+		if (songName == null) songName = 'Breakfast';
+
+		if(songName != 'None'){
+			songName = Paths.formatToSongPath(songName);
 			pauseMusic.loadEmbedded(Paths.music(songName), true, true);
-		else if (songName != 'None')
-			pauseMusic.loadEmbedded(Paths.music(Paths.formatToSongPath('Breakfast')), true, true);
-		
+			
+			var path = new haxe.io.Path(Paths.returnSoundPath("music", songName));
+			path.file += "-loopTime";
+			path.ext = "txt";
+			var pathStr = path.toString();
+			if (Paths.exists(pathStr)){
+				var loopTime:Float = Std.parseFloat(Paths.getContent(pathStr));
+				if (!Math.isNaN(loopTime)){
+					pauseMusic.loopTime = loopTime;
+				}
+			}
+		}
+
 		pauseMusic.volume = 0;
 		pauseMusic.play(false, FlxG.random.int(0, Std.int(pauseMusic.length* 0.5)));
 
@@ -189,7 +203,7 @@ class PauseSubState extends MusicBeatSubstate
 			FlxTween.tween(daText, {alpha: 1, y: daText.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.3 * (id+1)});
 		}
 
-		grpMenuShit = new FlxTypedGroup<Alphabet>();
+		grpMenuShit = new FlxTypedGroup<AlphabetNew>();
 		add(grpMenuShit);
 
 		regenMenu();
@@ -435,9 +449,11 @@ class PauseSubState extends MusicBeatSubstate
 		}
 
 		for (i in 0...menuItems.length) {
-			var item = new Alphabet(0, 70 * i + 30, menuItems[i], true, false);
+			var item = new AlphabetNew(FlxG.width / 2, 320, menuItems[i], true);
 			item.isMenuItem = true;
 			item.targetY = i;
+			item.alignment = CENTERED;
+			item.distancePerItem.x = 0;
 			grpMenuShit.add(item);
 
 			if(menuItems[i] == 'Skip Time')
@@ -461,7 +477,7 @@ class PauseSubState extends MusicBeatSubstate
 	{
 		if(skipTimeText == null || skipTimeTracker == null) return;
 
-		skipTimeText.x = skipTimeTracker.x + skipTimeTracker.width + 60;
+		skipTimeText.x = skipTimeTracker.x + skipTimeTracker.width - 150;
 		skipTimeText.y = skipTimeTracker.y;
 		skipTimeText.visible = (skipTimeTracker.alpha >= 1);
 	}

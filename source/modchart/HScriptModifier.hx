@@ -64,7 +64,7 @@ class HScriptModifier extends Modifier
 
 	public static function fromName(modMgr:ModManager, ?parent:Modifier, scriptName:String):Null<HScriptModifier>
 	{
-		var fileName:String = 'modifiers/$scriptName.hscript';
+		var fileName:String = 'modifiers/$scriptName.hx';
 		for (file in [#if MODS_ALLOWED Paths.modFolders(fileName), #end Paths.getPreloadPath(fileName)])
 		{
 			if (!Paths.exists(file)) continue;

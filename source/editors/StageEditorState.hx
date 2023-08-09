@@ -332,6 +332,11 @@ class StageEditorState extends MusicBeatState{
 	function makeStage()
 	{
 		if (stage != null){
+			if (stage.foreground != null){
+				remove(stage.foreground);
+				stage.foreground.destroy();
+			}
+
 			remove(stage);
 			stage.destroy();
 		}
@@ -378,9 +383,9 @@ class StageEditorState extends MusicBeatState{
 		gfGroup.y = GF_Y;
 
 		////
-		updateBF(dadDropDown.selectedLabel);
+		updateBF(bfDropDown.selectedLabel);
 		updateGF(gfDropDown.selectedLabel);
-		updateDad(bfDropDown.selectedLabel);
+		updateDad(dadDropDown.selectedLabel);
 
 		////
 		camGame.zoom = defaultCamZoom;
@@ -405,10 +410,6 @@ class StageEditorState extends MusicBeatState{
 
 		// trace(stageData);
 
-		if (stage != null){
-			remove(stage);
-			remove(stage.foreground);
-		}
 		remove(gfGroup);
 		remove(dadGroup);
 		remove(boyfriendGroup);

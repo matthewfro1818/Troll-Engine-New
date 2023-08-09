@@ -86,7 +86,7 @@ class Stage extends FlxTypedGroup<FlxBasic>
 			return;
 		}
 
-		var baseFile:String = 'stages/$curStage.hscript';
+		var baseFile:String = 'stages/$curStage.hx';
 
 		for (file in [#if MODS_ALLOWED Paths.modFolders(baseFile), #end Paths.getPreloadPath(baseFile)])
 		{

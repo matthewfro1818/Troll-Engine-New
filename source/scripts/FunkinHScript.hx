@@ -82,7 +82,7 @@ class FunkinHScript extends FunkinScript
 
 	public function new(parsed:Expr, ?name:String = "Script", ?additionalVars:Map<String, Any>, ?doExecute:Bool=true)
 	{
-		scriptType = 'hscript';
+		scriptType = 'hx';
 		scriptName = name;
 
 		setDefaultVars();
@@ -192,9 +192,29 @@ class FunkinHScript extends FunkinScript
 			return runtime==null ? new FlxRuntimeShader() : runtime;
 		});
 
+		
+		var runToytime:shadertoy.FlxShaderToyRuntimeShader;
+		set("FlxShaderToyShader", shadertoy.FlxShaderToyShader);
+		set("FlxShaderToyRuntimeShader", shadertoy.FlxShaderToyRuntimeShader);
+		set("newRuntimeShaderToy", function(spr:FlxSprite,shaderToyFragment:String = null, width:Float = 0, height:Float = 0, glVer:Int = 120){ 
+
+			runToytime = new shadertoy.FlxShaderToyRuntimeShader(
+				shaderToyFragment == null ? null : shaderToyFragment,
+				width, 
+				height, 
+				glVer);
+
+			spr.shader = runToytime;
+		});
+
+		set("shaderToyUpdate", function(elapsed:Float,mouse:flixel.input.mouse.FlxMouse){ 
+			if (runToytime != null)
+				runToytime.update(elapsed,mouse);
+		});
+
 		set("getClass", Type.resolveClass);
 		set("getEnum", Type.resolveEnum);
-		set("importClass", function(className:String, ?printImports:Bool)
+		set("importClass", function(className:String, ?traceImports:Bool)
 		{
 			// importClass("flixel.util.FlxSort") should give you FlxSort.byValues, etc
 			// whereas importClass("scripts.Globals.*") should give you Function_Stop, Function_Continue, etc
@@ -214,17 +234,17 @@ class FunkinHScript extends FunkinScript
 					for(field in Reflect.fields(daClass)){
 						set(field, Reflect.field(daClass, field));
 						
-						if (printImports == true) trace('Imported: $field, $daClass');
+						if (traceImports == true) trace('Imported: $field, $daClass');
 					}
 				}else{
-					FlxG.log.error('Could not import class ${daClass}');
-					scriptTrace('Could not import class ${daClass}');
+					FlxG.log.error('Could not import class $className');
+					if (traceImports == true) trace('Could not import class $className');
 				}
 			}else{
 				var daClass = Type.resolveClass(className);
 				set(daClassName, daClass);
 
-				if (printImports == true) trace('Imported: $daClassName, $daClass');
+				if (traceImports == true) trace('Imported: $daClassName, $daClass');
 			}
 		});
 
@@ -346,7 +366,7 @@ class FunkinHScript extends FunkinScript
 			CUSTOM_MINE: Judgment.CUSTOM_MINE
 		});
 
-		set("HScriptModifier", modchart.HScriptModifier);
+		set("HScriptModifier", modchart.Modifier);
 		set("SubModifier", modchart.SubModifier);
 		set("NoteModifier", modchart.NoteModifier);
 		set("EventTimeline", modchart.EventTimeline);
@@ -359,10 +379,14 @@ class FunkinHScript extends FunkinScript
 		set("EaseEvent", modchart.events.EaseEvent);
 		set("SetEvent", modchart.events.SetEvent);
 
-		set("MP4Handler",#if VIDEOS_ALLOWED FlxVideo #else null #end);
+		#if !VIDEOS_ALLOWED set("MP4Handler", null);
+		#elseif (hxCodec >= "3.0.0") set("MP4Handler", hxcodec.flixel.FlxVideo);
+		#elseif (hxCodec >= "2.6.1") set("MP4Handler", hxcodec.VideoHandler);
+		#elseif (hxCodec == "2.6.0") set("MP4Handler", VideoHandler);
+		#elseif (hxCodec) set("MP4Handler", vlc.MP4Handler); #end
 
 		set("FunkinLua", FunkinLua);
-		set("FunkinHScript", FunkinHScript);
+		set("Funkin", FunkinHScript);
 		set("HScriptSubstate", HScriptSubstate);
 
 		if (additionalVars != null){
@@ -487,7 +511,7 @@ class HScriptSubstate extends MusicBeatSubstate
 	{
 		super();
 
-		var fileName = 'substates/$ScriptName.hscript';
+		var fileName = 'substates/$ScriptName.hx';
 
 		for (filePath in [#if MODS_ALLOWED Paths.modFolders(fileName), Paths.mods(fileName), #end Paths.getPreloadPath(fileName)])
 		{

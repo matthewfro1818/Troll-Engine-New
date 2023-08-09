@@ -247,9 +247,15 @@ class Note extends NoteObject
 		if (rgbShader == null) return;	
 		if(isQuant){
 			var idx = quants.indexOf(quant);
-			rgbShader.r = ClientPrefs.quantColors[idx][0];
-			rgbShader.g = 0xFFFFFFFF;
-			rgbShader.b = ClientPrefs.quantColors[idx][1];
+			if (ClientPrefs.noteType == 'Scalable') {
+				rgbShader.r = ClientPrefs.quantITGColors[idx][0];
+				rgbShader.g = 0xFFFFFFFF;
+				rgbShader.b = ClientPrefs.quantITGColors[idx][1];
+			} else {
+				rgbShader.r = ClientPrefs.quantColors[idx][0];
+				rgbShader.g = 0xFFFFFFFF;
+				rgbShader.b = ClientPrefs.quantColors[idx][1];
+			}
 		}else{
 			rgbShader.r = ClientPrefs.columnColors[noteData % 4][0];
 			rgbShader.g = ClientPrefs.columnColors[noteData % 4][1];
@@ -583,6 +589,7 @@ class Note extends NoteObject
 				loadNoteAnims();
 
 				pixelNote = false;
+				usesDefaultColours = false;
 		}
 
 		if (noteScript != null && noteScript is FunkinHScript){

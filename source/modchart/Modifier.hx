@@ -2,10 +2,10 @@
 
 package modchart;
 
+import playfields.NoteField;
 import flixel.math.FlxPoint;
 import flixel.FlxSprite;
 import math.Vector3;
-import playfields.NoteField;
 // Based on Schmovin' and Andromeda's modifier systems
 
 enum ModifierType {
@@ -31,13 +31,16 @@ typedef RenderInfo = {
 
 class Modifier {
 	public var modMgr:ModManager;
-	public var percents:Array<Float> = [0, 0];
+	@:allow(modchart.ModManager)
+	var _percents:Array<Float> = [0, 0];
+    public var percents:Array<Float> = [0, 0];
+
 	public var submods:Map<String, Modifier> = [];
 	public var parent:Modifier; // for submods
 
 	public function affectsField()
 		return false;
-
+	
     public function getModType()
 		return MISC_MOD; // if this is NOTE_MOD then this will be called on notes & receptors
 	
@@ -80,13 +83,13 @@ class Modifier {
 		else
 			percents[player] = value;
 	}
+
 	public function setPercent(percent:Float, player:Int = -1)
 		setValue(percent * 0.01, player);
 	
 
 	public function getSubmods():Array<String>
 		return [];
-	
 
 	public function getSubmodPercent(modName:String, player:Int)
 	{
@@ -114,11 +117,9 @@ class Modifier {
 	public inline function getOtherPercent(modName:String, player:Int)
 		return modMgr.getPercent(modName, player);
 	
-
 	public inline function getOtherValue(modName:String, player:Int)
 		return modMgr.getValue(modName, player);
 	
-
 	public inline function setOtherPercent(modName:String, endPercent:Float, player:Int)
 		return modMgr.setPercent(modName, endPercent, player);
 
@@ -131,8 +132,14 @@ class Modifier {
 		this.parent = parent;
 		for (submod in getSubmods())
 			submods.set(submod, new SubModifier(submod, modMgr, this));
-		
 	}
+
+    @:allow(modchart.ModManager)
+    private function _internalUpdate(){
+        for(pN in 0...percents.length)
+            _percents[pN] = percents[pN];
+        // ^^ this is done so nodes etc can affect these by changing _percents
+    }
 
 	// Available whenever shouldUpdate() == true
 	public function update(elapsed:Float, beat:Float){}
@@ -148,11 +155,11 @@ class Modifier {
 	// player is 0 for bf, 1 for dad
 	// data is the column/direction/notedata
 	// note/receptor is self-explanatory
-
     public function updateReceptor(beat:Float, receptor:StrumNote, player:Int){}
 	public function updateNote(beat:Float, note:Note, player:Int){}
 	public function getPos(diff:Float, tDiff:Float, beat:Float, pos:Vector3, data:Int, player:Int, obj:FlxSprite, field:NoteField):Vector3{return pos;}
 	public function modifyVert(beat:Float, vert:Vector3, idx:Int, obj:FlxSprite, pos:Vector3, player:Int, data:Int):Vector3{return vert;}
 	public function getExtraInfo(diff:Float, tDiff:Float, beat:Float, info:RenderInfo, obj:FlxSprite, player:Int, data:Int):RenderInfo{return info;}
 	public function isRenderMod():Bool{return false;} // Override and return true if your modifier uses modifyVert or getExtraInfo
+    public function getAliases():Map<String,String>{return [];}
 }

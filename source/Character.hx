@@ -4,13 +4,8 @@ import flash.geom.ColorTransform;
 import flixel.util.FlxColor;
 import flixel.animation.FlxAnimation;
 import animateatlas.AtlasFrameMaker;
-import flixel.FlxG;
 import flixel.FlxSprite;
-import flixel.addons.effects.FlxTrail;
-import flixel.animation.FlxBaseAnimation;
-import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.tweens.FlxTween;
-import flixel.util.FlxSort;
 import haxe.Json;
 import haxe.format.JsonParser;
 import openfl.utils.AssetType;
@@ -539,7 +534,7 @@ class Character extends FlxSprite
 	{
 		for (filePath in Paths.getFolders("characters")){
 
-			var file = filePath + '$scriptName.hscript';
+			var file = filePath + '$scriptName.hx';
 			if (Paths.exists(file)){
 				characterScript = FunkinHScript.fromFile(file, file, ["this" => this]);
 				callOnScripts("onLoad", [this], true);

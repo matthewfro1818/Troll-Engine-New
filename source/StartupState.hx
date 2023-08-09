@@ -1,13 +1,14 @@
 package;
 
-import Github.Release;
-import openfl.events.KeyboardEvent;
-import sys.FileSystem;
+import flixel.tweens.*;
 import flixel.FlxG;
-import flixel.tweens.FlxEase;
-import flixel.tweens.FlxTween;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.input.keyboard.FlxKey;
+
+#if DO_AUTO_UPDATE
+import Github.Release;
+import sys.FileSystem;
+#end
 
 #if discord_rpc
 import Discord.DiscordClient;
@@ -47,6 +48,35 @@ class StartupState extends FlxState
 		getRecentGithubRelease();
 		clearTemps("./");
 
+		FlxG.fixedTimestep = false;
+
+		#if (windows || linux) // No idea if this also applies to other targets
+		FlxG.stage.addEventListener(
+			openfl.events.KeyboardEvent.KEY_DOWN, 
+			(e)->{
+				// Prevent Flixel from listening to key inputs when switching fullscreen mode
+				if (e.keyCode == FlxKey.ENTER && e.altKey)
+					e.stopImmediatePropagation();
+
+				// Also add F11 to switch fullscreen mode
+				if (e.keyCode == FlxKey.F11){
+					FlxG.fullscreen = !FlxG.fullscreen;
+					e.stopImmediatePropagation();
+				}
+			}, 
+			false, 
+			100
+		);
+
+		FlxG.stage.addEventListener(
+			openfl.events.FullScreenEvent.FULL_SCREEN, 
+			(e)->{
+				if(FlxG.save.data != null)
+					FlxG.save.data.fullscreen = e.fullScreen;
+			}
+		);
+		#end
+
 		#if html5
 		Paths.initPaths();
 		#end
@@ -64,24 +94,8 @@ class StartupState extends FlxState
 		
 		Highscore.load();
 
-		FlxTransitionableState.defaultTransIn = FadeTransitionSubstate;
-		FlxTransitionableState.defaultTransOut = FadeTransitionSubstate;
-		
-		// this shit doesn't work
-		#if discord_rpc
-		Paths.sound("cancelMenu");
-		Paths.sound("confirmMenu");
-		Paths.sound("scrollMenu");
-
-		Paths.music('freakyIntro');
-		Paths.music('freakyMenu');
-		#end
-
 		ClientPrefs.initialize();
 		ClientPrefs.load();
-
-		if (Main.fpsVar != null)
-			Main.fpsVar.visible = ClientPrefs.showFPS;
 
 		if (FlxG.save.data.weekCompleted != null)
 			StoryMenuState.weekCompleted = FlxG.save.data.weekCompleted;
@@ -95,6 +109,17 @@ class StartupState extends FlxState
 			});
 		}
 		#end
+
+		FlxTransitionableState.defaultTransIn = FadeTransitionSubstate;
+		FlxTransitionableState.defaultTransOut = FadeTransitionSubstate;
+
+		// this shit doesn't work
+		Paths.sound("cancelMenu");
+		Paths.sound("confirmMenu");
+		Paths.sound("scrollMenu");
+
+		Paths.music('freakyIntro');
+		Paths.music('freakyMenu');
 	}
 
 
@@ -135,32 +160,12 @@ class StartupState extends FlxState
 	#end
 
 
-	public function new(){
+	public function new()
+	{
 		super();
 
 		persistentDraw = true;
 		persistentUpdate = true;
-
-		FlxG.fixedTimestep = false;
-
-		#if (windows || linux) // I have no idea if this also applies to other targets
-		FlxG.stage.addEventListener(
-			KeyboardEvent.KEY_DOWN, 
-			(e)->{
-				// Prevent flixel from listening to key inputs when switching fullscreen mode
-				if (e.keyCode == FlxKey.ENTER && e.altKey)
-					e.stopImmediatePropagation();
-
-				// Also add F11 to switch fullscreen mode :D
-				if (e.keyCode == FlxKey.F11){
-					FlxG.fullscreen = !FlxG.fullscreen;
-					e.stopImmediatePropagation();
-				}
-			}, 
-			false, 
-			100
-		);
-		#end
 	}
 
 	private var warning:FlxSprite;
@@ -173,7 +178,7 @@ class StartupState extends FlxState
 		// could be worse lol
  		switch (step){
 			case 0:
- 				warning = new FlxSprite().loadGraphic(Paths.image("warning"));
+				warning = new FlxSprite(0, 0, Paths.image("warning"));
 				warning.scale.set(0.65, 0.65);
 				warning.updateHitbox();
 				warning.screenCenter();

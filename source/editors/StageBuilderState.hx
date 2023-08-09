@@ -886,7 +886,7 @@ class StageBuilderState extends MusicBeatState
         Sys.println(script);
         Sys.println("STAGE SCRIPT END.");
 
-        saveFile(script, "stage.hscript");     
+        saveFile(script, "stage.hx");     
     }
 
     function exportLuaStage(){

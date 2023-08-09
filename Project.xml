@@ -21,6 +21,7 @@
 	<set name="SWF_VERSION" value="11.8" />
 
 	<define name="VIDEOS_ALLOWED" if="windows || linux || android"/>
+	<define name="HSCRIPT_ALLOWED" />
 
 	<!-- ____________________________ Window Settings ___________________________ -->
 
@@ -78,15 +79,18 @@
 
 	<assets path="flixel" embed="true"/> <!-- To override some Flixel assets -->
 
-	<haxelib name="hscript" />
-	<define name="hscriptPos" if="hscript"/>
-	<haxeflag name="-dce no" if="hscript"/> <!-- Disable dead code elimination so you can import unused classes on hscript -->
+	<haxelib name="discord_rpc" if="desktop"/>
 
-	<haxelib name="linc_luajit" if="LUA_ALLOWED"/>
 	<haxelib name="hxCodec" if="VIDEOS_ALLOWED"/>
+	<haxelib name="linc_luajit" if="LUA_ALLOWED"/>
 
-	<haxelib name="discord_rpc" if="cpp"/>
-
+	<section if="HSCRIPT_ALLOWED">
+		<haxelib name="hscript"/>
+		<define name="hscriptPos"/>
+		<haxeflag name="-dce no"/>
+		<haxeflag name="-dce" value="no" />
+	</section>
+	
 	<haxelib name="faxe" if='switch'/>
 
 	<haxelib name="hxcpp-debug-server" if="debug"/>

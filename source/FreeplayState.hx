@@ -114,12 +114,22 @@ class FreeplayState extends MusicBeatState
 
 				persistentUpdate = false;
 
- 				if (FlxG.keys.pressed.ALT){
-					var altDiffs = SongChartSelec.getCharts(songButton.metadata);
-					if (altDiffs.length > 0)
-						switchTo(new SongChartSelec(songButton.metadata, altDiffs));
-				}else
-					playSong(songButton.metadata);
+				var charts = SongChartSelec.getCharts(songButton.metadata);
+
+				if (FlxG.keys.pressed.ALT && charts.length > 0){
+					switchTo(new SongChartSelec(songButton.metadata, charts));
+				}else{
+					var daDiff:String = "";
+
+					if (charts.contains("hard")) 
+						daDiff = "hard";
+					else if (charts.contains("normal"))
+						daDiff = "normal"
+					else if (charts.length > 0)
+						daDiff = charts[charts.length-1];
+					
+					playSong(songButton.metadata, daDiff);
+				}
 			};
 		}			
 	}
@@ -505,7 +515,7 @@ class FreeplayState extends MusicBeatState
 		{
 			if (FlxG.keys.justPressed.R || FlxG.keys.justPressed.DELETE){
 				Paths.currentModDirectory = selectedSong.folder;
-				openSubState(new ResetScoreSubState(selectedSong.songName,1,'', false));
+				openSubState(new ResetScoreSubState(selectedSong.songName,11,"face", false));
 			}else if (FlxG.keys.justPressed.TAB){
 				var song = selectedSong.songName;
 				var scr = Highscore.getScore(song, 1);
@@ -563,6 +573,7 @@ class SongMetadata
 {
 	public var songName:String = "";
 	public var folder:String = "";
+	// public var charts:Array<String>;
 
 	public function new(song:String, ?folder:String)
 	{

@@ -980,7 +980,7 @@ class ChartingState extends MusicBeatState
 		var directories:Array<String> = Paths.getFolders('notetypes');
 		var allowedFormats = [
 			#if hscript
-			'.hscript',
+			'.hx',
 			#end
 			#if LUA_ALLOWED
 			'.lua'
@@ -1046,7 +1046,7 @@ class ChartingState extends MusicBeatState
 		var directories:Array<String> = Paths.getFolders('noteskins');
 		var allowedFormats = [
 			#if hscript
-			'.hscript',
+			'.hx',
 			#end
 			#if LUA_ALLOWED
 			'.lua'
@@ -2761,7 +2761,7 @@ class ChartingState extends MusicBeatState
 		#else
 		var baseScriptFile:String = 'notetypes/$notetype';
 		#end
-			var exts = ["hscript"]; // TODO: maybe FunkinScript.extensions, FunkinScript.hscriptExtensions and FunkinScript.luaExtensions??
+			var exts = ["hx"]; // TODO: maybe FunkinScript.extensions, FunkinScript.hscriptExtensions and FunkinScript.luaExtensions??
 			for (ext in exts)
 			{
 				if (did)
@@ -2772,7 +2772,7 @@ class ChartingState extends MusicBeatState
 				{
 					if (!Paths.exists(file))
 						continue;
-					if (ext == 'hscript')
+					if (ext == 'hx')
 					{
 						var script = FunkinHScript.fromFile(file, notetype);
 						notetypeScripts.set(notetype, script);
