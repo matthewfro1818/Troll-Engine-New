@@ -37,6 +37,7 @@ class OptionsSubstate extends MusicBeatSubstate
 
 	public static var requiresRestart:Array<String> = [
 		"modcharts", 
+		"mechanics",
 		"noteOffset", 
 		"ratingOffset", 
 		"wife3", 
@@ -271,6 +272,7 @@ class OptionsSubstate extends MusicBeatSubstate
 					"camShakeP",
 					"camZoomP",
 					"modcharts",// niixx keeps crying
+					"mechanics",
 					"bgvid"
 				]
 			],

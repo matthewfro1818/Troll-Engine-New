@@ -63,7 +63,7 @@ class ITGHUD extends BaseHUD {
 
 		var tWidth = 200;
 		scoreTxt = new FlxText(0, 0, tWidth, "0", 20);
-		scoreTxt.setFormat(Paths.font(gameFont), 40, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		scoreTxt.setFormat(Paths.font("miso-bold.ttf"), 40, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		scoreTxt.screenCenter(Y);
 		scoreTxt.y -= 120;
 		scoreTxt.x += 20 - 15;
@@ -82,13 +82,13 @@ class ITGHUD extends BaseHUD {
 				var judgment = displayedJudges[idx];
 
 				var text = new FlxText(textPosX, textPosY + idx*25, textWidth, displayNames.get(judgment), 20);
-				text.setFormat(Paths.font(gameFontBold), 24, itgJudgeColours.get(judgment), LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+				text.setFormat(Paths.font("miso-bold.ttf"), 24, itgJudgeColours.get(judgment), LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 				text.scrollFactor.set();
 				text.borderSize = 1.25;
 				add(text);
 
 				var numb = new FlxText(textPosX, text.y, textWidth, "0", 20);
-				numb.setFormat(Paths.font(gameFont), 24, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+				numb.setFormat(Paths.font("miso-bold.ttf"), 24, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 				numb.scrollFactor.set();
 				numb.borderSize = 1.25;
 				add(numb);

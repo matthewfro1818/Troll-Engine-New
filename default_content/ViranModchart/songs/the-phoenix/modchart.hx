@@ -1,5 +1,4 @@
 importClass("openfl.filters.ShaderFilter");
-importClass("shaders.Shaders.ChromaticAbberation");
 
 function generateModchart(){
     modManager.setValue("alpha", 1, 1);

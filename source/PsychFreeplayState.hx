@@ -67,6 +67,8 @@ class PsychFreeplayState extends MusicBeatState
 		//TODO: unhardcode this lmao
 		switch (freeplayType)
 		{
+			case 2:
+				addSong('Suffering Siblings', 0, 'finn',FlxColor.fromRGB(168,160,179), 'Normal', 'Pibby');
 			case 1:
 				addSong('False Paradise', 0, 'dad',FlxColor.fromRGB(146, 113, 253), 'Normal', 'ViranModchart');
 				addSong('Prey', 0, 'dad',FlxColor.fromRGB(146, 113, 253), 'Normal', 'ViranModchart');
@@ -553,7 +555,7 @@ class PsychSongMetadata
 
 class FreeplaySelectState extends MusicBeatState
 {
-	var freeplayCats:Array<String> = ['Friday Night Funkin', 'Modchart'];
+	var freeplayCats:Array<String> = ['Friday Night Funkin', 'Modchart', "Pibby"];
 	var grpCats:FlxTypedGroup<AlphabetNew>;
 	var curSelected:Int = 0;
 	var BG:FlxSprite;

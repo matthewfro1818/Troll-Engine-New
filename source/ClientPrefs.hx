@@ -531,6 +531,13 @@ class ClientPrefs
 				value: true,
 				data: []
 			},
+			"mechanics" => {
+				display: "Mechanics",
+				desc: "When toggled, mechanics will be used on some songs.\nWARNING: Disabling mechanics with mechanics songs will disable scoring!",
+				type: Toggle,
+				value: true,
+				data: []
+			},
 			"ruin" => {
 				display: "Ruin The Mod",
 				desc: "Makes the mod really good! improves the mod alot!! the name is a joke guys it makes the mod REALLY REALLY good its not blammed lights i swear",

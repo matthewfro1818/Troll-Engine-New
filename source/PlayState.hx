@@ -188,6 +188,7 @@ class PlayState extends MusicBeatState
 	public var gfGroup:FlxSpriteGroup;
 
 	public static var curStage:String = '';
+	public static var curSong:String = '';
 	public static var SONG:SwagSong = null;
 	public static var isStoryMode:Bool = false;
 	public static var storyWeek:Int = 0;
@@ -332,6 +333,7 @@ class PlayState extends MusicBeatState
 	public var saveScore:Bool = true; // whether to save the score. modcharted songs should set this to false if disableModcharts is true
 	
 	public var disableModcharts:Bool = false;
+	public var disableMechanics:Bool = false;
 	public var practiceMode:Bool = false;
 	public var perfectMode:Bool = false;
 	public var instaRespawn:Bool = false;
@@ -526,6 +528,7 @@ class PlayState extends MusicBeatState
 		instaRespawn = ClientPrefs.getGameplaySetting('instaRespawn', false);
 		cpuControlled = ClientPrefs.getGameplaySetting('botplay', false);
 		disableModcharts = !ClientPrefs.modcharts; //ClientPrefs.getGameplaySetting('disableModcharts', false);
+		disableMechanics = !ClientPrefs.mechanics;
 		midScroll = ClientPrefs.midScroll;
 		playbackRate *= (ClientPrefs.ruin ? 0.8 : 1);
 		FlxG.timeScale = playbackRate;
@@ -581,6 +584,8 @@ class PlayState extends MusicBeatState
 		////
 		if (SONG == null)
 			SONG = Song.loadFromJson('tutorial', 'tutorial');
+
+		curSong = SONG.song;
 
 		Conductor.mapBPMChanges(SONG);
 		Conductor.changeBPM(SONG.bpm);
@@ -3278,14 +3283,6 @@ class PlayState extends MusicBeatState
 				}
 
 			case 'Set Property':
-				var value2:Dynamic = value2;
-				switch (value2){
-					case "true":
-						value2 = true;
-					case "false":
-						value2 = false;
-				}
-
 				var killMe:Array<String> = value1.split('.');
 				try{
 					if(killMe.length > 1)
