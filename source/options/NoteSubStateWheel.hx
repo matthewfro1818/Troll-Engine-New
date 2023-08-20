@@ -1,5 +1,6 @@
 package options;
 
+import flixel.text.FlxText;
 import flixel.math.FlxMath;
 import flixel.group.FlxGroup;
 import flixel.tweens.FlxEase;
@@ -52,6 +53,7 @@ class NotesSubStateWheel extends MusicBeatSubstate
 	var notesBG:FlxSprite;
 
 	var daCam:FlxCamera;
+	var tipTxt:FlxText;
 
 	public function new() {
 		super();
@@ -143,11 +145,29 @@ class NotesSubStateWheel extends MusicBeatSubstate
 		hexTypeLine.visible = false;
 		add(hexTypeLine);
 
+		var tipX = 20;
+		var tipY = 660;
+		var tip:FlxText = new FlxText(tipX, tipY, 0, "Press RELOAD to Reset the selected Note Part.", 16);
+		tip.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		tip.borderSize = 2;
+		add(tip);
+
+		tipTxt = new FlxText(tipX, tipY + 24, 0, '', 16);
+		tipTxt.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		tipTxt.borderSize = 2;
+		add(tipTxt);
+		updateTip();
+
 		spawnNotes();
 		updateNotes(true);
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
 
 		cameras = [daCam];
+	}
+
+	function updateTip()
+	{
+		tipTxt.text = 'Hold Shift' + ' + Press RELOAD to fully reset the selected Note.';
 	}
 
 	var _storedColor:FlxColor;
@@ -283,6 +303,15 @@ class NotesSubStateWheel extends MusicBeatSubstate
 			hexTypeNum = -1;
 		}
 
+		// Copy/Paste buttons
+		var generalMoved:Bool = (FlxG.mouse.justMoved);
+		var generalPressed:Bool = (FlxG.mouse.justPressed);
+		if(generalMoved)
+		{
+			copyButton.alpha = 0.6;
+			pasteButton.alpha = 0.6;
+		}
+
 		// Click
 		if(FlxG.mouse.justPressed)
 		{
@@ -362,7 +391,7 @@ class NotesSubStateWheel extends MusicBeatSubstate
 				updateColors();
 				FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
 			}
-			else if (FlxG.mouse.justPressed || FlxG.mouse.justMoved)
+			else if (generalMoved || generalPressed)
 			{
 				if (holdingOnObj == colorGradient)
 				{
@@ -389,9 +418,27 @@ class NotesSubStateWheel extends MusicBeatSubstate
 		}
 		else if(controls.RESET && hexTypeNum < 0)
 		{
-			setShaderColor(defaultColumnColors[curSelectedNote][curSelectedMode]);
-			FlxG.sound.play(Paths.sound('cancelMenu'), 0.6);
-			updateColors();
+			if(FlxG.keys.pressed.SHIFT || FlxG.gamepads.anyJustPressed(LEFT_SHOULDER))
+				{
+					for (i in 0...3)
+					{
+						var strumRGB:RGBPalette = myNotes.members[curSelectedNote].rgbShader;
+						var color:FlxColor = defaultColumnColors[curSelectedNote][i];
+						switch(i)
+						{
+							case 0:
+								getShader().r = strumRGB.r = color;
+							case 1:
+								getShader().g = strumRGB.g = color;
+							case 2:
+								getShader().b = strumRGB.b = color;
+						}
+						dataArray[curSelectedNote][i] = color;
+					}
+				}
+				setShaderColor(defaultColumnColors[curSelectedNote][curSelectedMode]);
+				FlxG.sound.play(Paths.sound('cancelMenu'), 0.6);
+				updateColors();
 		}
 		super.update(elapsed);
 	}

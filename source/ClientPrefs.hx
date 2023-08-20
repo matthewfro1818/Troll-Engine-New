@@ -23,7 +23,7 @@ typedef OptionData =
 }
 
 #if !macro
-@:build(newoptions.OptionMacro.build())
+@:build(options.OptionMacro.build())
 #end
 class ClientPrefs
 {
@@ -124,7 +124,7 @@ class ClientPrefs
 				display: "Miss Volume",
 				desc: "The volume of miss sounds.",
 				type: Number,
-				value: 20,
+				value: 1,
 				data: [
 					"suffix" => "%",
 					"min" => 0,

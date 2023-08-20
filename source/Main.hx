@@ -38,35 +38,10 @@ class Main extends Sprite
 	var framerate:Int = 60; // How many frames per second the game should run at.
 	var skipSplash:Bool = true; // Whether to skip the flixel splash screen that appears in release mode.
 	var startFullscreen:Bool = false; // Whether to start the game in fullscreen on desktop targets
-	public static var fpsVar:Overlay;
-	public static var bread:Bread;
 
 	// You can pretty much ignore everything from here on - your code should go in your states.
-
-	public static function checkOutOfDate(){
-		if (recentRelease != null)
-		{
-			if (recentRelease.prerelease)
-			{
-				var tagName = recentRelease.tag_name;
-				var split = tagName.split("-");
-				var betaVersion = split.length == 1 ? "1" : split.pop();
-				var versionName = split.pop();
-				outOfDate = (versionName > MainMenuState.engineVersion && betaVersion > MainMenuState.betaVersion)
-					|| (MainMenuState.beta && versionName == MainMenuState.engineVersion && betaVersion > MainMenuState.betaVersion)
-					|| (versionName > MainMenuState.engineVersion);
-			}
-			else
-			{
-				var versionName = recentRelease.tag_name;
-				// if you're in beta and version is the same as the engine version, but just not beta
-				// then you should absolutely be prompted to update
-				outOfDate = MainMenuState.beta && MainMenuState.engineVersion <= versionName || MainMenuState.engineVersion < versionName;
-			}
-		}
-		Main.outOfDate = outOfDate;
-		return outOfDate;
-	}
+	public static var fpsVar:Overlay;
+	public static var bread:Bread;
 	
 	public static function main():Void
 	{
@@ -78,13 +53,9 @@ class Main extends Sprite
 		super();
 
 		if (stage != null)
-		{
 			init();
-		}
 		else
-		{
 			addEventListener(Event.ADDED_TO_STAGE, init);
-		}
 	}
 
 	private function init(?E:Event):Void
@@ -127,7 +98,6 @@ class Main extends Sprite
 		}
 	
 		////
-		ClientPrefs.loadDefaultKeys();
 		
 		var troll = false;
 		#if sys
@@ -136,10 +106,12 @@ class Main extends Sprite
 				case "troll":
 					troll = true;
 					break;
+			
+				case "songselect":
+					initialState = SongSelectState;
 				
 				case "debug":
 					PlayState.chartingMode = true;
-					initialState = SongSelectState;
 				
 				case "showdebugtraces":
 					Main.showDebugTraces = true;
@@ -159,19 +131,10 @@ class Main extends Sprite
 		}
 		
 		addChild(new FlxGame(gameWidth, gameHeight, initialState, #if(flixel < "5.0.0") zoom, #end framerate, framerate, skipSplash, startFullscreen));
-		
-		// 
-		@:privateAccess
-		FlxG.sound.loadSavedPrefs();
-
-		FlxG.sound.muteKeys = StartupState.muteKeys;
-		FlxG.sound.volumeDownKeys = StartupState.volumeDownKeys;
-		FlxG.sound.volumeUpKeys = StartupState.volumeUpKeys;
-		FlxG.keys.preventDefaultKeys = [TAB];
 
 		FlxG.mouse.useSystemCursor = true;
 		FlxG.mouse.visible = false;
-		
+
 		if (!troll){
 			#if !mobile
 			fpsVar = new Overlay(0, 0);
@@ -188,7 +151,18 @@ class Main extends Sprite
 		}
 		
 		#if CRASH_HANDLER
-		Lib.current.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onCrash);
+		// Original code was made by sqirra-rng, big props to them!!!
+		Lib.current.loaderInfo.uncaughtErrorEvents.addEventListener(
+			UncaughtErrorEvent.UNCAUGHT_ERROR, 
+			(event:UncaughtErrorEvent)->{
+				onCrash(event.error);
+			}
+		);
+
+		#if cpp
+		// Thank You EliteMasterEric, Very Cool!
+		untyped __global__.__hxcpp_set_critical_error_handler(onCrash);
+		#end
 		#end
 
 		
@@ -214,9 +188,8 @@ class Main extends Sprite
 			}
 	}
 
-	// Original code was made by sqirra-rng, big props to them!!!
 	#if CRASH_HANDLER
-	function onCrash(e:UncaughtErrorEvent):Void
+	function onCrash(errorName:String):Void
 	{
 		Sys.println("Call stack starts below");
 
@@ -234,7 +207,7 @@ class Main extends Sprite
 			}
 		}
 
-		errMsg += "\nUncaught Error: " + e.error;
+		errMsg += '\n$errorName';
 		File.saveContent("crash.txt", errMsg);
 
 		Sys.println(" \n" + errMsg);

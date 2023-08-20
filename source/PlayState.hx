@@ -19,7 +19,8 @@ import editors.*;
 import flixel.*;
 import flixel.util.*;
 import flixel.math.*;
-import flixel.tweens.*;
+import flixel.tweens.FlxTween;
+import flixel.tweens.FlxEase;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.group.FlxGroup;
 import flixel.group.FlxSpriteGroup;
@@ -569,7 +570,6 @@ class PlayState extends MusicBeatState
 		FlxG.cameras.add(camOther, false);
 
 		FlxG.cameras.setDefaultDrawTarget(camGame, true);
-		CustomFadeTransition.nextCamera = camOther;
 
 		camFollow = prevCamFollow != null ? prevCamFollow : new FlxPoint();
 		camFollowPos = prevCamFollowPos != null ? prevCamFollowPos : new FlxObject(0, 0, 1, 1);
@@ -790,6 +790,7 @@ class PlayState extends MusicBeatState
 				gf.cameraPosition[1] += stageData.camera_girlfriend[1];
 			}
 
+			gf.setDefaultVar("used", true);
 			startCharacter(gf);
 			gf.scrollFactor.set(0.95, 0.95);
 			gfMap.set(gf.curCharacter, gf);
@@ -802,6 +803,7 @@ class PlayState extends MusicBeatState
 			dad.cameraPosition[0] += stageData.camera_opponent[0];
 			dad.cameraPosition[1] += stageData.camera_opponent[1];
 		}
+		dad.setDefaultVar("used", true);
 		startCharacter(dad, true);
 		
 		dadMap.set(dad.curCharacter, dad);
@@ -812,6 +814,8 @@ class PlayState extends MusicBeatState
 			boyfriend.cameraPosition[0] += stageData.camera_boyfriend[0];
 			boyfriend.cameraPosition[1] += stageData.camera_boyfriend[1];
 		}
+
+		boyfriend.setDefaultVar("used", true);
 		startCharacter(boyfriend);
 
 		boyfriendMap.set(boyfriend.curCharacter, boyfriend);
@@ -1091,8 +1095,12 @@ class PlayState extends MusicBeatState
 		}
 
 		Cache.loadWithList(shitToLoad);
-
 		shitToLoad = [];
+
+		if(gf!=null)gf.callOnScripts("onAdded", [gf, null]); // if you can come up w/ a better name for this callback then change it lol
+		// (this also gets called for the characters changed in changeCharacter
+		boyfriend.callOnScripts("onAdded", [boyfriend, null]);
+        dad.callOnScripts("onAdded", [dad, null]); 
 
 		super.create();
 
@@ -1247,6 +1255,8 @@ class PlayState extends MusicBeatState
 					boyfriendGroup.add(newBoyfriend);
 
 					startCharacter(newBoyfriend);
+
+					newBoyfriend.setOnScripts("used", false); // used to determine when a character is actually being used
 				}
 
 			case 1:
@@ -1260,6 +1270,8 @@ class PlayState extends MusicBeatState
 					dadGroup.add(newDad);
 					startCharacter(newDad, true);
 					newDad.alpha = 0.00001;
+
+					newDad.setOnScripts("used", false); // used to determine when a character is actually being used
 				}
 
 			case 2:
@@ -1274,6 +1286,8 @@ class PlayState extends MusicBeatState
 					gfMap.set(newCharacter, newGf);
 					gfGroup.add(newGf);
 					startCharacter(newGf);
+
+					newGf.setOnScripts("used", false); // used to determine when a character is actually being used
 
 				}
 		}
@@ -2007,13 +2021,8 @@ class PlayState extends MusicBeatState
 		}
 		//// load events
 		var daEvents = getEvents();
-		for (event in daEvents){
-			if (!eventPushedMap.exists(event.event))
-			{
-				eventPushedMap.set(event.event, true);
-				firstEventPush(event);
-			}
-		}
+		for (event in daEvents)
+			eventPushedMap.set(event.event, true);
 
 		for (event in eventPushedMap.keys())
 		{
@@ -2058,6 +2067,8 @@ class PlayState extends MusicBeatState
 					}
 				}
 			}
+			
+			firstEventPush(event);
 		}
 
 		for (subEvent in daEvents){
@@ -2154,7 +2165,7 @@ class PlayState extends MusicBeatState
 
 			}
 		}
-		allNotes.sort(sortByShit);
+		allNotes.sort(sortByTime);
 
 		for(fuck in allNotes)
 			unspawnNotes.push(fuck);
@@ -2244,13 +2255,36 @@ class PlayState extends MusicBeatState
 		return getTimeFromSV(Conductor.songPosition, currentSV);
 	
 
-	function eventPushed(event:EventNote) {
+	function eventNoteEarlyTrigger(event:EventNote):Float {
+		var returnedValue:Float = 0;
+		var currentRV:Float = callOnAllScripts('eventEarlyTrigger', [event.event, event.value1, event.value2]);
+
+		if (eventScripts.exists(event.event)){
+			var eventScript:FunkinScript = eventScripts.get(event.event);
+
+			returnedValue = callScript(eventScript, "getOffset", [event]);
+		}
+		if(currentRV!=0 && returnedValue==0)returnedValue = currentRV;
+
+		if(returnedValue != 0)
+			return returnedValue;
+
+		switch(event.event) {
+			case 'Kill Henchmen': //Better timing so that the kill sound matches the beat intended
+				return 280; //Plays 280ms before the actual position
+		}
+		return 0;
+	}
+
+	// called for every event note
+	function eventPushed(event:EventNote) 
+	{
 		switch(event.event){
 			case 'Mult SV' | 'Constant SV':
 				var speed:Float = 1;
 				if(event.event == 'Constant SV'){
 					var b = Std.parseFloat(event.value1);
-					speed = Math.isNaN(b) ? songSpeed : songSpeed / b;
+					speed = Math.isNaN(b) ? songSpeed : (songSpeed / b);
 				}else{
 					speed = Std.parseFloat(event.value1);
 					if(Math.isNaN(speed))speed = 1;
@@ -2281,35 +2315,34 @@ class PlayState extends MusicBeatState
 				addCharacterToList(event.value2, charType);
 			default:
 				if (eventScripts.exists(event.event))
-				{
 					callScript(eventScripts.get(event.event), "onPush", [event]);
-				}
-
 		}
+
+		callOnHScripts("eventPushed", [event]);
 	}
 
 	function firstNotePush(type:String){
 		switch(type){
 			default:
 				if (notetypeScripts.exists(type))
-				{
 					callScript(notetypeScripts.get(type), "onLoad", []);
-				}
 		}
 	}
 
-	function firstEventPush(event:EventNote){
-		switch (event.event)
+	// called only once for each different event
+	function firstEventPush(eventName:String){
+
+		/* onLoad is called on script creation soo...
+		switch (eventName)
 		{
 			default:
 				// should PROBABLY turn this into a function, callEventScript(eventNote, "func") or something, idk
-				if (eventScripts.exists(event.event))
-				{
-					var eventScript:FunkinScript = eventScripts.get(event.event);
-
-					callScript(eventScript, "onLoad", [event]);
-				}
+				if (eventScripts.exists(eventName))
+					eventScripts.get(eventName).call("onLoad");
 		}
+		*/
+
+		callOnHScripts("firstEventPush", [eventName]);
 	}
 
 	public function optionsChanged(options:Array<String>){
@@ -2323,6 +2356,12 @@ class PlayState extends MusicBeatState
 
 		if(options.contains("gradeSet"))
 			ratingStuff = Highscore.grades.get(ClientPrefs.gradeSet);
+
+		if (!ClientPrefs.simpleJudge)
+		{
+			for (prevCombo in lastCombos)
+				prevCombo.kill();
+		}
 
 		callOnScripts('optionsChanged', [options]);
 
@@ -2407,43 +2446,12 @@ class PlayState extends MusicBeatState
 		camStageUnderlay.bgColor.alphaFloat = ClientPrefs.stageOpacity;
 		super.draw();
 	}
-
-	function eventNoteEarlyTrigger(event:EventNote):Float {
-		var returnedValue:Float = 0;
-		var currentRV:Float = callOnAllScripts('eventEarlyTrigger', [event.event, event.value1, event.value2]);
-
-		if (eventScripts.exists(event.event)){
-			var eventScript:FunkinScript = eventScripts.get(event.event);
-			returnedValue = callScript(eventScript, "getOffset", [event]);
-		}
-		if(currentRV!=0 && returnedValue==0)returnedValue = currentRV;
-
-		if(returnedValue != 0)
-			return returnedValue;
-
-		switch(event.event) {
-			case 'Kill Henchmen': //Better timing so that the kill sound matches the beat intended
-				return 280; //Plays 280ms before the actual position
-		}
-		return 0;
-	}
-
-	function sortByShit(Obj1:Note, Obj2:Note):Int
-	{
-		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
-	}
-
-	function sortByOrderNote(wat:Int, Obj1:Note, Obj2:Note):Int
+	function sortByZIndex(Obj1:{zIndex:Float}, Obj2:{zIndex:Float}):Int
 	{
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.zIndex, Obj2.zIndex);
 	}
 
-	function sortByOrderStrumNote(wat:Int, Obj1:StrumNote, Obj2:StrumNote):Int
-	{
-		return FlxSort.byValues(FlxSort.DESCENDING, Obj1.zIndex, Obj2.zIndex);
-	}
-
-	function sortByTime(Obj1:EventNote, Obj2:EventNote):Int
+	function sortByTime(Obj1:{strumTime:Float}, Obj2:{strumTime:Float}):Int
 	{
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
 	}
@@ -2882,7 +2890,7 @@ class PlayState extends MusicBeatState
 				if(field.isPlayer){
 					for(char in field.characters){
 						if (char.animation.curAnim != null
-							&& char.holdTimer > Conductor.stepCrochet * (0.0011 / inst.pitch) * char.singDuration
+							&& char.holdTimer > Conductor.stepCrochet * 0.0011 * char.singDuration
 								&& char.animation.curAnim.name.startsWith('sing')
 								&& !char.animation.curAnim.name.endsWith('miss')
 								&& (char.idleWhenHold || !pressedGameplayKeys.contains(true)))
@@ -2976,7 +2984,7 @@ class PlayState extends MusicBeatState
 			var value2:Null<String> = daEvent.value2;
 			if(value2 == null) value2 = '';
 
-			triggerEventNote(daEvent.event, value1, value2);
+			triggerEventNote(daEvent.event, value1, value2, daEvent.strumTime);
 			eventNotes.shift();
 		}
 	}
@@ -3004,6 +3012,11 @@ class PlayState extends MusicBeatState
 					boyfriend.alpha = lastAlpha;
 					if(shiftFocus)focusedChar=boyfriend;
 					hud.iconP1.changeIcon(boyfriend.healthIcon);
+					oldChar.setOnScripts("used", false);
+					boyfriend.setOnScripts("used", true);
+					oldChar.callOnScripts("changedOut", [oldChar, boyfriend]); // oldChar, newChar
+					boyfriend.callOnScripts("onAdded", [boyfriend, oldChar]); // if you can come up w/ a better name for this callback then change it lol
+                    // (this also gets called for the characters set by the chart's player1/player2)
 				}
 				setOnScripts('boyfriendName', boyfriend.curCharacter);
 
@@ -3030,6 +3043,11 @@ class PlayState extends MusicBeatState
 					if(shiftFocus)focusedChar=dad;
 					dad.alpha = lastAlpha;
 					hud.iconP2.changeIcon(dad.healthIcon);
+					oldChar.setOnScripts("used", false);
+					dad.setOnScripts("used", true);
+					oldChar.callOnScripts("changedOut", [oldChar, dad]); // oldChar, newChar
+					dad.callOnScripts("onAdded", [dad, oldChar]); // if you can come up w/ a better name for this callback then change it lol
+					// (this also gets called for the characters set by the chart's player1/player2)
 				}
 				setOnScripts('dadName', dad.curCharacter);
 
@@ -3051,6 +3069,11 @@ class PlayState extends MusicBeatState
 						gf = gfMap.get(name);
 						gf.alpha = lastAlpha;
 						if(shiftFocus)focusedChar=gf;
+						oldChar.setOnScripts("used", false);
+					    gf.setOnScripts("used", true);
+						oldChar.callOnScripts("changedOut", [oldChar, gf]); // oldChar, newChar
+						gf.callOnScripts("onAdded", [gf, oldChar]); // if you can come up w/ a better name for this callback then change it lol
+						// (this also gets called for the characters set by the chart's player1/player2)
 					}
 					setOnScripts('gfName', gf.curCharacter);
 				}
@@ -3058,9 +3081,13 @@ class PlayState extends MusicBeatState
 		reloadHealthBarColors();
 	}
 
-	public function triggerEventNote(eventName:String = "", value1:String = "", value2:String = "") {
+	public function triggerEventNote(eventName:String = "", value1:String = "", value2:String = "", ?time:Float) {
+        if(time==null)
+            time = Conductor.songPosition;
+
 		if(showDebugTraces)
-			trace('Event: ' + eventName + ', Value 1: ' + value1 + ', Value 2: ' + value2 + ', at Time: ' + Conductor.songPosition);
+			trace('Event: ' + eventName + ', Value 1: ' + value1 + ', Value 2: ' + value2 + ', at Time: ' + time);
+
 
 		switch(eventName) {
 			case 'Change Focus':
@@ -3293,10 +3320,10 @@ class PlayState extends MusicBeatState
 
 				}
 		}
-		callOnScripts('onEvent', [eventName, value1, value2]);
+		callOnScripts('onEvent', [eventName, value1, value2, time]);
 		if(eventScripts.exists(eventName)){
 			var script = eventScripts.get(eventName);
-			callScript(script, "onTrigger", [value1, value2]);
+			callScript(script, "onTrigger", [value1, value2, time]);
 		}
 	}
 
@@ -3481,7 +3508,7 @@ class PlayState extends MusicBeatState
 					}
 
 					#if VIDEOS_ALLOWED
-					var videoPath:String = Paths.video('${Paths.formatToSongPath(SONG.song)}-end');
+					var videoPath:String = Paths.video(Paths.formatToSongPath(SONG.song) + '-end');
 					if (Paths.exists(videoPath))
 						MusicBeatState.switchState(new VideoPlayerState(videoPath, gotoMenus));
 					else
@@ -3510,7 +3537,7 @@ class PlayState extends MusicBeatState
 					}
 
 					#if VIDEOS_ALLOWED
-					var videoPath:String = Paths.video('${Paths.formatToSongPath(nextSong)}');
+					var videoPath:String = Paths.video(Paths.formatToSongPath(nextSong));
 					if (Paths.exists(videoPath))
 						MusicBeatState.switchState(new VideoPlayerState(videoPath, playNextSong));
 					else #end
@@ -3670,7 +3697,7 @@ class PlayState extends MusicBeatState
 		while (separatedScore.length < 3)
 			separatedScore.unshift("0");
 		if(combo < 0)
-			separatedScore.unshift("-");
+			separatedScore.unshift("neg");
 
 		var daLoop:Int = 0;
 
@@ -3716,7 +3743,7 @@ class PlayState extends MusicBeatState
 				for (i in separatedScore)
 				{
 					var numScore:RatingSprite = comboNumGroup.recycle(RatingSprite, RatingSprite.newNumber);
-					numScore.loadGraphic(Paths.image('num' + (i == "-" ? "neg" : i)));
+					numScore.loadGraphic(Paths.image('num' + i));
 
 					if (ClientPrefs.simpleJudge){
 						numScore.scale.x = 0.5 * 1.25;
@@ -4035,7 +4062,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		// FlxG.watch.addQuick('asdfa', upP);
+		/*
 		if (startedCountdown && !boyfriend.stunned && generatedMusic)
 		{
 
@@ -4050,6 +4077,7 @@ class PlayState extends MusicBeatState
 
 
 		}
+		*/
 
 		// TO DO: Find a better way to handle controller inputs, this should work for now
 		if (ClientPrefs.controllerMode || strumsBlocked.contains(true))
@@ -4357,7 +4385,7 @@ class PlayState extends MusicBeatState
 		if(!note.isSustainNote)
 			noteHits.push(Conductor.songPosition);
 
-		if (ClientPrefs.hitsoundVolume > 0 && !note.hitsoundDisabled)
+		if (!note.hitsoundDisabled && ClientPrefs.hitsoundVolume > 0)
 			FlxG.sound.play(Paths.sound('hitsound/' + ClientPrefs.hitsoundType.toLowerCase()), ClientPrefs.hitsoundVolume);
 
 		// Strum animations
@@ -4394,7 +4422,8 @@ class PlayState extends MusicBeatState
 
 		// tbh I hate hitCausesMiss lol its retarded
 		// added a shitty judge to deal w/ it tho!!
- 		if(note.hitResult.judgment == MISS_MINE) {
+		if (note.hitResult.judgment == MISS_MINE) 
+		{
 			noteMiss(note, field, true);
 
 			if (!note.noMissAnimation)
@@ -4530,51 +4559,6 @@ class PlayState extends MusicBeatState
 	public function spawnNoteSplash(x:Float, y:Float, data:Int, field:PlayField, ?note:Note = null) {
 		field.spawnSplash(x,y,data, note);
 	}
-
-
-	private var preventLuaRemove:Bool = false;
-	override function destroy() 
-	{
-		// Could probably do a results screen like the one on kade engine but for freeplay only. I think that could be cool.
-		// ^ I was JUST thinking this. We can show the average NPS, accuracy, grade, judge counters, etc
-		// I think just in general adding more stats could be neat & since we have the new options menu we can just put it in UI in a seperate category
-		// so you can set exactly which stats show up in the scoretxt, etc
-
-		/*
-		trace(msJudges.length / {
-			var total = 0.0;
-			for (n in msJudges) total+=n;
-			total;
-		});*/
-
-		stats.changedEvent.removeAll();
-		stats.changedEvent = null;
-
-		preventLuaRemove = true;
-
-		for(script in funkyScripts){
-			script.call("onDestroy");
-			script.stop();
-		}
-		hscriptArray = [];
-		funkyScripts = [];
-		#if LUA_ALLOWED
-		luaArray = [];
-		#end
-
-		Overlay.offset.y = 0;
-
-		notetypeScripts.clear();
-		eventScripts.clear();
-		if(!ClientPrefs.controllerMode)
-		{
-			FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
-			FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
-		}
-		Note.globalRgbShaders = [];
-		super.destroy();
-	}
-
 	public function cancelMusicFadeTween() {
 		if (videoSprite != null)
 		{
@@ -4586,6 +4570,8 @@ class PlayState extends MusicBeatState
 	}
 
 	#if LUA_ALLOWED
+	private var preventLuaRemove:Bool = false;
+
 	public function removeLua(lua:FunkinLua) {
 		if(luaArray != null && !preventLuaRemove) {
 			luaArray.remove(lua);
@@ -4602,7 +4588,7 @@ class PlayState extends MusicBeatState
 			resyncVocals();
 		}
 		super.stepHit();
-		if(curStep == lastStepHit) 
+		if (curStep < lastStepHit) 
 			return;
 		
 		hud.stepHit(curStep);
@@ -4626,7 +4612,7 @@ class PlayState extends MusicBeatState
 	{
 		super.beatHit();
 
-		if(lastBeatHit >= curBeat) 
+		if (curBeat < lastBeatHit) 
 			return;
 	
 		
@@ -4812,57 +4798,9 @@ class PlayState extends MusicBeatState
 		setOnScripts('comboBreaks', stats.comboBreaks);
 		setOnScripts('hits', songHits);
 
-		var ret:Dynamic = callOnScripts('onRecalculateRating');
-		
-/* 		if(ret != Globals.Function_Stop)
-		{
-			if(totalPlayed < 1) //Prevent divide by 0
-				ratingName = '?';
-			else
-			{
-				// Rating Percent
-				if(ClientPrefs.wife3)
-					ratingPercent = totalNotesHit / totalPlayed;
-				else
-					ratingPercent = Math.min(1, Math.max(0, totalNotesHit / totalPlayed));
-				//trace((totalNotesHit / totalPlayed) + ', Total: ' + totalPlayed + ', notes hit: ' + totalNotesHit);
-
-				// Rating Name
-				if(ratingPercent >= 1)
-					ratingName = ratingStuff[0][0]; //Uses first string
-				else
-				{
-					ratingName = ratingStuff[ratingStuff.length-1][0];
-					for (i in 0...ratingStuff.length)
-					{
-						if(ratingPercent >= ratingStuff[i][1])
-						{
-							ratingName = ratingStuff[i][0];
-							break;
-						}
-					}
-				}
-			}
-
-			// Rating FC
-			ratingFC = getClearType();
-		}*/
+		callOnScripts('onRecalculateRating');
 
 		stats.updateVariables();
-
-		// maybe move all of this to a stats class that I can easily give to objects?
-/* 		hud.ratingFC = ratingFC;
-		hud.grade = ratingName;
-		hud.ratingPercent = ratingPercent;
-		hud.misses = songMisses;
-		hud.combo = combo;
-		//hud.comboBreaks = comboBreaks;
-		//hud.judgements.set("miss", songMisses);
-		//hud.judgements.set("cb", comboBreaks);
-		hud.totalNotesHit = totalNotesHit;
-		hud.totalPlayed = totalPlayed;
-		hud.score = songScore;*/
-		
 		hud.recalculateRating();
 
 		callOnScripts('postRecalculateRating'); // incase you wanna add custom rating stuff
@@ -4995,7 +4933,7 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	override public function switchTo(nextState: Dynamic){
+	override public function startOutro(nextState){
 		callOnHScripts("switchingState", [nextState]);
 		#if LUA_ALLOWED
 		callOnLuas("switchingState");
@@ -5003,8 +4941,47 @@ class PlayState extends MusicBeatState
 		FlxG.timeScale = 1;
 		pressedGameplayKeys = [];
 		FunkinHScript.defaultVars.clear();
-		return super.switchTo(nextState);
+		return super.startOutro(nextState);
 	}
+
+	override function destroy() 
+	{
+		// Could probably do a results screen like the one on kade engine but for freeplay only. I think that could be cool.
+		// ^ I was JUST thinking this. We can show the average NPS, accuracy, grade, judge counters, etc
+		// I think just in general adding more stats could be neat & since we have the new options menu we can just put it in UI in a seperate category
+		// so you can set exactly which stats show up in the scoretxt, etc
+
+		/*
+		trace(msJudges.length / {
+			var total = 0.0;
+			for (n in msJudges) total+=n;
+			total;
+		});*/
+
+		stats.changedEvent.removeAll();
+		stats.changedEvent = null;
+
+		preventLuaRemove = true;
+
+		for(script in funkyScripts){
+			script.call("onDestroy");
+			script.stop();
+		}
+		hscriptArray = [];
+		funkyScripts = [];
+		#if LUA_ALLOWED
+		luaArray = [];
+		#end
+
+		notetypeScripts.clear();
+		eventScripts.clear();
+		if(!ClientPrefs.controllerMode)
+		{
+			FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
+			FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
+		}
+		super.destroy();
+	}	
 
 }
 

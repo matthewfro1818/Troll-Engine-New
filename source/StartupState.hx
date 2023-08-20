@@ -25,30 +25,30 @@ class StartupState extends FlxState
 	public static var volumeDownKeys:Array<FlxKey> = [FlxKey.NUMPADMINUS, FlxKey.MINUS];
 	public static var volumeUpKeys:Array<FlxKey> = [FlxKey.NUMPADPLUS, FlxKey.PLUS];
 
+	private final nextState = TitleState;
 	static var loaded = false;
-	static var recentRelease:Release;
 
-	static function clearTemps(dir:String){
-		#if discord_rpc
-		for(file in FileSystem.readDirectory(dir)){
-			var file = './$dir/$file';
-			if(FileSystem.isDirectory(file))
-				clearTemps(file);
-			else if (file.endsWith(".tempcopy"))
-				FileSystem.deleteFile(file);
-		}
-		#end
-	}
 	public static function load():Void
 	{
 		if (loaded)
 			return;
 		loaded = true;
 
+		PlayerSettings.init();
+
+		ClientPrefs.initialize();
+		ClientPrefs.load();
+
+		#if DO_AUTO_UPDATE
 		getRecentGithubRelease();
+		checkOutOfDate();
 		clearTemps("./");
+		#end
 
 		FlxG.fixedTimestep = false;
+		FlxG.keys.preventDefaultKeys = [TAB];
+		@:privateAccess
+		FlxG.sound.loadSavedPrefs(); // why is flixel not doing this !!!
 
 		#if (windows || linux) // No idea if this also applies to other targets
 		FlxG.stage.addEventListener(
@@ -90,12 +90,7 @@ class StartupState extends FlxState
 		Paths.loadRandomMod();
 		#end
 		
-		PlayerSettings.init();
-		
 		Highscore.load();
-
-		ClientPrefs.initialize();
-		ClientPrefs.load();
 
 		if (FlxG.save.data.weekCompleted != null)
 			StoryMenuState.weekCompleted = FlxG.save.data.weekCompleted;
@@ -126,6 +121,8 @@ class StartupState extends FlxState
 	#if DO_AUTO_UPDATE
 	// gets the most recent release and returns it
 	// if you dont have download betas on, then it'll exclude prereleases
+	static var recentRelease:Release;
+
 	public static function getRecentGithubRelease(){
 		if (ClientPrefs.checkForUpdates)
 		{
@@ -147,15 +144,66 @@ class StartupState extends FlxState
 		}else{
 			Main.recentRelease = null;
 			Main.outOfDate = false;
+			recentRelease = null;
 		}
-		return Main.recentRelease;
+
+		return Main.recentRelease = recentRelease;
 	}
+
+	public static function checkOutOfDate(){
+		var outOfDate = false;
+
+		if (ClientPrefs.checkForUpdates && recentRelease != null)
+		{
+			if (recentRelease.prerelease)
+			{
+				var tagName = recentRelease.tag_name;
+				var split = tagName.split("-");
+				var betaVersion = split.length == 1 ? "1" : split.pop();
+				var versionName = split.pop();
+				outOfDate = (versionName > MainMenuState.engineVersion && betaVersion > MainMenuState.betaVersion)
+					|| (MainMenuState.beta && versionName == MainMenuState.engineVersion && betaVersion > MainMenuState.betaVersion)
+					|| (versionName > MainMenuState.engineVersion);
+			}
+			else
+			{
+				var versionName = recentRelease.tag_name;
+				// if you're in beta and version is the same as the engine version, but just not beta
+				// then you should absolutely be prompted to update
+				outOfDate = MainMenuState.beta && MainMenuState.engineVersion <= versionName || MainMenuState.engineVersion < versionName;
+			}
+		}
+
+		Main.outOfDate = outOfDate;
+		return outOfDate;
+	}
+
+	
+	private static function clearTemps(dir:String)
+	{
+		#if desktop
+		for(file in FileSystem.readDirectory(dir)){
+			var file = './$dir/$file';
+			if(FileSystem.isDirectory(file))
+				clearTemps(file);
+			else if (file.endsWith(".tempcopy"))
+				FileSystem.deleteFile(file);
+		}
+		#end
+	}
+
 	#else
 	public static function getRecentGithubRelease()
 	{
 		Main.recentRelease = null;
 		Main.outOfDate = false;
 		return null;
+	}
+
+	
+	public static function checkOutOfDate(){
+		Main.outOfDate = false;
+		return false;
 	}
 	#end
 
@@ -170,8 +218,8 @@ class StartupState extends FlxState
 
 	private var warning:FlxSprite;
 	private var step = 0;
-	private var nextState = TitleState;
 
+	var fadeTwn:FlxTween = null;
 	override function update(elapsed)
 	{
 		// this is kinda stupid but i couldn't find any other way to display the warning while the title screen loaded 
@@ -187,31 +235,44 @@ class StartupState extends FlxState
 				//MusicBeatState.switchState(new editors.StageBuilderState());
 				step = 1;
 			case 1:
+				var startTime = Sys.cpuTime();
+
  				load();
 				 if (Type.getClassFields(nextState).contains("load"))
 					nextState.load();
-				
-				#if (sys && debug)
-				var waitTime = 1.5 - Sys.cpuTime();
-				if (waitTime > 0) Sys.sleep(waitTime);
+				#if debug
+				var waitTime:Float = 0;
+				#elseif sys
+				var waitTime:Float = Math.max(0, 1.6 - (startTime - Sys.cpuTime()));
+				#else
+				var waitTime:Float = 0;
 				#end
-				step = 2;
-			case 2:
- 				FlxTween.tween(warning, {alpha: 0}, 1, {ease: FlxEase.expoIn, onComplete: function(twn){
-					#if DO_AUTO_UPDATE
-					// this seems to work?
-					if (Main.checkOutOfDate())
-						MusicBeatState.switchState(new UpdaterState(recentRelease)); // UPDATE!!
-					else
-					#end
-					{
-						FlxTransitionableState.skipNextTransIn = true;
-						FlxTransitionableState.skipNextTransOut = true;
-						MusicBeatState.switchState(new TitleState());
-					}	
-				}});
-				step = 3; 
+				fadeTwn = FlxTween.tween(warning, {alpha: 0}, 1, {
+					ease: FlxEase.expoIn,
+					startDelay: waitTime, 
+					onComplete: (twn)->{
+						step = 5;
+					}
+				});
 
+				step = 3;
+			case 3:
+				if ((FlxG.keys.justPressed.ANY || FlxG.mouse.justPressed) && fadeTwn.percent <= 0){
+					fadeTwn.startDelay = 0;
+					step = 4;
+				}
+
+			case 5:
+				#if DO_AUTO_UPDATE
+				if (Main.outOfDate)
+					MusicBeatState.switchState(new UpdaterState(recentRelease)); // UPDATE!!
+				else
+				#end
+				{
+					FlxTransitionableState.skipNextTransIn = true;
+					FlxTransitionableState.skipNextTransOut = true;
+					MusicBeatState.switchState(new TitleState());
+				}
 		}
 
 		super.update(elapsed);

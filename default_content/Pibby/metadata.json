@@ -1,0 +1,20 @@
+{
+	"chapters": [
+		{
+			"name": "Week 1",
+			"category": "main",
+			"freeplayCategory": "Pibby",
+			"unlockCondition": true,
+			"songs": ["Suffering Siblings"]
+		}
+	],
+	"freeplaySongs": [],
+	"freeplayCategories": [
+		{
+			"name": "Friday Night Funkin'",
+			"id": "Pibby"
+		}
+	],
+	"runsGlobally": false,
+	"defaultCategory": "Pibby"
+}

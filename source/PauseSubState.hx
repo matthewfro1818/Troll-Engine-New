@@ -1,7 +1,7 @@
 package;
 
 import options.GameplaySettingsSubState;
-import newoptions.OptionsSubstate;
+import options.OptionsSubstate;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxSprite;

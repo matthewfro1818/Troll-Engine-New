@@ -413,7 +413,7 @@ class MainMenuState extends MusicBeatState {
 						case 'freeplay':
 							MusicBeatState.switchState(/*FlxG.keys.pressed.SHIFT ? new SongSelectState() :*/ new PsychFreeplayState.FreeplaySelectState());
 						case 'options':
-							LoadingState.loadAndSwitchState(new newoptions.OptionsState());
+							LoadingState.loadAndSwitchState(new options.OptionsState());
 					}
 				});
 			}
