@@ -50,6 +50,7 @@ class PauseSubState extends MusicBeatSubstate
 		super.create();
 		if(Difficulty.list.length < 2) menuItemsOG.remove('Change Difficulty'); //No need to change difficulty if there is only one!
 		
+		FlxG.mouse.visible = false;
 		persistentUpdate = false;
 
 		var cam:FlxCamera = FlxG.cameras.list[FlxG.cameras.list.length - 1];
@@ -293,8 +294,8 @@ class PauseSubState extends MusicBeatSubstate
 						this.openSubState(new GameplayChangersSubstate());						
 
 					case 'Options':
-						var daSubstate = new OptionsSubstate();
 						this.persistentDraw = true;
+						var daSubstate = new OptionsSubstate();
 
 						daSubstate.goBack = (function(changedOptions:Array<String>)
 						{
@@ -309,6 +310,8 @@ class PauseSubState extends MusicBeatSubstate
 							
 							PlayState.instance.optionsChanged(changedOptions);
 
+							FlxG.mouse.visible = false;
+							
 							closeSubState();
 	 						if (!canResume)
 							{ 

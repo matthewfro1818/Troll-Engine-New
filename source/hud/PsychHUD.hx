@@ -11,7 +11,7 @@ import JudgmentManager.JudgmentData;
 import flixel.tweens.FlxTween;
 import flixel.text.FlxText;
 
-class PsychHUD extends BaseHUD {
+class PsychHUD extends CommonHUD {
 	public var judgeTexts:Map<String, FlxText> = [];
 	public var judgeNames:Map<String, FlxText> = [];
 	
@@ -23,6 +23,12 @@ class PsychHUD extends BaseHUD {
 
 	var songHighscore:Int = 0;
 	var songWifeHighscore:Float = 0;
+	var scoreString = Paths.getString("score");
+	var hiscoreString = Paths.getString("highscore");
+	var ratingString = Paths.getString("rating");
+	var cbString = Paths.getString("cbplural");
+	var npsString = Paths.getString("nps");
+	
 	override public function new(iP1:String, iP2:String, songName:String, stats:Stats)
 	{
 		super(iP1, iP2, songName, stats);
@@ -46,31 +52,7 @@ class PsychHUD extends BaseHUD {
 		scoreTxt.visible = scoreTxt.alpha > 0;
 
 		if (ClientPrefs.judgeCounter != 'Off')
-		{
-			var textWidth = ClientPrefs.judgeCounter == 'Shortened' ? 150 : 200;
-			var textPosX = ClientPrefs.hudPosition == 'Right' ? (FlxG.width - 5 - textWidth) : 5;
-			var textPosY = (FlxG.height - displayedJudges.length*25) * 0.5;
-
-			for (idx in 0...displayedJudges.length)
-			{
-				var judgment = displayedJudges[idx];
-
-				var text = new FlxText(textPosX, textPosY + idx*25, textWidth, displayNames.get(judgment), 20);
-				text.setFormat(Paths.font(gameFontBold), 24, judgeColours.get(judgment), LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-				text.scrollFactor.set();
-				text.borderSize = 1.25;
-				add(text);
-
-				var numb = new FlxText(textPosX, text.y, textWidth, "0", 20);
-				numb.setFormat(Paths.font(gameFont), 24, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-				numb.scrollFactor.set();
-				numb.borderSize = 1.25;
-				add(numb);
-
-				judgeTexts.set(judgment, numb);
-				judgeNames.set(judgment, text);
-			}
-		}
+			generateJudgementDisplays();
 
 		//
 		
@@ -88,6 +70,48 @@ class PsychHUD extends BaseHUD {
 		}
 
 		add(scoreTxt);
+	}
+
+	function clearJudgementDisplays()
+	{
+		for (text in judgeTexts){
+			remove(text);
+			text.destroy();
+		}
+		judgeTexts.clear();
+
+		for (text in judgeNames){
+			remove(text);
+			text.destroy();
+		}
+		judgeNames.clear();
+	}
+
+	function generateJudgementDisplays()
+	{
+		var textWidth = ClientPrefs.judgeCounter == 'Shortened' ? 150 : 200;
+		var textPosX = ClientPrefs.hudPosition == 'Right' ? (FlxG.width - 5 - textWidth) : 5;
+		var textPosY = (FlxG.height - displayedJudges.length*25) * 0.5;
+
+		for (idx in 0...displayedJudges.length)
+		{
+			var judgment = displayedJudges[idx];
+
+			var text = new FlxText(textPosX, textPosY + idx*25, textWidth, displayNames.get(judgment), 20);
+			text.setFormat(Paths.font("Bold Normal Text.ttf"), 24, judgeColours.get(judgment), LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			text.scrollFactor.set();
+			text.borderSize = 1.25;
+			add(text);
+
+			var numb = new FlxText(textPosX, text.y, textWidth, "0", 20);
+			numb.setFormat(Paths.font("Normal Text.ttf"), 24, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			numb.scrollFactor.set();
+			numb.borderSize = 1.25;
+			add(numb);
+
+			judgeTexts.set(judgment, numb);
+			judgeNames.set(judgment, text);
+		}
 	}
 
 	override function changedOptions(changed:Array<String>)
@@ -108,29 +132,49 @@ class PsychHUD extends BaseHUD {
 			else
 				hitbar.y += 340;
 		}
+
+		var regenJudgeDisplays:Bool = false;
+		for (optionName in changed){
+			if (optionName == "judgeCounter" || optionName == "hudPosition"){
+				regenJudgeDisplays = true; 
+				break;
+			}
+		}
+
+		if (regenJudgeDisplays)
+		{
+			clearJudgementDisplays();
+
+			if (ClientPrefs.judgeCounter != 'Off')
+				generateJudgementDisplays();
+		}
 	}
 
-	override function update(elapsed:Float){
-		var shownScore:String = Std.string(score);
-		var isHighscore:Bool = false;
+	override function update(elapsed:Float)
+	{
+		var shownScore:String;
+		var isHighscore:Bool;
 		if (ClientPrefs.showWifeScore){
-			shownScore = Std.string(Math.floor(stats.totalNotesHit * 100));
-			isHighscore = songWifeHighscore != 0 && stats.totalNotesHit > songWifeHighscore;
-		}else
+			shownScore = Std.string(Math.floor(totalNotesHit * 100));
+			isHighscore = songWifeHighscore != 0 && totalNotesHit > songWifeHighscore;
+		}else{
+			shownScore = Std.string(score);
 			isHighscore = songHighscore != 0 && score > songHighscore;
+		}
 
 
-		scoreTxt.text = (isHighscore ? 'Hi-score: ' : 'Score: ')
-			+ '$shownScore | Combo Breaks: $comboBreaks | Rating: '
-			+ (grade != '?' ? Highscore.floorDecimal(ratingPercent * 100, 2)
-				+ '% / ${grade} [${(ratingFC == 'CFC' && ClientPrefs.wife3) ? "FC" : ratingFC}]' : grade);
+		scoreTxt.text = 
+		(isHighscore ? '$hiscoreString: ' : '$scoreString: ') + shownScore +
+		' | $cbString: ' + comboBreaks + 
+		' | $ratingString: '
+		+ (grade == '?' ? grade : Highscore.floorDecimal(ratingPercent * 100, 2)
+			+ '% / $grade [${(ratingFC == stats.gfc && ClientPrefs.wife3) ? stats.fc : ratingFC}]');
 		if (ClientPrefs.npsDisplay)
-			scoreTxt.text += ' | NPS: ${nps} / ${npsPeak}';
+			scoreTxt.text += ' | $npsString: ${nps} / ${npsPeak}';
 
-		for (k in judgements.keys())
-		{
+		for (k => v in judgements){
 			if (judgeTexts.exists(k))
-				judgeTexts.get(k).text = Std.string(judgements.get(k));
+				judgeTexts.get(k).text = Std.string(v);
 		}
 		
 		super.update(elapsed);

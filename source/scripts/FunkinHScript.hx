@@ -99,7 +99,6 @@ class FunkinHScript extends FunkinScript
 		set("ObjectMap", haxe.ds.ObjectMap);
 		set("IntMap", haxe.ds.IntMap);
 		set("EnumValueMap", haxe.ds.EnumValueMap);
-		set("newMap", () -> {return new Map<Dynamic, Dynamic>();});
 
 		set("Lib", openfl.Lib);
 		set("Assets", openfl.utils.Assets);
@@ -263,8 +262,6 @@ class FunkinHScript extends FunkinScript
 					set("global", null);
 					set("getInstance", flixel.FlxG.get_state);
 				}
-
-				set("judgeManager", new JudgmentManager()); // dummy manager
 			}
 		}
 
@@ -314,6 +311,7 @@ class FunkinHScript extends FunkinScript
 			CUSTOM_MINE: Judgment.CUSTOM_MINE
 		});
 
+		set("HScriptedHUD", hud.HScriptedHUD);
 		set("HScriptModifier", modchart.Modifier);
 		set("SubModifier", modchart.SubModifier);
 		set("NoteModifier", modchart.NoteModifier);

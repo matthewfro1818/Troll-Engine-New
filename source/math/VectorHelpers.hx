@@ -1,4 +1,4 @@
-package;
+package math;
 
 import flixel.math.FlxMath;
 import math.Vector3;
@@ -31,7 +31,7 @@ class VectorHelpers {
 		return offX;
 	}
 
-	public static function getVector(pos:Vector3):Vector3
+	public static function project(pos:Vector3):Vector3
 	{
 		var oX = pos.x;
 		var oY = pos.y;

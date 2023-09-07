@@ -1,5 +1,6 @@
 package hud;
 
+import flixel.util.FlxColor;
 import JudgmentManager;
 import playfields.PlayField;
 import scripts.FunkinHScript;
@@ -15,15 +16,24 @@ class HScriptedHUD extends BaseHUD {
 		script.call("createHUD", [iP1, iP2, songName]);
 	}
 
-	override public function songStarted()
-	{
+	override function set_displayedHealth(nV:Float):Float 
+		return script.call("displayedHealth", [nV]);
+
+	override function reloadHealthBarColors(dadColor:FlxColor, bfColor:FlxColor)
+		script.call("reloadHealthBarColors", [dadColor, bfColor]);
+
+	override function changedCharacter(id:Int, char:Character)
 		script.call("songStarted");
-	}
+
+
+	function statChanged(stat:String, val:Dynamic)
+        script.call("statChanged", [stat, val]);
+
+	override public function songStarted()
+		script.call("songStarted");
 
 	override public function songEnding()
-	{
 		script.call("songEnding");
-	}
 
 	override function changedOptions(changed:Array<String>)
 	{
@@ -64,6 +74,11 @@ class HScriptedHUD extends BaseHUD {
 	override function set_songName(value:String){
 		script.call("set_songName", [value]);
 		return songName = value;
+	}
+
+	override function set_songPercent(value:Float){
+		script.call("set_songPercent", [value]);
+		return songPercent = value;
 	}
 
 	override public function noteJudged(judge:JudgmentData, ?note:Note, ?field:PlayField)

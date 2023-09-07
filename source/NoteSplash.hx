@@ -16,6 +16,8 @@ class NoteSplash extends NoteObject
 	public var rgbShader:RGBPalette = null;
 	public var vec3Cache:Vector3 = new Vector3();
 
+	public var animationAmount:Int = 2;
+
 	public function new(x:Float = 0, y:Float = 0, type:String, data:Int, redColor:FlxColor = 0, greenColor:FlxColor = 0, blueColor:FlxColor = 0)
 	{
 		super(x, y);
@@ -36,12 +38,12 @@ class NoteSplash extends NoteObject
 		switch (noteType)
 		{
 			default:
-				switch (PlayState.SONG.splashSkin)
+				switch (PlayState.splashSkin)
 				{
 					case 'tenzus':
 						frames = Paths.getSparrowAtlas('noteSplash/tenzus_splash', 'shared');
 
-						for (i in 1...3) {
+						for (i in 1...animationAmount+1) {
 							animation.addByPrefix("note1-" + i, "note splash blue " + i, 24, false);
 							animation.addByPrefix("note2-" + i, "note splash green " + i, 24, false);
 							animation.addByPrefix("note0-" + i, "note splash purple " + i, 24, false);
@@ -55,7 +57,7 @@ class NoteSplash extends NoteObject
 					default:
 						frames = Paths.getSparrowAtlas('noteSplash/noteSplashes', 'shared');
 
-						for (i in 1...3)
+						for (i in 1...animationAmount+1)
 						{
 							animation.addByPrefix("note1-" + i, "note splash blue " + i, 24, false);
 							animation.addByPrefix("note2-" + i, "note splash green " + i, 24, false);
@@ -80,28 +82,27 @@ class NoteSplash extends NoteObject
 		switch (noteType)
 		{
 			default:
-				switch (PlayState.SONG.splashSkin)
+				switch (PlayState.splashSkin)
 				{
 					case 'tenzus':
-						var animNum:Int = FlxG.random.int(1, 2);
-						animation.play('note' + noteData + '-' + animNum, true);
-						if(animation.curAnim != null)animation.curAnim.frameRate = 24 + FlxG.random.int(-2, 2);
+						animation.play('note$noteData-${FlxG.random.int(1, animationAmount)}', true);
+						if (animation.curAnim != null) 
+							animation.curAnim.frameRate = 24 + FlxG.random.int(-2, 2);
 					default:
-						var animNum:Int = FlxG.random.int(1, 2);
-						if (ClientPrefs.noteSkin == 'Quants') {
-							animation.play('note' + noteData + '-' + animNum, true);
-							if(animation.curAnim != null)animation.curAnim.frameRate = 24 + FlxG.random.int(-2, 2);
-						}else
-							animation.play('note' + noteData + '-' + animNum, true);
+						if (ClientPrefs.noteSkin == 'Quants') 
+							animation.play('note$noteData-${FlxG.random.int(1, animationAmount)}', true);
+						else
+							animation.play('note$noteData-${FlxG.random.int(1, animationAmount)}', true);
 				}
 		}
+	}
 
-		animation.finishCallback = function(name)
-		{
-			alpha = 0;
+	override function update(elapsed:Float) 
+	{
+		if(animation.curAnim != null && animation.curAnim.finished) 
 			kill();
-			destroy();
-		}
+
+		super.update(elapsed);
 	}
 
 	public function addOffset(name:String, x:Float = 0, y:Float = 0)

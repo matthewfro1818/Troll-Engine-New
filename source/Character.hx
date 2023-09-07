@@ -537,6 +537,7 @@ class Character extends FlxSprite
 
 	public function startScripts()
 	{
+		setDefaultVar("this", this);
 		for (filePath in Paths.getFolders("characters")){
 
 			var file = filePath + '$scriptName.hx';

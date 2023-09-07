@@ -113,7 +113,7 @@ class ClientPrefs
 			},
 			"hitsoundType" => {
 				display: "Hitsound Type",
-				desc: "The Type of hitsounds",
+				desc: "The Type of hitsounds.",
 				type: Dropdown,
 				value: "Osu",
 				data: [
@@ -149,7 +149,7 @@ class ClientPrefs
 			},
 			"bgvid" => {
 				display: "Background Video",
-				desc: "When toggled, Background Vide will be shown ingame.",
+				desc: "When toggled, Background Video will be shown ingame.",
 				type: Toggle,
 				value: true,
 				data: []
@@ -679,7 +679,7 @@ class ClientPrefs
 		'ui_up' => [W, UP],
 		'ui_right' => [D, RIGHT],
 		'accept' => [SPACE, ENTER],
-		'back' => [ESCAPE, BACKSPACE],
+		'back' => [ESCAPE, NONE],
 		'pause' => [ENTER, ESCAPE],
 		'reset' => [R, NONE],
 		'volume_mute' => [ZERO, NONE],
@@ -701,8 +701,10 @@ class ClientPrefs
 
 	static var manualLoads = ["gameplaySettings", "quantColors", "columnColors", "comboOffset"];
 
-	public static function initialize()
+	public static function initialize(){
 		optionSave.bind("options_v2");
+		loadDefaultKeys();
+	}
 	
 
 	public static function save(?definitions:Map<String, OptionData>)

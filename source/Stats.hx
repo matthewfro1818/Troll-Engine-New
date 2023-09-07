@@ -157,9 +157,26 @@ class Stats {
         return '?';
     }
 
+    public var sdg = Paths.getString("sdt3");
+    public var sds = Paths.getString("sdt4");
+
+	public var gfc = Paths.getString("t3fc");
+	public var sfc = Paths.getString("t4fc");
+	public var efc = Paths.getString("t5fc");
+	public var fc = Paths.getString("fc");
+
+	public var bf = Paths.getString("blackflag");
+	public var wf = Paths.getString("whiteflag");
+	public var mf = Paths.getString("missflag");
+
+	public var sdcb = Paths.getString("sdcb");
+	public var fail = Paths.getString("fail");
+	public var clear = Paths.getString("clear");
+	public var noplay = Paths.getString("noplay");
+
     public function getClearType():String
         {
-            var clear = 'Clear';
+            var clear = clear;
     
             if (comboBreaks <= 0)
             {
@@ -169,42 +186,44 @@ class Stats {
     
                 if (totalPlayed == 0)
                 {
-                    clear = 'No Play'; // Havent played anything yet
+                    clear = noplay; // Havent played anything yet
                     return clear;
                 }
+
+                clear = fc;
     
                 if (goods > 0)
                 {
                     if (goods < 10 && goods > 0)
-                        clear = 'SDG'; // Single Digit Goods
+                        clear = sdg; // Single Digit Goods
                     else
-                        clear = 'GFC'; // Good Full Combo
+                        clear = gfc; // Good Full Combo
                 }
                 else if (sicks > 0)
                 {
                     if (sicks < 10 && sicks > 0)
-                        clear = 'SDS'; // Single Digit Sicks
+                        clear = sds; // Single Digit Sicks
                     else
-                        clear = 'SFC'; // Sick Full Combo
+                        clear = sfc; // Sick Full Combo
                 }
                 else if (epics > 0)
-                    clear = "EFC";
+                    clear = efc;
                 if (useFlags)
                 {
                     if (goods == 1)
-                        clear = 'BF'; // Black Flag (SFC missed by 1 good)
+                        clear = bf; // Black Flag (SFC missed by 1 good)
                     else if (sicks == 1)
-                        clear = 'WF'; // White Flag (EFC missed by 1 sick)
+                        clear = wf; // White Flag (EFC missed by 1 sick)
                 }
             }
             else
             {
                 if (useFlags && comboBreaks == 1)
-                    clear = 'MF'; // Miss Flag (Any FC missed by 1 CB)
+                    clear = mf; // Miss Flag (Any FC missed by 1 CB)
                 else if (comboBreaks < 10 && score >= 0)
-                    clear = "SDCB"; // Single Digit Combo Break
+                    clear = sdcb; // Single Digit Combo Break
                 else if (score < 0 || comboBreaks >= 10 && ratingPercent <= 0)
-                    clear = "Fail"; // Fail
+                    clear = fail; // Fail
             }
     
             return clear;

@@ -424,17 +424,18 @@ class PlayField extends FlxTypedGroup<FlxBasic>
 						//if(daNote.isRoll)isHeld = false; // roll logic is done on press
 						// TODO: write that logic tho
 						var receptor = strumNotes[daNote.noteData];
-						
-						// should i do this??? idfk lol
-						if(isHeld && receptor.animation.curAnim.name!="confirm")
-							receptor.playAnim("confirm", true);
 
 						daNote.holdingTime = Conductor.songPosition - daNote.strumTime;
-						var regrabTime = (daNote.isRoll?0.5:0.25) * judgeManager.judgeTimescale;
-						if(isHeld)
+						if(isHeld){
+							// should i do this??? idfk lol
+							if (receptor.animation.finished || receptor.animation.curAnim.name != "confirm") 
+								receptor.playAnim("confirm", true);
+
 							daNote.tripTimer = 1;
-						else
+						}else{
+							var regrabTime = (daNote.isRoll ? 0.5 : 0.25) * judgeManager.judgeTimescale;
 							daNote.tripTimer -= elapsed / regrabTime; // NOTDO: regrab time multiplier in options
+						}
 						// RE: nvm its done by the judge diff instead
 
 						if(daNote.tripTimer <= 0){

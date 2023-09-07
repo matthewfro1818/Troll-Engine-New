@@ -26,11 +26,11 @@ function doZoomTween(zoom:Float, duration:Float)
 			{
 				ease: FlxEase.quadInOut, 
 				onUpdate: function(twn){
-					instance.camGame.zoom = twn.value;
+					//instance.camGame.zoom = twn.value;
 					instance.defaultCamZoom = twn.value;
 				},
 				onComplete: function(wtf){
-					instance.camGame.zoom = zoom;
+					//instance.camGame.zoom = zoom;
                     instance.defaultCamZoom = zoom;
 					if (lastTween == wtf) lastTween = null;
 				}
@@ -76,7 +76,6 @@ function onTrigger(value1:Dynamic, value2:Dynamic, time:Float){
     }
     if(Conductor.songPosition >= endTime){
         instance.defaultCamZoom = zoom;
-        instance.camGame.zoom = instance.defaultCamZoom;
     }else{
         var length = (endTime - Conductor.songPosition)/1000;
         var easeFunc = FlxEase.quadInOut;
@@ -90,11 +89,9 @@ function onTrigger(value1:Dynamic, value2:Dynamic, time:Float){
             onComplete: function(tw:FlxTween){
                 lastTween = null;
                 instance.defaultCamZoom = zoom;
-                instance.camGame.zoom = zoom;
             },
             onUpdate: function(tw:FlxTween){
                 instance.defaultCamZoom = tw.value;
-                instance.camGame.zoom = tw.value;
             }
         });
     }

@@ -11,7 +11,7 @@ import JudgmentManager.JudgmentData;
 import flixel.tweens.FlxTween;
 import flixel.text.FlxText;
 
-class ITGHUD extends BaseHUD {
+class ITGHUD extends CommonHUD {
     public var judgeTexts:Map<String, FlxText> = [];
 	public var judgeNames:Map<String, FlxText> = [];
 	
@@ -72,31 +72,7 @@ class ITGHUD extends BaseHUD {
 		add(scoreTxt);
 
 		if (ClientPrefs.judgeCounter != 'Off')
-		{
-			var textWidth = ClientPrefs.judgeCounter == 'Shortened' ? 150 : 200;
-			var textPosX = ClientPrefs.hudPosition == 'Right' ? (FlxG.width - 5 - textWidth) : 5;
-			var textPosY = (FlxG.height - displayedJudges.length*25) * 0.5;
-
-			for (idx in 0...displayedJudges.length)
-			{
-				var judgment = displayedJudges[idx];
-
-				var text = new FlxText(textPosX, textPosY + idx*25, textWidth, displayNames.get(judgment), 20);
-				text.setFormat(Paths.font("miso-bold.ttf"), 24, itgJudgeColours.get(judgment), LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-				text.scrollFactor.set();
-				text.borderSize = 1.25;
-				add(text);
-
-				var numb = new FlxText(textPosX, text.y, textWidth, "0", 20);
-				numb.setFormat(Paths.font("miso-bold.ttf"), 24, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-				numb.scrollFactor.set();
-				numb.borderSize = 1.25;
-				add(numb);
-
-				judgeTexts.set(judgment, numb);
-				judgeNames.set(judgment, text);
-			}
-		}
+			generateJudgementDisplays();
 
 		//
 		
@@ -120,6 +96,49 @@ class ITGHUD extends BaseHUD {
 		add(bpmText);
 	}
 
+	function clearJudgementDisplays()
+	{
+		for (text in judgeTexts){
+			remove(text);
+			text.destroy();
+		}
+		judgeTexts.clear();
+
+		for (text in judgeNames){
+			remove(text);
+			text.destroy();
+		}
+		judgeNames.clear();
+	}
+
+	function generateJudgementDisplays()
+	{
+		var textWidth = ClientPrefs.judgeCounter == 'Shortened' ? 150 : 200;
+		var textPosX = ClientPrefs.hudPosition == 'Right' ? (FlxG.width - 5 - textWidth) : 5;
+		var textPosY = (FlxG.height - displayedJudges.length*25) * 0.5;
+
+		for (idx in 0...displayedJudges.length)
+		{
+			var judgment = displayedJudges[idx];
+
+			var text = new FlxText(textPosX, textPosY + idx*25, textWidth, displayNames.get(judgment), 20);
+			text.setFormat(Paths.font("miso-bold.ttf"), 24, judgeColours.get(judgment), LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			text.scrollFactor.set();
+			text.borderSize = 1.25;
+			add(text);
+
+			var numb = new FlxText(textPosX, text.y, textWidth, "0", 20);
+			numb.setFormat(Paths.font("miso-bold.ttf"), 24, FlxColor.WHITE, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			numb.scrollFactor.set();
+			numb.borderSize = 1.25;
+			add(numb);
+
+			judgeTexts.set(judgment, numb);
+			judgeNames.set(judgment, text);
+		}
+	}
+
+
 	override function changedOptions(changed:Array<String>)
 	{
 		super.changedOptions(changed);
@@ -137,6 +156,22 @@ class ITGHUD extends BaseHUD {
 			}
 			else
 				hitbar.y += 330;
+		}
+
+		var regenJudgeDisplays:Bool = false;
+		for (optionName in changed){
+			if (optionName == "judgeCounter" || optionName == "hudPosition"){
+				regenJudgeDisplays = true; 
+				break;
+			}
+		}
+
+		if (regenJudgeDisplays)
+		{
+			clearJudgementDisplays();
+
+			if (ClientPrefs.judgeCounter != 'Off')
+				generateJudgementDisplays();
 		}
 	}
 
