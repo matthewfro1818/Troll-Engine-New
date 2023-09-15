@@ -29,6 +29,14 @@ class StartupState extends FlxState
 	private final nextState = TitleState;
 
 	private static var loaded = false;
+
+	    // vv wait this isnt a musicbeatstate LOL!
+	/* 
+	public function new(canBeScripted:Bool = false)
+	{
+		super();
+		this.canBeScripted = false; // << THIS SHOULD NEVER BE SCRIPTED!!!
+	} */
 	public static function load():Void
 	{
 		if (loaded)

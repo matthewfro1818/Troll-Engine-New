@@ -74,17 +74,12 @@ class Highscore
 			
 		]
 	];
-	#if (haxe >= "4.0.0")
+
 	public static var weekScores:Map<String, Int> = new Map();
 	public static var songScores:Map<String, Int> = new Map();
+	public static var songOldScores:Map<String, Map<String, Int>> = new Map();
 	public static var songWifeScores:Map<String, Float> = new Map();
 	public static var songRating:Map<String, Float> = new Map();
-	#else
-	public static var weekScores:Map<String, Int> = new Map();
-	public static var songWifeScores:Map<String, Float> = new Map<String, Float>();
-	public static var songScores:Map<String, Int> = new Map<String, Int>();
-	public static var songRating:Map<String, Float> = new Map<String, Float>();
-	#end
 
 	#if !macro
 	static var loadedID:String = '';
@@ -95,6 +90,8 @@ class Highscore
 	static var isWife3:Bool = false;
 	static var hasEpic:Bool = false;
 	static var judgeDiff:String = 'J4';
+
+	static var scoringVersion:Float = 2.0; // 2.0 = malewife, 1.0 = original tgt accuracy
 
 	public static function getID(){
 		var idArray:Array<String> = [];
@@ -134,6 +131,9 @@ class Highscore
 
 			save.bind(id);
 			save.flush();
+
+			if (save.data.SCORE_VERSION == null)
+				save.data.SCORE_VERSION = 1.0;
 
 			if (id == defaultID)
 			{
@@ -183,13 +183,15 @@ class Highscore
 		updateSave();
 		var daSong:String = formatSong(song,diff);
 
-		if (!songWifeScores.exists(daSong) || songWifeScores.get(daSong) < notesHit)
+		var valid = hasValidScore(song, diff);
+
+		if (!songWifeScores.exists(daSong) || songWifeScores.get(daSong) < notesHit || !valid)
 			setNotesHit(daSong, notesHit);
 
-		if (!songRating.exists(daSong) || songRating.get(daSong) < rating)
+		if (!songRating.exists(daSong) || songRating.get(daSong) < rating || !valid)
 			setRating(daSong, rating);
 
-		if (!songScores.exists(daSong) || songScores.get(daSong) < score) 
+		if (!songScores.exists(daSong) || songScores.get(daSong) < score || !valid)  
 			setScore(daSong, score);
 	}
 
@@ -221,9 +223,14 @@ class Highscore
 	static function setScore(song:String, score:Int):Void
 	{
 		updateSave();
+		for (shid in songOldScores.keys())
+			if (songOldScores.get(shid).exists(song))
+                songOldScores.get(shid).remove(song); // gone
+
 		// Reminder that I don't need to format this song, it should come formatted!
 		songScores.set(song, score);
 		save.data.songScores = songScores;
+		save.data.songOldScores = songOldScores;
 		save.flush();
 	}
 	static function setWeekScore(week:String, score:Int):Void
@@ -248,8 +255,17 @@ class Highscore
 		return Paths.formatToSongPath(song) + Difficulty.getFilePath(diff);
 	}
 
-	public static function hasValidScore(song:String):Bool
+	public static function hasValidScore(song:String, ?diff:Int = 0):Bool
 	{
+		if(!isWife3){
+			var daSong = formatSong(song, diff);
+			for (shid in songOldScores.keys())
+			{
+				if (songOldScores.get(shid).exists(daSong)){
+					return false;
+                }
+			}
+        } 
 /* 		if (isWife3){
 			if (!songWifeScores.exists(formatSong(song)) && getRating(song) != 0) // if it has no wifescore but has an accuracy tied to it then this should be overwritten
 				// (this is to ensure when on Wife3, it'll only save your best accuracy, sadly means old W3 accuracies get wiped though)
@@ -266,6 +282,10 @@ class Highscore
 	{
 		updateSave();
 		var daSong:String = formatSong(song,diff);
+		for (shid in songOldScores.keys()){
+			if (songOldScores.get(shid).exists(daSong))
+				return songOldScores.get(shid).get(daSong);
+        }
 		if (!songWifeScores.exists(daSong))
 			return 0;
 
@@ -306,6 +326,7 @@ class Highscore
 		weekScores=[];
 		songScores=[];
 		songRating=[];
+		songOldScores=[];
 		if (save.data.weekScores != null)
 		{
 			weekScores = save.data.weekScores;
@@ -314,10 +335,22 @@ class Highscore
 		{
 			songScores = save.data.songScores;
 		}
+		if (save.data.songOldScores != null)
+		{
+			songOldScores = save.data.songOldScores;
+		}
 		if (save.data.songRating != null)
 		{
 			songRating = save.data.songRating;
 		}
+		if(save.data.SCORE_VERSION < scoringVersion){
+			songOldScores[Std.string(save.data.SCORE_VERSION)] = songScores;
+			songScores = [];
+            save.data.songScores = [];
+            save.data.songOldScores = songOldScores;
+			save.data.SCORE_VERSION = scoringVersion;
+            save.flush();
+        }
 	}
 	public static function load():Void
 	{

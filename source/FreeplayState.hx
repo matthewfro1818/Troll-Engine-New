@@ -117,7 +117,7 @@ class FreeplayState extends MusicBeatState
 				var charts = SongChartSelec.getCharts(songButton.metadata);
 
 				if (FlxG.keys.pressed.ALT && charts.length > 0){
-					switchTo(new SongChartSelec(songButton.metadata, charts));
+					FlxG.switchState(new SongChartSelec(songButton.metadata, charts)); // we should make this better and add a proper chart selector
 				}else{
 					var daDiff:String = "";
 

@@ -6,9 +6,12 @@ import flixel.addons.ui.FlxUIState;
 import openfl.media.Sound;
 import openfl.ui.Mouse;
 import openfl.ui.MouseCursor;
+import scripts.FunkinHScript;
 
 class MusicBeatState extends FlxUIState
 {
+	public var script:FunkinHScript; // once i add state scripting this'll be used but rn its only used by FunkinHScript
+
 	private var curSection:Int = 0;
 	private var stepsToDo:Int = 0;
 
@@ -20,6 +23,14 @@ class MusicBeatState extends FlxUIState
 	private var controls(get, never):Controls;
 
 	public static var camBeat:FlxCamera;
+
+	public var canBeScripted:Bool = false;
+
+	public function new(canBeScripted:Bool = true){
+        super();
+        this.canBeScripted = canBeScripted; // for once I add state scripting
+        // NOTE: Once state scripting is added we should do a proper mod and skin selection menu like Psych's, but I think we can take some inspiration from how Minecraft does it w/ resource packs since that's a pretty good system of doing it, imo
+    }
 
 	inline function get_controls():Controls
 		return PlayerSettings.player1.controls;
@@ -42,10 +53,9 @@ class MusicBeatState extends FlxUIState
 		super.onFocusLost();
 	}
 
-	override function update(elapsed:Float)
-	{
-		//everyStep();
-		var oldStep:Int = curStep;
+    // mainly moved it away so if a scripted state returns FUNCTION_STOP they can still make the music stuff update
+    public function updateSteps(){
+        var oldStep:Int = curStep;
 
 		updateCurStep();
 		updateBeat();
@@ -63,6 +73,12 @@ class MusicBeatState extends FlxUIState
 					rollbackSection();
 			}
 		}
+	}
+
+	override function update(elapsed:Float)
+	{
+		//everyStep();
+        updateSteps();
 
 		super.update(elapsed);
 	}

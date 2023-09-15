@@ -122,7 +122,7 @@ class ITGHUD extends CommonHUD {
 			var judgment = displayedJudges[idx];
 
 			var text = new FlxText(textPosX, textPosY + idx*25, textWidth, displayNames.get(judgment), 20);
-			text.setFormat(Paths.font("miso-bold.ttf"), 24, judgeColours.get(judgment), LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			text.setFormat(Paths.font("miso-bold.ttf"), 24, itgJudgeColours.get(judgment), LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			text.scrollFactor.set();
 			text.borderSize = 1.25;
 			add(text);

@@ -548,7 +548,7 @@ class PsychSongMetadata
 
 class FreeplaySelectState extends MusicBeatState
 {
-	var freeplayCats:Array<String> = ['Friday Night Funkin', 'Modchart', "Pibby"];
+	var freeplayCats:Array<String> = ['Friday Night Funkin', 'Modchart', "Mods"];
 	var grpCats:FlxTypedGroup<AlphabetNew>;
 	var curSelected:Int = 0;
 	var BG:FlxSprite;

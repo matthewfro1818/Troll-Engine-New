@@ -47,9 +47,7 @@ class CommonHUD extends BaseHUD
 	public function new(iP1:String, iP2:String, songName:String, stats:Stats)
 	{
 		super(iP1, iP2, songName, stats);
-        this.stats = stats;
-		this.songName = songName;
-
+		
 		if (ClientPrefs.etternaHUD == 'ITG')
 		{
 			scoreBG = new FlxSprite(0, 0).makeGraphic(FlxG.width, 136, 0xFF000000);
