@@ -695,14 +695,6 @@ class HScriptState extends MusicBeatState
 
 		return member;
 	}
-/*     override function ()
-	{
-		if (script.call("", []) == Globals.Function_Stop)
-			return;
-		super.();
-		script.call("Post", []);
-	} */
-
 
 }
 

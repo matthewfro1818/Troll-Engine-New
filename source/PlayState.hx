@@ -163,8 +163,8 @@ class PlayState extends MusicBeatState
     public var iconP2:HealthIcon = new HealthIcon(); // ditto
 	
 	public var hud:BaseHUD;
-	// public var scoreTxt:FlxText = new FlxText(); // just so psych mods n shit dont error
-	public var botplayTxt:FlxText;
+	public var scoreTxt:FlxText = new FlxText(); // just so psych mods n shit dont error
+	public var botplayTxt:FlxText = new FlxText(); // ditto;
 	var subtitles:Null<SubtitleDisplay>;
 
 	public var modchartTweens:Map<String, FlxTween> = new Map<String, FlxTween>();
@@ -446,6 +446,10 @@ class PlayState extends MusicBeatState
 	public var video:VideoHandler;
 	#end
 	
+	public function new(_:Bool = false){
+        super(false); // no scripting on playstate
+    }
+
 	override public function create()
 	{
 		judgeManager = new JudgmentManager();
@@ -824,17 +828,15 @@ class PlayState extends MusicBeatState
 		
 		if (hud == null){
 			switch(ClientPrefs.etternaHUD){
+				case "Kade": hud = new KadeHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
 				case 'Advanced': hud = new AdvancedHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
 				case 'ITG': hud = new hud.ITGHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
 				default: hud = new PsychHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
 			}
 		}
 
-		botplayTxt = new BotplayText(0, (ClientPrefs.downScroll ? FlxG.height - 44 : 19) + 15 + (ClientPrefs.downScroll ? -78 : 55), FlxG.width, ClientPrefs.etternaHUD == 'ITG' ? "AutoPlay" :"[BOTPLAY]", 32);
-		botplayTxt.setFormat(Paths.font(ClientPrefs.etternaHUD == 'ITG' ? 'miso-bold.ttf' : gameFont), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		botplayTxt.scrollFactor.set();
-		botplayTxt.borderSize = 1.25;
-		botplayTxt.exists = false;
+		hud.alpha = ClientPrefs.hudOpacity;
+		add(hud);
 		
 		stage.buildStage();
 
@@ -894,10 +896,6 @@ class PlayState extends MusicBeatState
 		moveCameraSection(SONG.notes[0]);
 
 		////
-		
-		hud.songName = SONG.song;
-		hud.alpha = ClientPrefs.hudOpacity;
-		add(hud);
 
 		//
 		lastJudge = RatingSprite.newRating();
@@ -994,7 +992,6 @@ class PlayState extends MusicBeatState
 		strumLineNotes.cameras = cH;
 		grpNoteSplashes.cameras = cH;
 		notes.cameras = cH;
-		botplayTxt.cameras = cH;
 
 		// EVENT AND NOTE SCRIPTS WILL GET LOADED HERE
 		generateSong(SONG.song);
@@ -1046,7 +1043,6 @@ class PlayState extends MusicBeatState
 				add(comboNumTxt);
 			add(timingTxt);
 		}
-		add(botplayTxt);
 		add(grpNoteSplashes);
 
 		#if LUA_ALLOWED
@@ -1618,6 +1614,8 @@ class PlayState extends MusicBeatState
 					modchartObjects.remove('note${daNote.ID}');
 				for (field in playfields)
 					field.removeNote(daNote);
+
+				camZooming = true;
 			}
 			--i;
 		}
@@ -1647,7 +1645,6 @@ class PlayState extends MusicBeatState
 	}
 
 	var previousFrameTime:Int = 0;
-	//var lastReportedPlayheadPosition:Int = 0;
 	var songTime:Float = 0;
 	var vocalsEnded:Bool = false;
 	function startSong():Void
@@ -1655,8 +1652,6 @@ class PlayState extends MusicBeatState
 		startingSong = false;
 
 		previousFrameTime = FlxG.game.ticks;
-		//lastReportedPlayheadPosition = 0;
-
 		
 		inst.onComplete = function(){
 			trace("song ended!?");
@@ -1695,13 +1690,12 @@ class PlayState extends MusicBeatState
 
 		#if discord_rpc
 		// Updating Discord Rich Presence (with Time Left)
-		DiscordClient.changePresence(detailsText, SONG.song, Paths.formatToSongPath(SONG.song), true, songLength);
+		DiscordClient.changePresence(detailsText, SONG.song, songName, true, songLength);
 		#end
 		setOnScripts('songLength', songLength);
 		callOnScripts('onSongStart');
 	}
 
-	var debugNum:Int = 0;
 	private var noteSkinMap:Map<String, Bool> = new Map<String, Bool>();
 	private var noteTypeMap:Map<String, Bool> = new Map<String, Bool>();
 	private var eventPushedMap:Map<String, Bool> = new Map<String, Bool>();
@@ -2373,8 +2367,6 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		botplayTxt.y = (ClientPrefs.downScroll ? FlxG.height - 44 : 19) + 15 + (ClientPrefs.downScroll ? -78 : 55);
-
 		for(field in playfields){
 			field.noteField.optimizeHolds = ClientPrefs.optimizeHolds;
 			field.noteField.drawDistMod = ClientPrefs.drawDistanceModifier;
@@ -2525,11 +2517,11 @@ class PlayState extends MusicBeatState
 			#if discord_rpc
 			if (startTimer != null && startTimer.finished)
 			{
-				DiscordClient.changePresence(detailsText, SONG.song, Paths.formatToSongPath(SONG.song), true, songLength - Conductor.songPosition - ClientPrefs.noteOffset);
+				DiscordClient.changePresence(detailsText, SONG.song, songName, true, songLength - Conductor.songPosition - ClientPrefs.noteOffset);
 			}
 			else
 			{
-				DiscordClient.changePresence(detailsText, SONG.song, Paths.formatToSongPath(SONG.song));
+				DiscordClient.changePresence(detailsText, SONG.song, songName);
 			}
 			#end
 		}
@@ -2544,11 +2536,11 @@ class PlayState extends MusicBeatState
 		{
 			if (Conductor.songPosition > 0.0)
 			{
-				DiscordClient.changePresence(detailsText, SONG.song, Paths.formatToSongPath(SONG.song), true, songLength - Conductor.songPosition - ClientPrefs.noteOffset);
+				DiscordClient.changePresence(detailsText, SONG.song, songName, true, songLength - Conductor.songPosition - ClientPrefs.noteOffset);
 			}
 			else
 			{
-				DiscordClient.changePresence(detailsText, SONG.song, Paths.formatToSongPath(SONG.song));
+				DiscordClient.changePresence(detailsText, SONG.song, songName);
 			}
 		}
 		#end
@@ -2560,7 +2552,7 @@ class PlayState extends MusicBeatState
 	{
 		#if discord_rpc
 		if (!isDead)
-			DiscordClient.changePresence(detailsPausedText, SONG.song, Paths.formatToSongPath(SONG.song));
+			DiscordClient.changePresence(detailsPausedText, SONG.song, songName);
 		#end
 
 		super.onFocusLost();
@@ -2830,8 +2822,6 @@ class PlayState extends MusicBeatState
 		FlxG.watch.addQuick("visualPos", Conductor.visualPosition);
 
 		checkEventNote();
-		
-		botplayTxt.exists = PlayState.instance.cpuControlled;
 
 		/*if(midScroll){
 			for(field in notefields.members){
@@ -2913,7 +2903,7 @@ class PlayState extends MusicBeatState
 
 	function doGameOver()
 	{
-		if (callOnScripts('onGameOver') != Globals.Function_Stop) 
+		if (callOnScripts('onGameOver') == Globals.Function_Stop) 
 			return false;
 		
 		boyfriend.stunned = true;
@@ -2953,7 +2943,7 @@ class PlayState extends MusicBeatState
 
 			#if discord_rpc
 			// Game Over doesn't get his own variable because it's only used here
-			DiscordClient.changePresence("Game Over - " + detailsText, SONG.song, Paths.formatToSongPath(SONG.song));
+			DiscordClient.changePresence("Game Over - " + detailsText, SONG.song, songName);
 			#end
 		}
 		return true;
@@ -3033,7 +3023,7 @@ class PlayState extends MusicBeatState
 					if(shiftFocus)focusedChar=dad;
 					dad.alpha = lastAlpha;
 					//hud.iconP2.changeIcon(dad.healthIcon);
-					hud.changedCharacter(2, boyfriend);
+					hud.changedCharacter(2, dad);
 					oldChar.setOnScripts("used", false);
 					dad.setOnScripts("used", true);
 					oldChar.callOnScripts("changedOut", [oldChar, dad]); // oldChar, newChar
@@ -3060,7 +3050,7 @@ class PlayState extends MusicBeatState
 						gf = gfMap.get(name);
 						gf.alpha = lastAlpha;
 						if(shiftFocus)focusedChar=gf;
-						hud.changedCharacter(3, boyfriend);
+						hud.changedCharacter(3, gf);
 						oldChar.setOnScripts("used", false);
 					    gf.setOnScripts("used", true);
 						oldChar.callOnScripts("changedOut", [oldChar, gf]); // oldChar, newChar
@@ -3453,8 +3443,10 @@ class PlayState extends MusicBeatState
 			// TODO: different score saving for Wife3
 			// TODO: Save more stats?
 
-			if (!playOpponent && saveScore && ratingFC!='Fail')
-				Highscore.saveScore(SONG.song, stats.score, percent, stats.totalNotesHit);
+			if (saveScore && ratingFC!='Fail'){
+				//Highscore.saveScore(SONG.song, stats.score, percent, stats.totalNotesHit);
+                Highscore.saveScoreRecord(SONG.song, stats.getScoreRecord());
+            }
 			if (chartingMode)
 				{
 					openChartEditor();
@@ -3496,7 +3488,7 @@ class PlayState extends MusicBeatState
 					}
 
 					#if VIDEOS_ALLOWED
-					var videoPath:String = Paths.video(Paths.formatToSongPath(SONG.song) + '-end');
+					var videoPath:String = Paths.video(songName + '-end');
 					if (Paths.exists(videoPath))
 						MusicBeatState.switchState(new VideoPlayerState(videoPath, gotoMenus));
 					else
@@ -3521,7 +3513,7 @@ class PlayState extends MusicBeatState
 					}
 
 					#if VIDEOS_ALLOWED
-					var videoPath:String = Paths.video(Paths.formatToSongPath(nextSong));
+					var videoPath:String = Paths.video(songName);
 					if (Paths.exists(videoPath))
 						MusicBeatState.switchState(new VideoPlayerState(videoPath, playNextSong));
 					else #end
@@ -3624,7 +3616,11 @@ class PlayState extends MusicBeatState
 				}
 			});
 		}
+		if (callOnScripts("onDisplayJudgment", [rating, image]) == Globals.Function_Stop)
+			return;
 
+
+		rating.color = 0xFFFFFFFF;
 		rating.alpha = ClientPrefs.judgeOpacity;
 
 		rating.visible = showRating;
@@ -4102,11 +4098,14 @@ class PlayState extends MusicBeatState
 		RecalculateRating();
 	}
 
-	function noteMiss(daNote:Note, field:PlayField, ?mine:Bool=false):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
+	// You didn't hit the key and let it go offscreen, also used by Hurt Notes
+	function noteMiss(daNote:Note, field:PlayField, ?mine:Bool=false):Void 
+	{
 		//Dupe note remove
 		//field.spawnedNotes.forEachAlive(function(note:Note) {
 		for(note in field.spawnedNotes){
-			if(!note.alive || daNote.tail.contains(note) || note.isSustainNote) continue;
+			if(!note.alive || daNote.tail.contains(note) || note.isSustainNote) 
+				continue;
 			if (daNote != note && field.isPlayer && daNote.noteData == note.noteData && Math.abs(daNote.strumTime - note.strumTime) < 1) 
 				field.removeNote(note);
 			
@@ -4119,11 +4118,8 @@ class PlayState extends MusicBeatState
 		if(callOnHScripts("preNoteMiss", [daNote, field]) == Globals.Function_Stop)
 			return;
 		
-		if (daNote.noteScript!=null)
-		{
-			if (callScript(daNote.noteScript, "preNoteMiss", [daNote, field]) == Globals.Function_Stop)
-				return;
-		}
+		if (daNote.noteScript != null && callScript(daNote.noteScript, "preNoteMiss", [daNote, field]) == Globals.Function_Stop)
+			return;
 
 		////
 		if(!daNote.isSustainNote && daNote.unhitTail.length > 0){
@@ -4135,7 +4131,7 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		if(!daNote.noMissAnimation)
+		if (ClientPrefs.ghostTapping && !daNote.noMissAnimation)
 		{
 			var chars:Array<Character> = daNote.characters;
 
@@ -4208,13 +4204,8 @@ class PlayState extends MusicBeatState
 		#if LUA_ALLOWED
 		callOnLuas('noteMiss', [notes.members.indexOf(daNote), daNote.noteData, daNote.noteType, daNote.isSustainNote, daNote.ID]);
 		#end
-		////
 		if (daNote.noteScript != null)
-		{
-			var script:FunkinScript = daNote.noteScript;
-
 			callScript(script, "noteMiss", [daNote, field]);
-		}
 	}
 
 	function noteMissPress(direction:Int = 1):Void //You pressed a key when there was no notes to press for this key
@@ -4271,31 +4262,17 @@ class PlayState extends MusicBeatState
 
 	function opponentNoteHit(note:Note, field:PlayField):Void
 	{
-		if (songName != 'tutorial')
-			camZooming = true;
-
-		// Script shit
-		var isSus:Bool = note.isSustainNote; //GET OUT OF MY HEAD, GET OUT OF MY HEAD, GET OUT OF MY HEAD
-		var leData:Int = Math.round(Math.abs(note.noteData));
-		var leType:String = note.noteType;
-
-		if (note.noteScript != null)
-		{
-			var script:FunkinScript = note.noteScript;
-			if (callScript(script, "preOpponentNoteHit", [note, field]) == Globals.Function_Stop)
-				return;
-		}
+		if (note.noteScript != null && callScript(script, "preOpponentNoteHit", [note, field]) == Globals.Function_Stop)
+			return;
 		if (callOnHScripts("preOpponentNoteHit", [note, field]) == Globals.Function_Stop)
 			return;
-		#if LUA_ALLOWED
-		if (callOnLuas('preOpponentNoteHit', [notes.members.indexOf(note), leData, leType, isSus, note.ID]) == Globals.Function_Stop)
-			return;
-		#end
+
+		camZooming = true;
 
 		var chars:Array<Character> = note.characters;
-		if (note.gfNote)
+		if (note.gfNote && gf != null)
 			chars.push(gf);
-		else if (chars.length == 0)
+		if (chars.length == 0)
 			chars = field.characters;
 
 		for(char in chars){
@@ -4314,7 +4291,7 @@ class PlayState extends MusicBeatState
 				if ((curSection != null && curSection.altAnim) || note.noteType == 'Alt Animation')
 					animToPlay += '-alt';
 
-				if (char != null && char.animTimer <= 0 && !char.voicelining){
+				if (char.animTimer <= 0 && !char.voicelining){
 					char.playAnim(animToPlay, true);
 					char.holdTimer = 0;
 					char.callOnScripts("playNoteAnim", [animToPlay, note]);
@@ -4332,18 +4309,12 @@ class PlayState extends MusicBeatState
 		note.hitByOpponent = true;
 
 		callOnHScripts("opponentNoteHit", [note, field]);
-		#if LUA_ALLOWED
-		callOnLuas('opponentNoteHit', [notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote, note.ID]);
-		#end
 
 		if (note.noteScript != null)
-		{
-			var script:FunkinScript = note.noteScript;
-
-			callScript(script, "opponentNoteHit", [note, field]);
-		}
-
-					
+			callScript(script, "opponentNoteHit", [note, field]);	
+		#if LUA_ALLOWED
+		callOnLuas('opponentNoteHit', [notes.members.indexOf(note), Math.abs(note.noteData), note.noteType, note.isSustainNote, note.ID]);
+		#end			
 
 		if (!note.isSustainNote)
 		{
@@ -4365,32 +4336,20 @@ class PlayState extends MusicBeatState
 		if (note.wasGoodHit || (field.autoPlayed && (note.ignoreNote || note.breaksCombo)))
 			return;
 
-		if(!note.isSustainNote)
-			noteHits.push(Conductor.songPosition);
-
-		if (!note.hitsoundDisabled && ClientPrefs.hitsoundVolume > 0)
-			FlxG.sound.play(Paths.sound('hitsound/' + ClientPrefs.hitsoundType.toLowerCase()), ClientPrefs.hitsoundVolume);
-
-		// Strum animations
-		if (note.visible){
-			if(field.autoPlayed){
-				StrumPlayAnim(field, Std.int(Math.abs(note.noteData)) % 4, Conductor.stepCrochet * 1.5 / 1000, note);
-			}else{
-				var spr = field.strumNotes[note.noteData];
-				if(spr != null && field.keysPressed[note.noteData])
-					spr.playAnim('confirm', true, note);
-			}
-		}
-
-		if (note.noteScript != null)
-		{
-			if (callScript(note.noteScript, "preGoodNoteHit", [note, field]) == Globals.Function_Stop)
-				return;
-		}
+		if (note.noteScript != null && callScript(note.noteScript, "preGoodNoteHit", [note, field]) == Globals.Function_Stop)
+			return;
 		if (callOnHScripts("preGoodNoteHit", [note, field]) == Globals.Function_Stop)
 			return;
 
-		if (cpuControlled)saveScore = false; // if botplay hits a note, then you lose scoring
+		camZooming = true;
+
+		if(!note.isSustainNote){
+			noteHits.push(Conductor.songPosition); // used for NPS
+			stats.noteDiffs.push(note.hitResult.hitDiff + ClientPrefs.ratingOffset); // used for stat saving (i.e viewing song stats after you beaten it)
+        }
+
+		if (!note.hitsoundDisabled && ClientPrefs.hitsoundVolume > 0)
+			FlxG.sound.play(Paths.sound('hitsound/' + ClientPrefs.hitsoundType.toLowerCase()), ClientPrefs.hitsoundVolume);
 
 		// tbh I hate hitCausesMiss lol its retarded
 		// added a shitty judge to deal w/ it tho!!
@@ -4439,9 +4398,9 @@ class PlayState extends MusicBeatState
 
 
 		var chars:Array<Character> = note.characters;
-		if (note.gfNote)
+		if (note.gfNote && gf != null)
 			chars.push(gf);
-		else if(chars.length==0)
+		if(chars.length==0)
 			chars = field.characters;
 		
 		for(char in chars){
@@ -4468,7 +4427,7 @@ class PlayState extends MusicBeatState
 				var curSection = SONG.notes[curSection];
 				if ((curSection != null && curSection.altAnim) || note.noteType == 'Alt Animation')
 					animToPlay += '-alt';
-				if (char != null && char.animTimer <= 0 && !char.voicelining){
+				if (char.animTimer <= 0 && !char.voicelining){
 					char.playAnim(animToPlay, true);
 					char.holdTimer = 0;
 					char.callOnScripts("playNoteAnim", [animToPlay, note]);
@@ -4476,19 +4435,34 @@ class PlayState extends MusicBeatState
 			}
 		}
 		note.wasGoodHit = true;
-		vocals.volume = vocalsEnded?0:1;
+		if (SONG.needsVoices) vocals.volume = vocalsEnded?0:1;
+		if (cpuControlled) saveScore = false; // if botplay hits a note, then you lose scoring
+
+		// Strum animations
+		if (note.visible){
+			if(field.autoPlayed){
+				var time:Float = 0.15;
+				if(note.isSustainNote && !note.animation.curAnim.name.endsWith('end'))
+					time += 0.15;
+
+				StrumPlayAnim(field, Std.int(Math.abs(note.noteData)) % 4, time, note);
+			}else{
+				var spr = field.strumNotes[note.noteData];
+				if(spr != null && field.keysPressed[note.noteData])
+					spr.playAnim('confirm', true, note);
+			}
+		}
 
 		// Script shit
 		callOnHScripts("goodNoteHit", [note, field]);
-		#if LUA_ALLOWED
-		var isSus:Bool = note.isSustainNote; //GET OUT OF MY HEAD, GET OUT OF MY HEAD, GET OUT OF MY HEAD
-		var leData:Int = Math.round(Math.abs(note.noteData));
-		var leType:String = note.noteType;
-		callOnLuas('goodNoteHit', [notes.members.indexOf(note), leData, leType, isSus, note.ID]);
-		#end
-
+		
 		if (note.noteScript != null)
 			callScript(note.noteScript, "goodNoteHit", [note, field]);
+		
+		#if LUA_ALLOWED
+		callOnLuas('goodNoteHit', [notes.members.indexOf(note), Math.round(Math.abs(note.noteData)), note.noteType, note.isSustainNote, note.ID]);
+		#end
+
 		if (!note.isSustainNote && note.tail.length == 0)
 			field.removeNote(note);
 		else if (note.isSustainNote)
@@ -4894,7 +4868,7 @@ class PlayState extends MusicBeatState
 					openSubState(new PauseSubState(boyfriend.getScreenPosition().x, boyfriend.getScreenPosition().y));
 
 				#if discord_rpc
-				DiscordClient.changePresence(detailsPausedText, SONG.song, Paths.formatToSongPath(SONG.song));
+				DiscordClient.changePresence(detailsPausedText, SONG.song, songName);
 				#end
 			}
 		}
@@ -5208,19 +5182,5 @@ class RatingText extends FlxText
 		var numScore = new RatingText();
 
 		return numScore;
-	}
-}
-
-class BotplayText extends FlxText
-{
-	public var sine:Float = 0;
-
-	override public function update(elapsed:Float){
-		if (ClientPrefs.etternaHUD != 'ITG') {
-			sine += 180 * elapsed;
-			alpha = 1 - flixel.math.FlxMath.fastSin((Math.PI * sine) / 180);
-		}
-
-		super.update(elapsed);
 	}
 }

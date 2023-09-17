@@ -27,7 +27,6 @@ class FadeTransitionSubstate extends TransitionSubstate
 		cameras = [cam];
 
 		nextCamera = null;
-		// trace('transitioning $status');
 
 		curStatus = status;
 
@@ -64,7 +63,6 @@ class FadeTransitionSubstate extends TransitionSubstate
 
 		FlxTween.tween(gradient, {y: yEnd}, duration, {
 			onComplete: function(t:FlxTween){
-				//trace("done");
 				delayThenFinish();
 			}
 		});

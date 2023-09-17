@@ -1,5 +1,6 @@
 package;
 
+import Highscore.ScoreRecord;
 import lime.app.Event;
 /* hud.ratingFC = ratingFC;
 hud.grade = ratingName;
@@ -25,6 +26,7 @@ class Stats {
 	public var totalNotesHit(default, set):Float = 0;
     public var clearType(default, set):String = '';
     public var grade(default, set):String = '';
+    public var noteDiffs:Array<Float> = [];
     public var judgements:Map<String, Int> = [
 		"epic" => 0,
 		"sick" => 0,
@@ -175,59 +177,70 @@ class Stats {
 	public var noplay = Paths.getString("noplay");
 
     public function getClearType():String
+    {
+       var clear = clear;
+    
+        if (comboBreaks <= 0)
         {
-            var clear = clear;
+            var goods = judgements.get("good");
+            var sicks = judgements.get("sick");
+            var epics = judgements.get("epic");
     
-            if (comboBreaks <= 0)
+            if (totalPlayed == 0)
             {
-                var goods = judgements.get("good");
-                var sicks = judgements.get("sick");
-                var epics = judgements.get("epic");
-    
-                if (totalPlayed == 0)
-                {
-                    clear = noplay; // Havent played anything yet
-                    return clear;
-                }
+                clear = noplay; // Havent played anything yet
+                return clear;
+            }
 
-                clear = fc;
+            clear = fc;
     
-                if (goods > 0)
-                {
-                    if (goods < 10 && goods > 0)
-                        clear = sdg; // Single Digit Goods
-                    else
-                        clear = gfc; // Good Full Combo
-                }
-                else if (sicks > 0)
-                {
-                    if (sicks < 10 && sicks > 0)
-                        clear = sds; // Single Digit Sicks
-                    else
-                        clear = sfc; // Sick Full Combo
-                }
-                else if (epics > 0)
-                    clear = efc;
-                if (useFlags)
-                {
-                    if (goods == 1)
-                        clear = bf; // Black Flag (SFC missed by 1 good)
-                    else if (sicks == 1)
-                        clear = wf; // White Flag (EFC missed by 1 sick)
-                }
-            }
-            else
+            if (goods > 0)
             {
-                if (useFlags && comboBreaks == 1)
-                    clear = mf; // Miss Flag (Any FC missed by 1 CB)
-                else if (comboBreaks < 10 && score >= 0)
-                    clear = sdcb; // Single Digit Combo Break
-                else if (score < 0 || comboBreaks >= 10 && ratingPercent <= 0)
-                    clear = fail; // Fail
+                if (goods < 10 && goods > 0)
+                    clear = sdg; // Single Digit Goods
+                else
+                    clear = gfc; // Good Full Combo
             }
-    
-            return clear;
+            else if (sicks > 0)
+            {
+                if (sicks < 10 && sicks > 0)
+                    clear = sds; // Single Digit Sicks
+                else
+                    clear = sfc; // Sick Full Combo
+            }
+            else if (epics > 0)
+                clear = efc;
+            if (useFlags)
+            {
+                if (goods == 1)
+                    clear = bf; // Black Flag (SFC missed by 1 good)
+                else if (sicks == 1)
+                    clear = wf; // White Flag (EFC missed by 1 sick)
+            }
         }
+        else
+        {
+            if (useFlags && comboBreaks == 1)
+                clear = mf; // Miss Flag (Any FC missed by 1 CB)
+            else if (comboBreaks < 10 && score >= 0)
+                clear = sdcb; // Single Digit Combo Break
+            else if (score < 0 || comboBreaks >= 10 && ratingPercent <= 0)
+                clear = fail; // Fail
+        }
+        return clear;
+    }
+
+    public function getScoreRecord():ScoreRecord{
+		return {
+			score: score,
+			comboBreaks: judgements.get("cb"), // since we cant detect the combo breaks from here
+			accuracyScore: totalNotesHit,
+			maxAccuracyScore: totalPlayed,
+			judges: judgements,
+			noteDiffs: noteDiffs,
+			npsPeak: npsPeak
+		}
+    }
 
     public function updateVariables()
     {

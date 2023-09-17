@@ -15,6 +15,9 @@ import flixel.text.FlxText;
 
 class CommonHUD extends BaseHUD
 {
+	public var botplayTxt:FlxText;
+	public var botplaySine:Float = 0;
+
     // just some extra variables lol
 	public var healthBar:FNFHealthBar;
 	@:isVar
@@ -62,6 +65,12 @@ class CommonHUD extends BaseHUD
 		iconP2 = healthBar.iconP2;
 
 		loadSongPos();
+
+		botplayTxt = new FlxText(0, (ClientPrefs.downScroll ? FlxG.height - 44 : 19) + 15 + (ClientPrefs.downScroll ? -78 : 55), FlxG.width, ClientPrefs.etternaHUD == 'ITG' ? "AutoPlay" :"[BOTPLAY]", 32);
+		botplayTxt.setFormat(Paths.font(ClientPrefs.etternaHUD == 'ITG' ? 'miso-bold.ttf' : gameFont), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		botplayTxt.scrollFactor.set();
+		botplayTxt.borderSize = 1.25;
+		botplayTxt.exists = false;
 
 		if(FlxG.state == PlayState.instance){
             PlayState.instance.healthBar = healthBar;
@@ -201,6 +210,13 @@ class CommonHUD extends BaseHUD
 
 	override public function update(elapsed:Float)
 	{
+		if (botplayTxt.exists = PlayState.instance.cpuControlled){
+			botplaySine += 180 * elapsed;
+			botplayTxt.alpha = 1 - flixel.math.FlxMath.fastSin((Math.PI * botplaySine) / 180);
+		}else{
+			botplaySine = 0;
+		}
+
 		if (updateTime)
 		{
 			var curTime:Float = Conductor.songPosition - ClientPrefs.noteOffset;
@@ -244,6 +260,8 @@ class CommonHUD extends BaseHUD
             healthBar.iconP1.y = healthBar.y - 75;
             healthBar.iconP2.y = healthBar.y - 75;
         }
+
+		botplayTxt.y = (ClientPrefs.downScroll ? (FlxG.height-107) : 89);
 
 		updateTimeBarType();
 	}

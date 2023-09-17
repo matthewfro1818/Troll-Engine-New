@@ -1,15 +1,36 @@
 package;
 #if !macro
-import flixel.FlxG;
 import flixel.util.FlxSave;
 #end
 using StringTools;
 
-// honestly i'd like to rewrite this
-// somehow hash the charts into a string and save it by that, Etterna style
-// though idk if that's a good idea (it'd kill all current scores + any chart changes will reset them too, though if you put the old chart back in you'll get the score back, so)
-class Highscore
+enum abstract FCType(Int) from Int to Int
 {
+	var TIER4 = 4; // EFC
+	var TIER3 = 3; // SFC
+	var TIER2 = 2; // GFC
+    var TIER1 = 1; // FC
+    var NONE = 0; // NO FC
+}
+
+typedef ScoreRecord = {
+    @:optional var scoreSystemV:Float; // version for the score system
+    var score:Int; // score based on judgements
+    var comboBreaks:Int;
+    var accuracyScore:Float; // score based on accuracy. Judge-based on normal, MS-based on Wife3
+	var maxAccuracyScore:Float; // score if you hit every note 100% accurately
+    // accuracy = (notesHit / totalNotesHit) * 100 
+    var judges:Map<String, Int>; // keeps track of the judgements you hit
+    var noteDiffs:Array<Float>; // hit diffs for every note
+	var npsPeak:Int; // peak notes-per-second
+    @:optional var fcMedal:FCType;
+}
+
+// TODO: maybe a score history?
+// TODO: find a use for the noteHits (Maybe once we have score history we can make it so you can replay old scores?)
+// Judges will be used for FC medals
+
+class Highscore {
 	public static var grades:Map<String, Array<Array<Dynamic>>> = [
 		"Psych" => [
 			["Perfect!!", 1],
@@ -33,7 +54,7 @@ class Highscore
 			["AAA:", 0.999],
 			["AAA.", 0.998],
 			["AAA", 0.997],
-			["AA:",0.99],
+			["AA:", 0.99],
 			["AA.", 0.9650],
 			["AA", 0.93],
 			["A:", 0.9],
@@ -50,10 +71,10 @@ class Highscore
 			// or we do asterisks? (*, **, *** and ****)
 			// or we modify the font to allow for stars like i did in andromeda
 			
-			['SS+++', 1],
-			["SS++", 0.99],
-			["SS+", 0.98],
-			["SS", 0.96],
+			['SS+++', 1], // 4-star
+			["SS++", 0.99], // 3-star
+			["SS+", 0.98], // 2-star
+			["SS", 0.96], // 1-star
 			["S+", 0.94],
 			["S", 0.92],
 			["S-", 0.89],
@@ -75,26 +96,22 @@ class Highscore
 		]
 	];
 
-	public static var weekScores:Map<String, Int> = new Map();
-	public static var songScores:Map<String, Int> = new Map();
-	public static var songOldScores:Map<String, Map<String, Int>> = new Map();
-	public static var songWifeScores:Map<String, Float> = new Map();
-	public static var songRating:Map<String, Float> = new Map();
+    static var wifeVersion:Float = 1; // wife version. TECHNICALLY 3, but doing 1 for the sake of being easy
+    static var normVersion:Float = 2; // normal acc version
 
 	#if !macro
-	static var loadedID:String = '';
-	static var save:FlxSave = new FlxSave();
-	static var defaultID:String = 'f-45-90-135-166'; // psych preset aka the default preset from old tgt
-	// this is used to make sure if you're on psych preset, you get to keep your old high scores
+	static var save:FlxSave = new FlxSave(); // high-score save file
+    static var currentSongData:Map<String, ScoreRecord> = []; // all song score records
+	static var currentWeekData:Map<String, Int> = []; // all week scores (might eventually change to its own WeekScoreRecord idk lol prob not tho)
+    static var currentLoadedID:String = '';
 
-	static var isWife3:Bool = false;
-	static var hasEpic:Bool = false;
-	static var judgeDiff:String = 'J4';
-
-	static var scoringVersion:Float = 2.0; // 2.0 = malewife, 1.0 = original tgt accuracy
-
-	public static function getID(){
-		var idArray:Array<String> = [];
+    public static var isWife3:Bool = false;
+	public static var hasEpic:Bool = false;
+	public static var judgeDiff:String = 'J4';
+	
+	public static function getID()
+	{
+ 		var idArray:Array<String> = [];
 
 		isWife3 = ClientPrefs.wife3;
 		hasEpic = ClientPrefs.useEpics;
@@ -104,62 +121,23 @@ class Highscore
 		if (isWife3)
 			idArray.push("w3");
 		var windows = ['sick', 'good', 'bad', 'hit'];
-		if (hasEpic && ClientPrefs.etternaHUD != "ITG")windows.insert(0, 'epic');
-		if (judgeDiff !='J4')
+		if (hasEpic && ClientPrefs.etternaHUD != "ITG")
+			windows.insert(0, 'epic');
+		if (judgeDiff != 'J4')
 			idArray.push(judgeDiff);
-		
-		for(window in windows){
+
+		var gameplayModifierString:String = '';
+        if(ClientPrefs.getGameplaySetting('opponentPlay', false))
+            gameplayModifierString += 'o';
+
+		if(gameplayModifierString.trim().length > 0)idArray.push(gameplayModifierString);
+
+		for (window in windows)
+		{
 			var realWindow = Reflect.field(ClientPrefs, window + "Window");
 			idArray.push(Std.string(realWindow));
 		}
-
-
-		var id = idArray.join("-");
-
-		return "scores" +  id;
-	}
-
-	public static function updateSave(){
-		var id = getID();
-		if(loadedID != id){
-			loadedID = id;
-			if(save.isBound){
-				save.flush();
-				save.close();
-				save = new FlxSave();
-			} // makes sure it all saved
-
-			save.bind(id);
-			save.flush();
-
-			if (save.data.SCORE_VERSION == null)
-				save.data.SCORE_VERSION = 1.0;
-
-			if (id == defaultID)
-			{
-				if (save.isEmpty()){
-					save.mergeDataFrom("flixel", null, false, false);
-					save.flush();
-				}
-			}
-			loadData();
-			
-		}
-	}
-
-	public static function resetSong(song:String, diff:Int = 0):Void
-	{
-		updateSave();
-		var daSong:String = formatSong(song,diff);
-		setScore(daSong, 0);
-		setRating(daSong, 0);
-	}
-
-	public static function resetWeek(week:String, diff:Int = 0):Void
-	{
-		updateSave();
-		var daWeek:String = formatSong(week,diff);
-		setWeekScore(daWeek, 0);
+		return idArray.join("-"); 
 	}
 
 	public static function floorDecimal(value:Float, decimals:Int):Float
@@ -178,183 +156,143 @@ class Highscore
 		return newValue / tempMult;
 	}
 
-	public static function saveScore(song:String, score:Int = 0, ?diff:Int = 0, ?rating:Float = -1, ?notesHit:Float = 0):Void
-	{
-		updateSave();
-		var daSong:String = formatSong(song,diff);
-
-		var valid = hasValidScore(song, diff);
-
-		if (!songWifeScores.exists(daSong) || songWifeScores.get(daSong) < notesHit || !valid)
-			setNotesHit(daSong, notesHit);
-
-		if (!songRating.exists(daSong) || songRating.get(daSong) < rating || !valid)
-			setRating(daSong, rating);
-
-		if (!songScores.exists(daSong) || songScores.get(daSong) < score || !valid)  
-			setScore(daSong, score);
-	}
-
-	public static function saveWeekScore(week:String, score:Int = 0, ?diff:Int = 0):Void
-	{
-		updateSave();
-		var daWeek:String = formatSong(week,diff);
-
-		if (weekScores.exists(daWeek))
-		{
-			if (weekScores.get(daWeek) < score)
-				setWeekScore(daWeek, score);
-		}
-		else
-			setWeekScore(daWeek, score);
-	}
-
-	/**
-	 * YOU SHOULD FORMAT SONG WITH formatSong() BEFORE TOSSING IN SONG VARIABLE
-	 */
-	static function setNotesHit(song:String, score:Float):Void
-	{
-		updateSave();
-		// Reminder that I don't need to format this song, it should come formatted!
-		songWifeScores.set(song, score);
-		save.data.songWifeScores = songWifeScores;
-		save.flush();
-	}
-	static function setScore(song:String, score:Int):Void
-	{
-		updateSave();
-		for (shid in songOldScores.keys())
-			if (songOldScores.get(shid).exists(song))
-                songOldScores.get(shid).remove(song); // gone
-
-		// Reminder that I don't need to format this song, it should come formatted!
-		songScores.set(song, score);
-		save.data.songScores = songScores;
-		save.data.songOldScores = songOldScores;
-		save.flush();
-	}
-	static function setWeekScore(week:String, score:Int):Void
-	{
-		updateSave();
-		// Reminder that I don't need to format this song, it should come formatted!
-		weekScores.set(week, score);
-		save.data.weekScores = weekScores;
-		save.flush();
-	}
-
-	static function setRating(song:String, rating:Float):Void
-	{
-		updateSave();
-		// Reminder that I don't need to format this song, it should come formatted!
-		songRating.set(song, rating);
-		save.data.songRating = songRating;
-		save.flush();
-	}
 	public static function formatSong(song:String, diff:Int):String
 	{
 		return Paths.formatToSongPath(song) + Difficulty.getFilePath(diff);
 	}
 
-	public static function hasValidScore(song:String, ?diff:Int = 0):Bool
+ 	public static function getRecord(song:String, diff:Int = 0):ScoreRecord
+    {
+        var formattedSong:String = formatSong(song, diff);
+		return currentSongData.exists(formattedSong) ? currentSongData.get(formattedSong) : {
+            scoreSystemV: isWife3 ? wifeVersion : normVersion,
+            score: 0,
+            comboBreaks: 0,
+            accuracyScore: 0,
+            maxAccuracyScore: 0,
+            judges: [
+                "epic" => 0,
+                "sick" => 0,
+                "good" => 0,
+                "bad" => 0,
+                "shit" => 0,
+                "miss" => 0
+            ],
+			noteDiffs: [],
+			npsPeak: 0,
+			fcMedal: NONE
+        };
+    }
+    public static function hasValidScore(song:String)return true;
+    public static function getRating(song:String, diff:Int):Float{
+		var scoreRecord = getRecord(song, diff);
+		if (scoreRecord.accuracyScore == 0 || scoreRecord.maxAccuracyScore == 0)return 0;
+		return (scoreRecord.accuracyScore / scoreRecord.maxAccuracyScore);
+    }
+    public inline static function getScore(song:String, diff:Int)return getRecord(song, diff).score;
+
+	public inline static function getNotesHit(song:String, diff:Int)return getRecord(song, diff).accuracyScore;
+
+	public static function getWeekScore(week:String, diff:Int)return currentWeekData.get(week);
+
+    @:deprecated("You should use saveScoreRecord in place of saveScore!")
+	public static function saveScore(song:String, score:Int = 0, ?rating:Float = -1, ?notesHit:Float = 0):Void
 	{
-		if(!isWife3){
-			var daSong = formatSong(song, diff);
-			for (shid in songOldScores.keys())
-			{
-				if (songOldScores.get(shid).exists(daSong)){
-					return false;
+		var tNH:Float = notesHit / rating; // total notes hit
+        return saveScoreRecord(song, {
+			scoreSystemV: isWife3 ? wifeVersion : normVersion,
+			score: score,
+            comboBreaks: 0, // since we cant detect the combo breaks from here
+			accuracyScore: notesHit,
+			maxAccuracyScore: tNH,
+			judges: ["epic" => 0, "sick" => 0, "good" => 0, "bad" => 0, "shit" => 0, "miss" => 0],
+			noteDiffs: [],
+			npsPeak: 0,
+            fcMedal: rating == 1 ? TIER4 : NONE
+        });
+    }
+
+	public static function saveScoreRecord(song:String, scoreRecord:ScoreRecord, diff:Int = 0){
+		if (scoreRecord.fcMedal == null){
+            if(scoreRecord.comboBreaks > 0)
+                scoreRecord.fcMedal = NONE; // no fc since you have a CB lol
+            else{
+				var ordering:Array<Array<Dynamic>> = [["miss",NONE],["shit",TIER1],["bad",TIER1],["good",TIER2],["sick",TIER3],["epic",TIER4]]; // just to make sure the order is correct
+                var curMedal = NONE;
+				for (data in ordering){
+					if (scoreRecord.judges.get(data[0]) > 0){
+						curMedal = data[1];
+                        break;
+                    }
                 }
-			}
-        } 
-/* 		if (isWife3){
-			if (!songWifeScores.exists(formatSong(song)) && getRating(song) != 0) // if it has no wifescore but has an accuracy tied to it then this should be overwritten
-				// (this is to ensure when on Wife3, it'll only save your best accuracy, sadly means old W3 accuracies get wiped though)
-				return false;
-			
-		} */
-
-		// ^^ incase just checking rating > prevRating doesnt work and stil fucks up Wife3 scores
-
-		return true;
-	}
-
-	public static function getNotesHit(song:String, diff:Int):Float
-	{
-		updateSave();
-		var daSong:String = formatSong(song,diff);
-		for (shid in songOldScores.keys()){
-			if (songOldScores.get(shid).exists(daSong))
-				return songOldScores.get(shid).get(daSong);
+                scoreRecord.fcMedal = curMedal;
+            }
         }
-		if (!songWifeScores.exists(daSong))
-			return 0;
+		if (scoreRecord.scoreSystemV==null)scoreRecord.scoreSystemV = isWife3 ? wifeVersion : normVersion;
 
-		return songWifeScores.get(daSong);
-	}
+        var currentRecord = getRecord(song);
+		var currentFC:Int = (currentRecord.fcMedal == null ? NONE : currentRecord.fcMedal);
+		var savingFC:Int = (scoreRecord.fcMedal == null ? NONE : scoreRecord.fcMedal);
+		var isFCHigher = currentFC < savingFC;
 
-	public static function getScore(song:String, diff:Int):Int
-	{
-		updateSave();
-		var daSong:String = formatSong(song, diff);
-		if (!songScores.exists(daSong))
-			setScore(daSong, 0);
-
-		return songScores.get(daSong);
-	}
-
-	public static function getRating(song:String, diff:Int):Float
-	{
-		updateSave();
-		var daSong:String = formatSong(song, diff);
-		if (!songRating.exists(daSong))
-			setRating(daSong, 0);
-
-		return songRating.get(daSong);
-	}
-
-	public static function getWeekScore(week:String, diff:Int):Int
-	{
-		updateSave();
-		var daWeek:String = formatSong(week, diff);
-		if (!weekScores.exists(daWeek))
-			setWeekScore(daWeek, 0);
-
-		return weekScores.get(daWeek);
-	}
-
-	static function loadData(){
-		weekScores=[];
-		songScores=[];
-		songRating=[];
-		songOldScores=[];
-		if (save.data.weekScores != null)
-		{
-			weekScores = save.data.weekScores;
-		}
-		if (save.data.songScores != null)
-		{
-			songScores = save.data.songScores;
-		}
-		if (save.data.songOldScores != null)
-		{
-			songOldScores = save.data.songOldScores;
-		}
-		if (save.data.songRating != null)
-		{
-			songRating = save.data.songRating;
-		}
-		if(save.data.SCORE_VERSION < scoringVersion){
-			songOldScores[Std.string(save.data.SCORE_VERSION)] = songScores;
-			songScores = [];
-            save.data.songScores = [];
-            save.data.songOldScores = songOldScores;
-			save.data.SCORE_VERSION = scoringVersion;
+		if (currentRecord.accuracyScore < scoreRecord.accuracyScore || currentRecord.scoreSystemV < scoreRecord.scoreSystemV || isFCHigher){
+            currentSongData.set(formatSong(song, diff), scoreRecord);
+			save.data.saveData.set(currentLoadedID + "songs", currentSongData);
             save.flush();
         }
+    }
+	public static function saveWeekScore(week:String, score:Int = 0){
+		if (currentWeekData.get(week) < score){
+			currentWeekData.set(week, score);
+	/* 		save.data.saveData.set(currentLoadedID + "weeks", currentWeekData);
+			save.flush(); */
+		}
 	}
+	public static function resetWeek(week:String, diff:Int){}
+	public static function resetSong(week:String, diff:Int){}
+
+	public static function loadData()
+	{
+		isWife3 = ClientPrefs.wife3;
+		hasEpic = ClientPrefs.useEpics;
+		judgeDiff = ClientPrefs.judgeDiff;
+        var ID = getID();
+        if(currentLoadedID == ID)return;
+
+		currentLoadedID = ID;
+		currentSongData = [];
+		var saveData:Map<String, Map<String, ScoreRecord>> = [];
+		var saveNeedsFlushing:Bool = false;
+		if (save.data.saveData == null)
+		{
+			save.data.saveData = saveData;
+			saveNeedsFlushing = true;
+		}else
+			saveData = save.data.saveData;
+
+        if(!saveData.exists(ID + "songs")){
+            saveData.set(ID + "songs", []);
+			save.data.saveData = saveData;
+			saveNeedsFlushing = true;
+        }else
+			currentSongData = saveData.get(ID + "songs");
+
+/* 		if (!saveData.exists(ID + "weeks"))
+		{
+					saveData.set(ID + "weeks", []);
+			save.data.saveData = saveData;
+			saveNeedsFlushing = true;
+		}else
+			currentWeekData = saveData.get(ID + "weeks"); */
+
+			if (saveNeedsFlushing)
+				save.flush();
+	}
+
+	public static function migrateSave(oldID:String){}
 	public static function load():Void
 	{
-		updateSave();
+		save.bind("highscores2");
 		loadData();
 	}
 	#end

@@ -202,6 +202,7 @@ class AdvancedHUD extends CommonHUD
 				FlxColor.interpolate(judgeColours.get("miss"), FlxColor.WHITE, (ratingPercent) / 0.6);
 			}
 		);
+		refreshFCColour();
 	}
 
 	override function changedOptions(changed:Array<String>){
@@ -348,7 +349,6 @@ class AdvancedHUD extends CommonHUD
 					}
 					judgeTxt.text = Std.string(val);
 				}
-				refreshFCColour();
 			case 'comboBreaks':
 				var judgeName = judgeNames.get('cb');
 				var judgeTxt = judgeTexts.get('cb');
@@ -371,7 +371,6 @@ class AdvancedHUD extends CommonHUD
 					}
 					judgeTxt.text = Std.string(val);
 				}
-				refreshFCColour();
 			case 'ratingPercent':
 				if (ClientPrefs.scoreZoom)
 				{
