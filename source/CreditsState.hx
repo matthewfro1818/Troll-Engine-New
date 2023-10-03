@@ -17,6 +17,7 @@ using StringTools;
 
 class CreditsState extends MusicBeatState
 {	
+	var useHttp:Bool = #if final true #else false #end;
 	var bg:FlxSprite;
 
     var hintBg:FlxSprite;
@@ -125,36 +126,35 @@ class CreditsState extends MusicBeatState
 		}
 
 		// Just in case we forget someone!!!
-		#if final
-		trace('checking for updated credits');
-		var http = new haxe.Http("https://raw.githubusercontent.com/riconuts/troll-engine/main/assets/data/credits.txt");
-		http.onData = function(data:String){
-			rawCredits = data;
+		if(useHttp){
+            trace('checking for updated credits');
+            var http = new haxe.Http("https://raw.githubusercontent.com/riconuts/troll-engine/main/assets/data/credits.txt");
+            http.onData = function(data:String){
+                rawCredits = data;
 
-			#if sys
-			try{
-				trace('updating credits...');
-				if (FileSystem.exists("assets/data/credits.txt")){
-					trace("updated credits!!!");
-					File.saveContent("assets/data/credits.txt", data);
-				}else
-					trace("no credits file to write to!");
-			}catch(e){
-				trace("couldn't update credits: " + e);
+                #if sys
+                try{
+                    trace('updating credits...');
+                    if (FileSystem.exists("assets/data/credits.txt")){
+                        trace("updated credits!!!");
+                        File.saveContent("assets/data/credits.txt", data);
+                    }else
+                        trace("no credits file to write to!");
+                }catch(e){
+                    trace("couldn't update credits: " + e);
+                }
+                #end
+
+				trace('using credits from github');
 			}
-			#end
+			http.onError = function(error){
+				trace('error: $error');
+				getLocalCredits();
+			}
 
-			trace('using credits from github');
-		}
-		http.onError = function(error){
-			trace('error: $error');
+			http.request();
+		}else
 			getLocalCredits();
-		}
-
-		http.request();
-		#else
-		getLocalCredits();
-		#end
 
 		for (i in CoolUtil.listFromString(rawCredits))
 			loadLine(i);

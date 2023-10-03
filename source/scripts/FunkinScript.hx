@@ -52,7 +52,7 @@ class FunkinScript {
 	**/
 	function setDefaultVars(){
 		var currentState = flixel.FlxG.state;
-		if ((currentState == PlayState.instance))
+		if (currentState is PlayState && currentState == PlayState.instance)
 		{
 			set("inPlaystate", true);
 			
@@ -125,14 +125,4 @@ class FunkinScript {
 		set('version', "0.5.2h"); // version of psych troll engine is based on
 		set('teVersion', MainMenuState.displayedVersion.trim());
 	}
-}
-
-interface IFunkinScript
-{
-	public var scriptName:String;
-	public var scriptType:String;
-	public function set(variable:String, data:Dynamic): Void;
-	public function get(key:String):Dynamic;
-	public function call(func:String, ?args:Array<Dynamic>):Dynamic;
-	public function stop():Void;
 }

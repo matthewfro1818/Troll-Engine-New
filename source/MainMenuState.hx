@@ -27,7 +27,18 @@ class ZSprite extends FlxSprite
 {
     public var order:Float = 0;
 }
-
+@:injectMoreFunctions([
+    "updateMouseIcon",
+    #if mobile
+    "onMouseDown",
+    #end
+    "onMouseUp",
+    "moveBoxes",
+    "onSelected",
+	"changeItem",
+    "bgFlicker",
+    "magentaFlicker"
+])
 class MainMenuState extends MusicBeatState 
 {
 	public static var engineVersion:String = '0.2.0'; // Used for autoupdating n stuff

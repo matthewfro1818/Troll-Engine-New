@@ -25,4 +25,14 @@ class NotefieldManager extends FlxBasic {
         for(field in members)
             field.update(elapsed);
     }
+    
+    override function destroy()
+    {
+        super.destroy();
+
+        while (members.length > 0)
+            members.pop().destroy(); 
+
+        members = null;
+    }
 }

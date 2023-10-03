@@ -8,9 +8,19 @@ import openfl.ui.Mouse;
 import openfl.ui.MouseCursor;
 import scripts.FunkinHScript;
 
+@:autoBuild(scripts.Macro.addScriptingCallbacks([
+	"create",
+	"update",
+	"destroy",
+	"openSubState",
+	"closeSubState",
+	"stepHit",
+	"beatHit",
+	"sectionHit"
+]))
 class MusicBeatState extends FlxUIState
 {
-	public var script:FunkinHScript; // once i add state scripting this'll be used but rn its only used by FunkinHScript
+	public var script:FunkinHScript = FunkinHScript.blankScript();
 
 	private var curSection:Int = 0;
 	private var stepsToDo:Int = 0;
@@ -24,12 +34,12 @@ class MusicBeatState extends FlxUIState
 
 	public static var camBeat:FlxCamera;
 
-	public var canBeScripted:Bool = false;
+    public var canBeScripted(get, default):Bool = false;
+    function get_canBeScripted()return canBeScripted;
 
 	public function new(canBeScripted:Bool = true){
         super();
-        this.canBeScripted = canBeScripted; // for once I add state scripting
-        // NOTE: Once state scripting is added we should do a proper mod and skin selection menu like Psych's, but I think we can take some inspiration from how Minecraft does it w/ resource packs since that's a pretty good system of doing it, imo
+        this.canBeScripted = canBeScripted;
     }
 
 	inline function get_controls():Controls
@@ -211,7 +221,12 @@ class MusicBeatState extends FlxUIState
 				return Paths.currentTrackedSounds.get(filePath);
 			}
 
-			for (folder in [Paths.mods(Paths.currentModDirectory), Paths.mods("global"), "assets"]){
+			var fuck = [Paths.mods(Paths.currentModDirectory), Paths.mods("global"), "assets"];
+			#if MODS_ALLOWED
+			for (mod in Paths.getGlobalContent())
+				fuck.insert(0, Paths.mods(mod));
+			#end
+			for (folder in fuck){
 				var daPath = Path.join([folder, "music"]);
 				
 				var menuFilePath = daPath+"/freakyMenu.ogg";

@@ -4,8 +4,9 @@ import FreeplayState.SongMetadata;
 import sys.io.File;
 import sys.FileSystem;
 import flixel.text.FlxText;
-class SongSelectState extends MusicBeatState{
-	
+@:noScripting
+class SongSelectState extends MusicBeatState
+{
 	var songMeta:Array<SongMetadata> = [];
 	var songText:Array<FlxText> = [];
 	var curSel(default, set):Int;

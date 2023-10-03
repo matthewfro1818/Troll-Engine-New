@@ -26,7 +26,12 @@ class StartupState extends FlxState
 	public static var volumeUpKeys:Array<FlxKey> = [FlxKey.NUMPADPLUS, FlxKey.PLUS];
 	public static var fullscreenKeys:Array<FlxKey> = [FlxKey.F11];
 
-	private final nextState = TitleState;
+	#if final
+	public static final nextState:Class<FlxState> = TitleState;
+	#else
+	@:allow(Main)
+	private static var nextState:Class<FlxState> = TitleState;
+	#end
 
 	private static var loaded = false;
 
@@ -124,6 +129,13 @@ class StartupState extends FlxState
 
 		Paths.music('freakyIntro');
 		Paths.music('freakyMenu');
+
+		/*
+		if (nextState == PlayState || nextState == editors.ChartingState){
+			Paths.currentModDirectory = "chapter1";
+			PlayState.SONG = Song.loadFromJson("no-villains", "no-villains");
+		}
+		*/
 	}
 
 
@@ -247,12 +259,12 @@ class StartupState extends FlxState
 				var startTime = Sys.cpuTime();
 
  				load();
-				 if (Type.getClassFields(nextState).contains("load"))
-					nextState.load();
+				 if (Reflect.getProperty(nextState, "load") != null)
+					Reflect.callMethod(null, Reflect.getProperty(nextState, "load"), []);
 				#if debug
 				var waitTime:Float = 0;
 				#elseif sys
-				var waitTime:Float = Math.max(0, 1.6 - (startTime - Sys.cpuTime()));
+				var waitTime:Float = (nextState == PlayState || nextState == editors.ChartingState) ? 0 : Math.max(0, 1.6 - (startTime - Sys.cpuTime()));
 				#else
 				var waitTime:Float = 0;
 				#end
@@ -280,7 +292,7 @@ class StartupState extends FlxState
 				{
 					FlxTransitionableState.skipNextTransIn = true;
 					FlxTransitionableState.skipNextTransOut = true;
-					MusicBeatState.switchState(new TitleState());
+					MusicBeatState.switchState(Type.createInstance(nextState, []));
 				}
 		}
 

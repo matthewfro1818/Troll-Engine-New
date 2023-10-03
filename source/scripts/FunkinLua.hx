@@ -1171,8 +1171,9 @@ class FunkinLua extends FunkinScript
 			//trace('Triggered event: ' + name + ', ' + value1 + ', ' + value2);
 		});
 
-		addCallback("startCountdown", function(variable:String) {
+		addCallback("startCountdown", function() {
 			PlayState.instance.startCountdown();
+			return true;
 		});
 		addCallback("endSong", function() {
 			PlayState.instance.KillNotes();

@@ -1,6 +1,5 @@
 package;
 
-import options.GameplaySettingsSubState;
 import options.OptionsSubstate;
 import flixel.FlxCamera;
 import flixel.FlxG;
@@ -344,7 +343,7 @@ class PauseSubState extends MusicBeatSubstate
 						}
 						restartSong();
 					case "Leave Charting Mode":
-						PlayState.SONG = Song.loadFromJson(PlayState.SONG.song, PlayState.SONG.song);
+						PlayState.SONG = Song.loadFromJson(Highscore.formatSong(Paths.formatToSongPath(PlayState.SONG.song), PlayState.difficulty), PlayState.SONG.song);
 						PlayState.chartingMode = false;
 
 						restartSong();

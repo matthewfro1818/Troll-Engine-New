@@ -176,6 +176,10 @@ class PsychFreeplayState extends MusicBeatState
 	override function closeSubState() {
 		changeSelection(0, false);
 		persistentUpdate = true;
+
+		if((subState is GameplayChangersSubstate))
+			Highscore.loadData();
+		
 		super.closeSubState();
 	}
 

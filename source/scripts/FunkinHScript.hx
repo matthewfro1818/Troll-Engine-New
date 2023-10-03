@@ -351,9 +351,9 @@ class FunkinHScript extends FunkinScript
 		if(doExecute){
 			try
 			{
+				trace('Loading haxe script: $scriptName');
 				interpreter.execute(parsed);
 				call('onCreate');
-				trace('Loaded hscript: $scriptName');
 			}
 			catch (e:haxe.Exception)
 			{
@@ -458,7 +458,7 @@ class FunkinHScript extends FunkinScript
 }
 
 // tbh i'd *LIKE* to use a macro for this but im lazy lol
-
+@:noScripting // honestly we could prob use the scripting thing to override shit instead
 class HScriptState extends MusicBeatState
 {
     public function new(fileName:String, ?additionalVars:Map<String, Any>)
@@ -468,8 +468,7 @@ class HScriptState extends MusicBeatState
 		for (filePath in Paths.getFolders("states"))
 		{
 			var name = filePath + fileName;
-			if (!Paths.exists(filePath)) continue;
-
+			if (!Paths.exists(name)) continue;
 			// some shortcuts
 			var variables = new Map<String, Dynamic>();
 			variables.set("this", this);
@@ -518,11 +517,12 @@ class HScriptState extends MusicBeatState
             return;
         }
 
-		if(script.call("onCreate", []) == Globals.Function_Stop) // idk why you'd return stop on create on a hscriptstate but.. sure
+		// onCreate is used when the script is created so lol
+        if(script.call("onStateCreate", []) == Globals.Function_Stop) // idk why you'd return stop on create on a hscriptstate but.. sure
             return;
 
         super.create(); 
-        script.call("onCreatePost");
+        script.call("onStateCreatePost");
     }
 
     override function update(e)
@@ -595,9 +595,17 @@ class HScriptState extends MusicBeatState
 		script.call("onResetSubStatePost");
 	}
 
+	static var switchToDeprecation = false;
     override function switchTo(s:FlxState)
 	{
-        trace("switchTo is deprecated. Consider using startOutro");
+		if(!script.exists("onSwitchTo"))
+            return super.switchTo(s);
+
+		if (!switchToDeprecation){
+			trace("switchTo is deprecated. Consider using startOutro");
+			switchToDeprecation = true;
+        }
+
 		if (script.call("onSwitchTo", [s]) == Globals.Function_Stop)
 			return false;
 
@@ -698,10 +706,9 @@ class HScriptState extends MusicBeatState
 
 }
 
+@:noScripting // honestly we could prob use the scripting thing to override shit instead
 class HScriptSubstate extends MusicBeatSubstate
 {
-	public var script:FunkinHScript;
-
 	public function new(ScriptName:String, ?additionalVars:Map<String, Any>)
 	{
 		super();
@@ -750,6 +757,19 @@ class HScriptSubstate extends MusicBeatSubstate
 		super.update(e);
 		script.call("onUpdatePost", [e]);
 	}
+
+	override function beatHit()
+	{
+		script.call("onBeatHit");
+		super.beatHit();
+	}
+
+	override function stepHit()
+	{
+		script.call("onStepHit");
+		super.stepHit();
+	}
+
 
 	override function close(){
 		if (script != null)

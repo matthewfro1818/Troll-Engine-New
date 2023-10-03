@@ -72,11 +72,13 @@ class CommonHUD extends BaseHUD
 		botplayTxt.borderSize = 1.25;
 		botplayTxt.exists = false;
 
-		if(FlxG.state == PlayState.instance){
+		#if (PE_MOD_COMPATIBILITY && false)
+        if(FlxG.state == PlayState.instance){
             PlayState.instance.healthBar = healthBar;
 			PlayState.instance.iconP1 = iconP1;
 			PlayState.instance.iconP2 = iconP2;
         }
+		#end
 	}
 
 	function loadSongPos()
