@@ -23,8 +23,8 @@ import object.*;
 
 class FunkinHScript extends FunkinScript
 {
-	public static var parser:Parser = new Parser();
-	public static var defaultVars:Map<String, Dynamic> = new Map<String, Dynamic>();
+	public static final parser:Parser = new Parser();
+	public static final defaultVars:Map<String, Dynamic> = new Map<String, Dynamic>();
 
 	public static function init() // BRITISH
 	{
@@ -36,14 +36,10 @@ class FunkinHScript extends FunkinScript
 	}
 
 	public static function parseString(script:String, ?name:String = "Script")
-	{
 		return parser.parseString(script, name);
-	}
 
 	public static function parseFile(file:String, ?name:String)
-	{
-		return parseString(Paths.getContent(file), name != null ? name : file);
-	}
+		return parseString(Paths.getContent(file), (name==null ? file : name));
 	
 	public static function blankScript(){
 		parser.line = 1;
@@ -73,37 +69,29 @@ class FunkinHScript extends FunkinScript
 	}
 
 	public static function fromFile(file:String, ?name:String, ?additionalVars:Map<String, Any>, ?doExecute:Bool = true)
-	{
-		if (name == null)
-			name = file;
-		return fromString(Paths.getContent(file), name, additionalVars, doExecute);
-	}
+		return fromString(Paths.getContent(file), (name==null ? file : name), additionalVars, doExecute);
 
 	var interpreter:Interp = new Interp();
 
-	public function new(parsed:Expr, ?name:String = "Script", ?additionalVars:Map<String, Any>, ?doExecute:Bool=true)
+	public function new(parsed:Expr, ?name:String = "Script", ?additionalVars:Map<String, Any>, ?doCreateCall:Bool=true)
 	{
 		scriptType = 'hx';
 		scriptName = name;
 
 		setDefaultVars();
 
+		set("script", this);
+
 		set("Std", Std);
 		set("Type", Type);
 		set("Reflect", Reflect);
 		set("Math", Math);
-		set("script", this);
 		set("StringTools", StringTools);
-		set("scriptTrace", scriptTrace);
 
 		set("StringMap", haxe.ds.StringMap);
 		set("ObjectMap", haxe.ds.ObjectMap);
 		set("IntMap", haxe.ds.IntMap);
 		set("EnumValueMap", haxe.ds.EnumValueMap);
-
-		set("Lib", openfl.Lib);
-		set("Assets", openfl.utils.Assets);
-		set("Main", Main);
 
 		set("FlxG", FlxG);
 		set("FlxSprite", FlxSprite);
@@ -116,32 +104,25 @@ class FunkinHScript extends FunkinScript
 		set("FlxGroup", flixel.group.FlxGroup);
 		set("FlxSave", flixel.util.FlxSave); // should probably give it 1 save instead of giving it FlxSave
 		set("FlxBar", flixel.ui.FlxBar);
+		
+		set("FlxText", FlxText); // idk how this wasnt added sooner tbh
+		set("FlxTextBorderStyle", FlxTextBorderStyle);
 
-		// FlxColor is an abstract so you can't pass it to hscript
+		set("FlxRuntimeShader", flixel.addons.display.FlxRuntimeShader);
+		set("newShader", Paths.newShader);
+
+		set("getClass", Type.resolveClass);
+		set("getEnum", Type.resolveEnum);
+
+		set("importClass", importClass);
+		set("importEnum", importEnum);
+
 		set("FlxColor", CustomFlxColor);
-		// Same for FlxPoint
 		set("FlxPoint", {
 			get: FlxPoint.get, 
 			weak: FlxPoint.weak
 		});
 
-		set("FlxRuntimeShader", FlxRuntimeShader);
-		set("newShader", function(fragFile:String = null, vertFile:String = null){ // returns a FlxRuntimeShader but with file names lol
-			var runtime:FlxRuntimeShader = null;
-
-			try{				
-				runtime = new FlxRuntimeShader(
-					fragFile==null ? null : Paths.getContent(Paths.modsShaderFragment(fragFile)), 
-					vertFile==null ? null : Paths.getContent(Paths.modsShaderVertex(vertFile))
-				);
-			}catch(e:Dynamic){
-				trace("Shader compilation error:" + e.message);
-			}
-
-			return runtime==null ? new FlxRuntimeShader() : runtime;
-		});
-
-		
 		var runToytime:shadertoy.FlxShaderToyRuntimeShader;
 		set("FlxShaderToyShader", shadertoy.FlxShaderToyShader);
 		set("FlxShaderToyRuntimeShader", shadertoy.FlxShaderToyRuntimeShader);
@@ -161,111 +142,65 @@ class FunkinHScript extends FunkinScript
 				runToytime.update(elapsed,mouse);
 		});
 
-		set("getClass", Type.resolveClass);
-		set("getEnum", Type.resolveEnum);
-		set("importClass", function(className:String, ?traceImports:Bool)
-		{
-			// importClass("flixel.util.FlxSort") should give you FlxSort.byValues, etc
-			// whereas importClass("scripts.Globals.*") should give you Function_Stop, Function_Continue, etc
-			// i would LIKE to do like.. flixel.util.* but idk if I can get everything in a namespace
-			var classSplit:Array<String> = className.split(".");
-			var daClassName = classSplit[classSplit.length-1]; // last one
-
-			if (daClassName == '*'){
-				var daClass = Type.resolveClass(className);
-
-				while(classSplit.length > 0 && daClass==null){
-					daClassName = classSplit.pop();
-					daClass = Type.resolveClass(classSplit.join("."));
-					if(daClass!=null) break;
-				}
-				if(daClass!=null){
-					for(field in Reflect.fields(daClass)){
-						set(field, Reflect.field(daClass, field));
-						
-						if (traceImports == true) trace('Imported: $field, $daClass');
-					}
-				}else{
-					FlxG.log.error('Could not import class $className');
-					if (traceImports == true) trace('Could not import class $className');
-				}
-			}else{
-				var daClass = Type.resolveClass(className);
-				set(daClassName, daClass);
-
-				if (traceImports == true) trace('Imported: $daClassName, $daClass');
-			}
-		});
-
-		set("importEnum", function(enumName:String)
-		{
-			// same as importClass, but for enums
-			// and it cant have enum.*;
-			var splitted:Array<String> = enumName.split(".");
-			var daEnum = Type.resolveClass(enumName);
-			if (daEnum!=null)
-				set(splitted.pop(), daEnum);
-
-		});
+		set("FlxText", FlxText); // idk how this wasnt added sooner tbh
+		set("get_controls", ()->{
+            return PlayerSettings.player1.controls;
+        });
+		
 		set("FlxText", FlxText); // idk how this wasnt added sooner tbh
 		set("FlxTextAlign", {
-			"CENTER": FlxTextAlign.CENTER,
-			"LEFT": FlxTextAlign.LEFT,
-			"RIGHT": FlxTextAlign.RIGHT,
-			"JUSTIFY": FlxTextAlign.JUSTIFY,
-
-			"fromOpenFL": FlxTextAlign.fromOpenFL,
-			"toOpenFL": FlxTextAlign.toOpenFL
+			CENTER: FlxTextAlign.CENTER,
+			LEFT: FlxTextAlign.LEFT,
+			RIGHT: FlxTextAlign.RIGHT,
+			JUSTIFY: FlxTextAlign.JUSTIFY,
+			fromOpenFL: FlxTextAlign.fromOpenFL,
+			toOpenFL: FlxTextAlign.toOpenFL
 		});
-		set("FlxTextBorderStyle", {
-			NONE: FlxTextBorderStyle.NONE,
-			SHADOW: FlxTextBorderStyle.SHADOW,
-			OUTLINE: FlxTextBorderStyle.OUTLINE,
-			OUTLINE_FAST: FlxTextBorderStyle.OUTLINE_FAST
+		set("Judgement", {
+			UNJUDGED: Judgment.UNJUDGED,
+			TIER1: Judgment.TIER1,
+			TIER2: Judgment.TIER2,
+			TIER3: Judgment.TIER3,
+			TIER4: Judgment.TIER4,
+			TIER5: Judgment.TIER5,
+			MISS: Judgment.MISS,
+			DAMAGELESS_MISS: Judgment.DAMAGELESS_MISS,
+			HIT_MINE: Judgment.HIT_MINE,
+			MISS_MINE: Judgment.MISS_MINE,
+			CUSTOM_MINE: Judgment.CUSTOM_MINE
 		});
 		
-		for(variable => arg in defaultVars){
+		for(variable => arg in defaultVars)
 			set(variable, arg);
-		}
 		
-		var state:Any = PlayState.instance != null ? PlayState.instance : flixel.FlxG.state;
+		var state:Any = flixel.FlxG.state;
 		@:privateAccess
 		{
 			set("state", state);
 
-			if((state is PlayState) && state == PlayState.instance)
-			{
+			if((state is PlayState) && state == PlayState.instance){
 				var state:PlayState = PlayState.instance;
 
 				set("game", state);
 				set("global", state.variables);
 				set("getInstance", getInstance);
 
-				set("judgeManager", PlayState.instance.judgeManager);
-				set("initPlayfield", state.initPlayfield);
-				set("newPlayField", function(){
-					var field = new PlayField(state.modManager);
-					field.modNumber = state.playfields.members.length;
-					field.cameras = state.playfields.cameras;
-					state.initPlayfield(field);
-					state.playfields.add(field);
-					return field;
-				});
+			}
+			else if ((state is ChartingState) && state == ChartingState.instance){
+				var state:ChartingState = ChartingState.instance;
 
+				set("game", state);
+				set("global", state.variables);
+				set("getInstance", flixel.FlxG.get_state);
 			}
 			else{
-				if ((state is ChartingState) && state == ChartingState.instance){
-					var state:ChartingState = ChartingState.instance;
-					set("game", state);
-					set("global", state.variables);
-					set("getInstance", flixel.FlxG.get_state);
-				}else{
-					set("game", null);
-					set("global", null);
-					set("getInstance", flixel.FlxG.get_state);
-				}
+				set("game", null);
+				set("global", null);
+				set("getInstance", flixel.FlxG.get_state);
 			}
 		}
+
+		set("controls", PlayerSettings.player1.controls);
 
 		// FNF-specific things
 		set("PlayState", PlayState);
@@ -286,41 +221,23 @@ class FunkinHScript extends FunkinScript
 		set("Paths", Paths);
 		set("Conductor", Conductor);
 
+		set("Alphabet", Alphabet);
+		set("BGSprite", BGSprite);
+
 		set("ClientPrefs", ClientPrefs);
 		set("CoolUtil", CoolUtil);
 
-		set("Alphabet", Alphabet);
-		set("BGSprite", BGSprite);
 		set("Character", Character);
-		set("Boyfriend", Boyfriend);
 		set("HealthIcon", HealthIcon);
 
-		set("Stage", Stage);
-		set("StageData", Stage.StageData);
-
 		set("Wife3", PlayState.Wife3);
-		set("Judgement", {
-			UNJUDGED: Judgment.UNJUDGED,
-			TIER1: Judgment.TIER1,
-			TIER2: Judgment.TIER2,
-			TIER3: Judgment.TIER3,
-			TIER4: Judgment.TIER4,
-			TIER5: Judgment.TIER5,
-			MISS: Judgment.MISS,
-			DAMAGELESS_MISS: Judgment.DAMAGELESS_MISS,
-			HIT_MINE: Judgment.HIT_MINE,
-			MISS_MINE: Judgment.MISS_MINE,
-			CUSTOM_MINE: Judgment.CUSTOM_MINE
-		});
-
-		set("HScriptedHUD", hud.HScriptedHUD);
-		set("HScriptModifier", modchart.Modifier);
+		/*
+		set("JudgmentManager", JudgmentManager);
+		set("ModManager", modchart.ModManager);
+		set("Modifier", modchart.Modifier);
 		set("SubModifier", modchart.SubModifier);
 		set("NoteModifier", modchart.NoteModifier);
 		set("EventTimeline", modchart.EventTimeline);
-		set("ModManager", modchart.ModManager);
-		set("JudgmentManager", JudgmentManager);
-		set("Modifier", modchart.Modifier);
 		set("StepCallbackEvent", modchart.events.StepCallbackEvent);
 		set("CallbackEvent", modchart.events.CallbackEvent);
 		set("ModEvent", modchart.events.ModEvent);
@@ -332,39 +249,68 @@ class FunkinHScript extends FunkinScript
 		#elseif (hxCodec >= "2.6.1") set("MP4Handler", hxcodec.VideoHandler);
 		#elseif (hxCodec == "2.6.0") set("MP4Handler", VideoHandler);
 		#elseif (hxCodec) set("MP4Handler", vlc.MP4Handler); #end
+		*/
 
-		set("FunkinLua", FunkinLua);
 		set("Funkin", FunkinHScript);
-		set("HScriptSubstate", HScriptSubstate);
-		set("HScriptState", HScriptState);
 
-        set("get_controls", function(){
-            return PlayerSettings.player1.controls;
-        });
-		set("controls", PlayerSettings.player1.controls);
+        set("HScriptedHUD", hud.HScriptedHUD);
+		set("HScriptModifier", modchart.HScriptModifier);
+
+        set("HScriptState", HScriptState);
+		set("HScriptSubstate", HScriptSubstate);
 
 		if (additionalVars != null){
 			for (key in additionalVars.keys())
 				set(key, additionalVars.get(key));
 		}
 		
-		if(doExecute){
-			try
-			{
-				trace('Loading haxe script: $scriptName');
-				interpreter.execute(parsed);
-				call('onCreate');
-			}
-			catch (e:haxe.Exception)
-			{
-				haxe.Log.trace(e.message, interpreter.posInfos());
-			}
+		try
+		{
+			trace('Loading haxe script: $scriptName');
+			interpreter.execute(parsed);
+			if (doCreateCall) call('onCreate');
+		}
+		catch (e:haxe.Exception)
+		{
+			haxe.Log.trace(e.message, interpreter.posInfos());
 		}
 	}
 
-	override public function scriptTrace(text:String) 
+	function importClass(className:String)
 	{
-		haxe.Log.trace(text, interpreter.posInfos());
+		// importClass("flixel.util.FlxSort") should give you FlxSort.byValues, etc
+		// whereas importClass("scripts.Globals.*") should give you Function_Stop, Function_Continue, etc
+		// i would LIKE to do like.. flixel.util.* but idk if I can get everything in a namespace
+		var classSplit:Array<String> = className.split(".");
+		var daClassName = classSplit[classSplit.length-1]; // last one
+
+		if (daClassName == '*'){
+			var daClass = Type.resolveClass(className);
+
+			while(classSplit.length > 0 && daClass==null){
+				daClassName = classSplit.pop();
+				daClass = Type.resolveClass(classSplit.join("."));
+				if(daClass!=null) break;
+			}
+			if(daClass!=null){
+				for(field in Reflect.fields(daClass))
+					set(field, Reflect.field(daClass, field));
+			}else{
+				FlxG.log.error('Could not import class $className');
+			}
+		}else{
+			set(daClassName, Type.resolveClass(className));
+		}
+	}
+
+	function importEnum(enumName:String)
+	{
+		// same as importClass, but for enums
+		// and it cant have enum.*;
+		var splitted:Array<String> = enumName.split(".");
+		var daEnum = Type.resolveClass(enumName);
+		if (daEnum!=null)
+			set(splitted.pop(), daEnum);
 	}
 
 	public function executeCode(script:String):Dynamic {
@@ -421,7 +367,7 @@ class FunkinHScript extends FunkinScript
 	/**
 	* Calls a function within the script
 	**/
-	public function executeFunc(func:String, ?parameters:Array<Dynamic>, ?theObject:Any, ?extraVars:Map<String, Dynamic>):Dynamic
+	public function executeFunc(func:String, ?parameters:Array<Dynamic>, ?parentObject:Any, ?extraVars:Map<String, Dynamic>):Dynamic
 	{
 		var daFunc = get(func);
 		if (!Reflect.isFunction(daFunc))
@@ -433,8 +379,8 @@ class FunkinHScript extends FunkinScript
 		if (extraVars == null) 
 			extraVars = [];
 		
-		if (theObject != null)
-			extraVars.set("this", theObject);
+		if (parentObject != null)
+			extraVars.set("this", parentObject);
 
 		var defaultShit:Map<String, Dynamic> = [];
 		for (key in extraVars.keys()){
@@ -445,9 +391,29 @@ class FunkinHScript extends FunkinScript
 
 		var returnVal:Any = null;
 		try{
-			returnVal = Reflect.callMethod(theObject, daFunc, parameters);
-		}catch (e:haxe.Exception){
-			haxe.Log.trace(e.message, interpreter.posInfos());
+			returnVal = Reflect.callMethod(parentObject, daFunc, parameters);
+		}
+		catch (e:haxe.Exception)
+		{
+			/* 
+				When you call something outside the script and it throws an exception this traces the exception message but not the line where it came from
+				just the script line that called it in the first place, which is confusing.
+			*/
+			var errorOrigin:String = "";
+
+			for (stackItem in e.stack){
+				switch (stackItem){
+					default:
+					case FilePos(s, file, line, column):{
+						if (!StringTools.contains(StringTools.ltrim(file), "hscript/Interp.hx:")) // stupid.
+							errorOrigin = '$file:$line - ';
+
+						break;
+					}
+				}
+			}
+
+			haxe.Log.trace(errorOrigin + e.message, interpreter.posInfos());
 		}
 
 		for (key in defaultShit.keys())

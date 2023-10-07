@@ -1775,10 +1775,10 @@ class ChartingState extends MusicBeatState
 		}
 
 		var movedDummyY:Bool = false;
-		var onGrid:Bool =	FlxG.mouse.x >= gridBG.x
-						&&	FlxG.mouse.x <= gridBG.x + gridBG.width
-						&&	FlxG.mouse.y >= gridBG.y
-						&&	FlxG.mouse.y <	gridBG.y + gridBG.height;
+		var onGrid:Bool =	FlxG.mouse.x > gridBG.x
+		&& FlxG.mouse.x < gridBG.x + gridBG.width
+		&& FlxG.mouse.y > gridBG.y
+		&& FlxG.mouse.y < gridBG.y + (GRID_SIZE * getSectionBeats() * 4) * zoomList[curZoom];
 
 		if (onGrid){
 			dummyArrow.visible = true;
@@ -2843,7 +2843,7 @@ class ChartingState extends MusicBeatState
 		var daStrumTime = i[0];
 		var daSus:Dynamic = i[2];
 
-		var note:Note = new Note(daStrumTime, daNoteInfo % 4, null, null, PlayState.arrowSkinbf);
+		var note:Note = new Note(daStrumTime, daNoteInfo % 4, null, null, PlayState.arrowSkinbf, true);
 		if(daSus != null) { //Common note
 			if(!Std.isOfType(i[3], String)) //Convert old note type to new note type format
 			{

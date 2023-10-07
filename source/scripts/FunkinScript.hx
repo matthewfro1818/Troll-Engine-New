@@ -15,13 +15,6 @@ class FunkinScript {
 	public function stop(){
 		throw new haxe.exceptions.NotImplementedException();
 	}
-
-	/**
-		Called to output debug information
-	**/
-	public function scriptTrace(text:String){
-		trace(text); // wow for once its not NotImplementedException
-	}
 	/**
 		Called to set a variable defined in the script
 	**/

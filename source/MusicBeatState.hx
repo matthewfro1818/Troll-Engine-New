@@ -20,7 +20,7 @@ import scripts.FunkinHScript;
 ]))
 class MusicBeatState extends FlxUIState
 {
-	public var script:FunkinHScript = FunkinHScript.blankScript();
+	public var script:FunkinHScript;
 
 	private var curSection:Int = 0;
 	private var stepsToDo:Int = 0;
@@ -41,6 +41,11 @@ class MusicBeatState extends FlxUIState
         super();
         this.canBeScripted = canBeScripted;
     }
+
+	override public function destroy(){
+		if (script != null) script.stop();
+		return super.destroy();
+	}
 
 	inline function get_controls():Controls
 		return PlayerSettings.player1.controls;

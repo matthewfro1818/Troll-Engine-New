@@ -11,7 +11,7 @@ import flixel.FlxSprite;
 import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxAtlasFrames;
 import openfl.display.BitmapData;
-import openfl.geom.Rectangle;
+import flixel.addons.display.FlxRuntimeShader;
 import openfl.system.System;
 import openfl.utils.AssetType;
 import openfl.utils.Assets as Assets;
@@ -361,7 +361,7 @@ class Paths
 
 		if (bitmap != null)
 		{
-			localTrackedAssets.push(file);
+			if (!localTrackedAssets.contains(file))localTrackedAssets.push(file);
 			if (allowGPU && ClientPrefs.cacheOnGPU)
 			{
 				var texture:RectangleTexture = FlxG.stage.context3D.createRectangleTexture(bitmap.width, bitmap.height, BGRA, true);
@@ -513,6 +513,21 @@ class Paths
 		#end
 	}
 
+	/** returns a FlxRuntimeShader but with file names lol **/ 
+	public static function newShader(fragFile:String = null, vertFile:String = null):FlxRuntimeShader
+	{
+		try{				
+			return new FlxRuntimeShader(
+				fragFile==null ? null : Paths.getContent(Paths.modsShaderFragment(fragFile)), 
+				vertFile==null ? null : Paths.getContent(Paths.modsShaderVertex(vertFile))
+			);
+		}catch(e:Dynamic){
+			trace("Shader compilation error:" + e.message);
+		}
+
+		return null;		
+	}
+
 	private static final hideChars = ['.','!','?','%','"',",","'"];
 	private static final invalidChars = [' ','#','>','<',':',';','\\','~','&'];
 
@@ -569,7 +584,7 @@ class Paths
 			if (!currentTrackedSounds.exists(file))
 				currentTrackedSounds.set(file, Sound.fromFile(file));
 			
-			localTrackedAssets.push(key);
+			if (!localTrackedAssets.contains(key))localTrackedAssets.push(key);
 			return currentTrackedSounds.get(file);
 		}
 		#end
@@ -586,7 +601,8 @@ class Paths
 					Assets.getSound((path == 'songs' ? folder = 'songs:' : '') + getPath('$path/$key.$SOUND_EXT', SOUND, library))
 				);
 			#end
-		localTrackedAssets.push(gottenPath);
+		if (!localTrackedAssets.contains(gottenPath))
+			localTrackedAssets.push(gottenPath);
 		return currentTrackedSounds.get(gottenPath);
 	}
 

@@ -68,7 +68,7 @@ class PsychFreeplayState extends MusicBeatState
 		switch (freeplayType)
 		{
 			case 2:
-				addSong('Suffering Siblings', 0, 'finn',FlxColor.fromRGB(168,160,179), 'Normal', 'Pibby');
+				addSong('Suffering Siblings', 0, 'finn',FlxColor.fromRGB(168,160,179), 'Normal', 'ModPack');
 			case 1:
 				addSong('False Paradise', 0, 'dad',FlxColor.fromRGB(146, 113, 253), 'Normal', 'ViranModchart');
 				addSong('Prey', 0, 'dad',FlxColor.fromRGB(146, 113, 253), 'Normal', 'ViranModchart');

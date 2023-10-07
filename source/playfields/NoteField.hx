@@ -651,4 +651,10 @@ class NoteField extends FieldBase
 			zIndex: pos.z
 		}
 	}
+	
+	override function destroy()
+	{
+		point.put();
+		super.destroy();
+	}
 }

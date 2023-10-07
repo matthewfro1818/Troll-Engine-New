@@ -3,7 +3,7 @@
 		{
 			"name": "Week 1",
 			"category": "main",
-			"freeplayCategory": "Pibby",
+			"freeplayCategory": "ModPack",
 			"unlockCondition": true,
 			"songs": ["Suffering Siblings"]
 		}
@@ -12,9 +12,9 @@
 	"freeplayCategories": [
 		{
 			"name": "Friday Night Funkin'",
-			"id": "Pibby"
+			"id": "ModPack"
 		}
 	],
 	"runsGlobally": false,
-	"defaultCategory": "Pibby"
+	"defaultCategory": "ModPack"
 }

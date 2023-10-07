@@ -17,7 +17,7 @@ class Macro {
     {
         var fields:Array<Field> = Context.getBuildFields();
 
-        #if !display
+        #if (!display && SCRIPTABLE_STATES)
 		if (Sys.args().indexOf("--no-output") != -1)return fields; // code completion
 
 		if (toInject==null)
@@ -236,7 +236,7 @@ class Macro {
 						if (fn.ret==null || fn.ret.toString() == 'Void'){
 							expr.push(macro
 								{
-									if (script.exists($v{name}))
+									if (script!=null && script.exists($v{name}))
 									{
 										script.executeFunc($v{name}, $a{args}, null, [$v{'state$name'} => $i{fname}]);
 										return;
@@ -247,7 +247,7 @@ class Macro {
                         }else{
 							expr.push(macro
 								{
-									if (script.exists($v{name}))
+									if (script!=null && script.exists($v{name}))
 									{
 										return script.executeFunc($v{name}, $a{args}, null, [$v{'state$name'} => $i{fname}]);
 									}
@@ -303,9 +303,9 @@ class Macro {
 						if (daRet.toString() == 'Void'){
 							expr.push(macro
                             {
-                                if (script.exists($v{name}))
+                                if (script!=null && script.exists($v{name}))
                                 {
-										script.executeFunc($v{name}, $a{args}, null, [$v{'state$name'} => $i{superName}]);
+                                    script.executeFunc($v{name}, $a{args}, null, [$v{'state$name'} => $i{superName}]);
                                     return;
                                 }
                                 super.$name($a{args});
@@ -313,9 +313,9 @@ class Macro {
                         }else{
 							expr.push(macro
                             {
-                                if (script.exists($v{name}))
+                                if (script!=null && script.exists($v{name}))
                                 {
-										return script.executeFunc($v{name}, $a{args}, null, [$v{'state$name'} => $i{superName}]);
+                                    return script.executeFunc($v{name}, $a{args}, null, [$v{'state$name'} => $i{superName}]);
                                 }
                                 return super.$name($a{args});
                             });
