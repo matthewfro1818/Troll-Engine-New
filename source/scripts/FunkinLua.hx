@@ -2688,6 +2688,7 @@ class FunkinLua extends FunkinScript
 
 	static function cameraFromString(cam:String):FlxCamera {
 		switch(cam.toLowerCase()) {
+			case 'camstageunderlay' | 'stageunderlay': return PlayState.instance.camStageUnderlay;
 			case 'camhud' | 'hud': return PlayState.instance.camHUD;
 			case 'camother' | 'other': return PlayState.instance.camOther;
 		}

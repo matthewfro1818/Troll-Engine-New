@@ -13,6 +13,10 @@ function postReloadNote(note:Note, skin:String, type:String){
     trace("Called at the end of the reloadNote function");
 }
 
+function loadNoteTypeAnims(note:Note,type:String) {
+    trace("Adding note Type sprite");
+}
+
 function goodNoteHit(note:Note){
     trace("Called when the player hits the note");
 }

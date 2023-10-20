@@ -46,7 +46,7 @@ class FunkinHScript extends FunkinScript
 		return new FunkinHScript(parser.parseString(""), false);
 	}
 
-	public static function fromString(script:String, ?name:String = "Script", ?additionalVars:Map<String, Any>, ?doExecute:Bool=true)
+	public static function fromString(script:String, ?name:String = "Script", ?additionalVars:Map<String, Any>, ?doCreateCall:Bool=true)
 	{
 		parser.line = 1;
 		var expr:Expr;
@@ -65,11 +65,11 @@ class FunkinHScript extends FunkinScript
 			expr = parser.parseString("", name);
 		}
 
-		return new FunkinHScript(expr, name, additionalVars, doExecute);
+		return new FunkinHScript(expr, name, additionalVars, doCreateCall);
 	}
 
-	public static function fromFile(file:String, ?name:String, ?additionalVars:Map<String, Any>, ?doExecute:Bool = true)
-		return fromString(Paths.getContent(file), (name==null ? file : name), additionalVars, doExecute);
+	public static function fromFile(file:String, ?name:String, ?additionalVars:Map<String, Any>, ?doCreateCall:Bool = true)
+		return fromString(Paths.getContent(file), (name==null ? file : name), additionalVars, doCreateCall);
 
 	var interpreter:Interp = new Interp();
 
@@ -109,7 +109,7 @@ class FunkinHScript extends FunkinScript
 		set("FlxTextBorderStyle", FlxTextBorderStyle);
 
 		set("FlxRuntimeShader", flixel.addons.display.FlxRuntimeShader);
-		set("newShader", Paths.newShader);
+		set("newShader", Paths.getShader);
 
 		set("getClass", Type.resolveClass);
 		set("getEnum", Type.resolveEnum);
@@ -206,6 +206,8 @@ class FunkinHScript extends FunkinScript
 		set("PlayState", PlayState);
 		set("GameOverSubstate", GameOverSubstate);
 		set("Song", Song);
+		
+		set("BGSprite", BGSprite);
 
 		set("Note", Note);
 		set("NoteObject", NoteObject);
@@ -221,9 +223,6 @@ class FunkinHScript extends FunkinScript
 		set("Paths", Paths);
 		set("Conductor", Conductor);
 
-		set("Alphabet", Alphabet);
-		set("BGSprite", BGSprite);
-
 		set("ClientPrefs", ClientPrefs);
 		set("CoolUtil", CoolUtil);
 
@@ -231,7 +230,7 @@ class FunkinHScript extends FunkinScript
 		set("HealthIcon", HealthIcon);
 
 		set("Wife3", PlayState.Wife3);
-		/*
+		
 		set("JudgmentManager", JudgmentManager);
 		set("ModManager", modchart.ModManager);
 		set("Modifier", modchart.Modifier);
@@ -249,7 +248,6 @@ class FunkinHScript extends FunkinScript
 		#elseif (hxCodec >= "2.6.1") set("MP4Handler", hxcodec.VideoHandler);
 		#elseif (hxCodec == "2.6.0") set("MP4Handler", VideoHandler);
 		#elseif (hxCodec) set("MP4Handler", vlc.MP4Handler); #end
-		*/
 
 		set("Funkin", FunkinHScript);
 
@@ -266,7 +264,7 @@ class FunkinHScript extends FunkinScript
 		
 		try
 		{
-			trace('Loading haxe script: $scriptName');
+			//trace('Loading haxe script: $scriptName');
 			interpreter.execute(parsed);
 			if (doCreateCall) call('onCreate');
 		}

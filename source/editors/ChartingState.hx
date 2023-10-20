@@ -1996,11 +1996,11 @@ class ChartingState extends MusicBeatState
 				}
 				else
 				{
-					FlxG.sound.music.play();
 					if(vocals != null) {
+						vocals.play();
 						vocals.pause();
 						vocals.time = FlxG.sound.music.time;
-						vocals.play(false, FlxG.sound.music.time);
+						vocals.play();
 					}
 					FlxG.sound.music.play();
 				}
@@ -2186,7 +2186,7 @@ class ChartingState extends MusicBeatState
 		"\nBeat: " + Highscore.floorDecimal(curDecBeat, 2) +
 		"\nStep: " + curStep;
 
-		var playedSound:Array<Bool> = []; //Prevents ouchy GF sex sounds
+		var playedSound:Array<Bool> = [false, false, false, false]; //Prevents ouchy GF sex sounds
 		var updateSelectedNote = curSelectedNote != null;
 		curRenderedNotes.forEachAlive(function(note:Note) {
 			if(updateSelectedNote) 
@@ -2210,7 +2210,7 @@ class ChartingState extends MusicBeatState
 			{
 				note.alpha = 0.4;
 			
-				if (note.alpha != 0.4 && FlxG.sound.music.playing) 
+				if(note.strumTime > lastConductorPos && FlxG.sound.music.playing)
 				{
 					if (note.noteData > -1)
 					{
@@ -2218,25 +2218,30 @@ class ChartingState extends MusicBeatState
 
 						if (!note.ignoreNote)
 						{
-							var data:Int = note.noteData;
-							var noteDataToCheck:Int = data;
-							if (noteDataToCheck > -1 && note.mustPress != _song.notes[curSec].mustHitSection) 
-								noteDataToCheck += 4;
+							var data:Int = note.noteData % 4;
+							var noteDataToCheck:Int = note.noteData;
+							if (noteDataToCheck > -1 && note.mustPress != _song.notes[curSec].mustHitSection) noteDataToCheck += 4;
 
 							var strum:StrumNote = strumLineNotes.members[noteDataToCheck];
 							strum.playAnim('confirm', true, note);
-							strum.resetAnim = (note.sustainLength / 1000) + 0.15;
+							strum.resetAnim = (note.sustainLength / 1000) + 0.15 / playbackSpeed;
 
-							if (!note.hitsoundDisabled && playedSound[data]!=true && (note.mustPress ? playSoundBf.checked : playSoundDad.checked))
-							{
-								var soundToPlay = 'hitsound';
-								if(_song.player1 == 'gf') // Easter egg
-									soundToPlay = 'GF_${data + 1}';
+							if(!playedSound[data]) {
+								if (!note.hitsoundDisabled && (note.mustPress ? playSoundBf.checked : playSoundDad.checked))
+								{
+									var soundToPlay = 'hitsound';
+									if(_song.player1 == 'gf') // Easter egg
+										soundToPlay = 'GF_${data + 1}';
 
-								FlxG.sound.play(Paths.sound(soundToPlay)).pan = (note.noteData < 4) ? -0.3 : 0.3; //would be coolio
-								playedSound[data] = true;
+									FlxG.sound.play(Paths.sound(soundToPlay)).pan = (note.noteData < 4) ? -0.3 : 0.3; //would be coolio
+									playedSound[data] = true;
+								}
+								data = note.noteData;
+								if(note.mustPress != _song.notes[curSec].mustHitSection)
+								{
+									data += 4;
+								}
 							}
-
 						}
 					}else{
 						// This is an event.

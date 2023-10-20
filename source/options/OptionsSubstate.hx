@@ -29,7 +29,7 @@ class OptionsSubstate extends MusicBeatSubstate
 		"hudPosition",
 		"shaders",
 		"lowQuality",
-		"ruin",
+		//"ruin",
 		"globalAntialiasing",
 		"midScroll"
 	];
@@ -267,7 +267,7 @@ class OptionsSubstate extends MusicBeatSubstate
 			[
 				"audio", 
 				[
-					"ruin",
+					//"ruin",
 					"hitsoundVolume", 
 					"hitsoundType",
 					"missVolume"

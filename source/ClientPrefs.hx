@@ -396,7 +396,7 @@ class ClientPrefs
 				type: Dropdown,
 				value: "Default",
 				data: [
-					"options" => ["Default", "Advanced", "ITG", "Kade"]
+					"options" => ["Default", "Advanced", "ITG", "Kade", "Sacorg"]
 				]
 			},
 			"noteType" => {

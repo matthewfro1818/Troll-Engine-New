@@ -1,5 +1,6 @@
 package hud;
 
+import PlayState.FNFHealthBar;
 import flixel.util.FlxSpriteUtil;
 import flixel.tweens.FlxEase;
 import flixel.util.FlxStringUtil;
@@ -27,11 +28,37 @@ class ITGHUD extends CommonHUD {
 	var songWifeHighscore:Float = 0;
 
 	var bpmText:FlxText;
+	// ITG Bar
+	var timeBar:FlxBar;
+	var timeTxt:FlxText;
+	var timeBarBG:FlxSprite;
+	var scoreBG:FlxSprite;
+
+	
+	// just some extra variables lol
+	public var healthBar2:FNFHealthBar;
+	@:isVar
+	public var healthBarBG2(get, null):FlxSprite;
+	function get_healthBarBG2()return healthBar2.healthBarBG;
+
+	override function set_displayedHealth(value:Float){
+		healthBar.value = value;
+		healthBar2.value = value;
+		displayedHealth = value;
+		return value;
+	}
+
 	override public function new(iP1:String, iP2:String, songName:String, stats:Stats)
 	{
 		super(iP1, iP2, songName, stats);
 
 		stats.changedEvent.add(statChanged);
+
+		scoreBG = new FlxSprite(0, 0).makeGraphic(FlxG.width, 136, 0xFF000000);
+		scoreBG.alpha = 0.6;
+		insert(members.indexOf(timeBarBG), scoreBG);
+
+		healthBar2 = new FNFHealthBar(iP1, iP2);
 		add(healthBarBG2);
 		add(healthBar2);
 		add(healthBarBG);
@@ -71,6 +98,13 @@ class ITGHUD extends CommonHUD {
 		scoreTxt.borderSize = 1.25;
 		add(scoreTxt);
 
+		botplayTxt = new FlxText(0, (ClientPrefs.downScroll ? FlxG.height - 44 : 19) + 15 + (ClientPrefs.downScroll ? -78 : 55), FlxG.width, "AutoPlay", 32);
+		botplayTxt.setFormat(Paths.font('miso-bold.ttf'), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		botplayTxt.scrollFactor.set();
+		botplayTxt.borderSize = 1.25;
+		botplayTxt.exists = false;
+		add(botplayTxt);
+
 		if (ClientPrefs.judgeCounter != 'Off')
 			generateJudgementDisplays();
 
@@ -94,6 +128,82 @@ class ITGHUD extends CommonHUD {
 		add(accTxt);
 		add(accTxtRight);
 		add(bpmText);
+	}
+
+	override function loadSongPos() {
+		timeTxt = new FlxText(FlxG.width * 0.5 - 200, 19 - 5, 400, songName, 32);
+		timeTxt.setFormat(Paths.font("miso-bold.ttf"), 32, 0xFFFFFFFF, CENTER, FlxTextBorderStyle.OUTLINE, 0xFF000000);
+		timeTxt.scrollFactor.set();
+		timeTxt.borderSize = 2;
+
+		var bgGraphic = Paths.image('SimplyLoveHud/TimeBarBG');
+		if (bgGraphic == null) bgGraphic = CoolUtil.makeOutlinedGraphic(400, 20, 0xFFFFFFFF, 5, 0xFF000000);
+
+		timeBarBG = new FlxSprite(timeTxt.x - 120, 19 - 6, bgGraphic);
+		timeBarBG.scale.set(0.7, 0.9);
+		timeBarBG.updateHitbox();
+		timeBarBG.color = FlxColor.BLACK;
+		timeBarBG.scrollFactor.set();
+
+		timeBar = new FlxBar(timeBarBG.x + 5,timeBarBG.y + 5, LEFT_TO_RIGHT, Std.int(timeBarBG.width - 10), Std.int(timeBarBG.height - 10), this,
+			'songPercent', 0, 1);
+		timeBar.scrollFactor.set();
+		timeBar.createFilledBar(0xFF000000, 0xFFFFFFFF);
+		timeBar.numDivisions = 800; // How much lag this causes?? Should i tone it down to idk, 400 or 200?
+		timeBar.scrollFactor.set();
+	
+		add(timeBarBG);
+		add(timeBar);
+		add(timeTxt);
+
+		updateTimeBarType();
+	}
+
+	override function updateTimeBarType() {
+		updateTime = (ClientPrefs.timeBarType != 'Disabled' && ClientPrefs.timeOpacity > 0);
+
+		if (timeTxt != null || timeBarBG != null || timeBar != null) {
+			timeTxt.exists = updateTime;
+			timeBarBG.exists = updateTime;
+			timeBar.exists = updateTime;
+		}
+
+		updateTimeBarAlpha();
+	}
+
+	override function updateTimeBarAlpha() {
+		if (timeTxt != null || timeBarBG != null || timeBar != null)
+		{
+			timeBarBG.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
+			timeBar.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
+			timeTxt.alpha = ClientPrefs.timeOpacity * alpha * tweenProg;
+		}
+	}
+
+	override function songEnding() {
+		if (timeTxt != null || timeBarBG != null || timeBar != null) {
+			timeBarBG.exists = false;
+			timeBar.exists = false;
+			timeTxt.exists = false;
+		}
+	}
+
+	override function reloadHealthBarColors(dadColor:FlxColor, bfColor:FlxColor) {
+		if (healthBar != null){
+			healthBar.createFilledBar(
+				FlxColor.BLACK,
+				0xFFdce0e6
+			);
+			healthBar.updateBar();
+		}
+
+		if (healthBar2 != null){
+			healthBar2.createFilledBar(
+				FlxColor.BLACK,
+				0xFFdce0e6
+			);
+			healthBar2.updateBar();
+		}	
 	}
 
 	function clearJudgementDisplays()

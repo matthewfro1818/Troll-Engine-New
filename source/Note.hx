@@ -489,65 +489,64 @@ class Note extends NoteObject
 		{
 			isQuant = false;
 		}
-	
-		switch (ClientPrefs.noteType)
+
+		switch (skin)
 		{
-			case 'Scalable': // Force use the skin
-				frames = Paths.getSparrowAtlas('noteSkin/ScalableNOTE_assets');
-				loadNoteAnims();
-			
-				pixelNote = false;
-			default:
-				switch (skin)
+			case 'pixel':
+				if (isSustainNote)
 				{
-					case 'pixel':
-						if (isSustainNote)
-						{
-							loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets' + 'ENDS'));
-							width = width / 4;
-							height = height / 2;
-							originalHeightForCalcs = height;
-							loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets' + 'ENDS'), true, Math.floor(width), Math.floor(height));
-						}
-						else
-						{
-							loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'));
-							width = width / 4;
-							height = height / 5;
-							loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'), true, Math.floor(width), Math.floor(height));
-						}
+					loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets' + 'ENDS'));
+					width = width / 4;
+					height = height / 2;
+					originalHeightForCalcs = height;
+					loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets' + 'ENDS'), true, Math.floor(width), Math.floor(height));
+				}
+				else
+				{
+					loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'));
+					width = width / 4;
+					height = height / 5;
+					loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'), true, Math.floor(width), Math.floor(height));
+				}
 			
-						if (isSustainNote)
-						{
-							offsetX += lastNoteOffsetXForPixelAutoAdjusting;
-							lastNoteOffsetXForPixelAutoAdjusting = (width - 7) * (PlayState.daPixelZoom / 2);
-							offsetX -= lastNoteOffsetXForPixelAutoAdjusting;
-						}
+				if (isSustainNote)
+				{
+					offsetX += lastNoteOffsetXForPixelAutoAdjusting;
+					lastNoteOffsetXForPixelAutoAdjusting = (width - 7) * (PlayState.daPixelZoom / 2);
+					offsetX -= lastNoteOffsetXForPixelAutoAdjusting;
+				}
 			
-						loadPixelNoteAnims();
+				loadPixelNoteAnims();
 			
-						setGraphicSize(Std.int(width * PlayState.daPixelZoom));
-						updateHitbox();
+				setGraphicSize(Std.int(width * PlayState.daPixelZoom));
+				updateHitbox();
 			
-						antialiasing = false;
-						usesDefaultColours = false;
-						pixelNote = true;
-					default:					
+				antialiasing = false;
+				usesDefaultColours = false;
+				pixelNote = true;
+			default:
+				switch (ClientPrefs.noteType) {
+					case 'Scalable': // Force use the skin
+						frames = Paths.getSparrowAtlas('noteSkin/ScalableNOTE_assets');
+						loadNoteAnims();
+							
+						pixelNote = false;
+					default:
 						frames = Paths.getSparrowAtlas('noteSkin/NOTE_assets');
 						loadNoteAnims();
-			
+					
 						pixelNote = false;
-				}
+				}					
+		}
 
-				if (!inEditor && PlayState.instance != null)
-					skinScript = PlayState.instance.noteskinScripts.get(skin);
-				else if(inEditor && ChartingState.instance!=null)
-					skinScript = ChartingState.instance.noteskinScripts.get(skin);
-			
-				if (skinScript != null && skinScript is FunkinHScript){
-					var skinScript:FunkinHScript = cast skinScript;
-					skinScript.executeFunc("ReloadNoteSkin", [this], this);
-				}
+		if (!inEditor && PlayState.instance != null)
+			skinScript = PlayState.instance.noteskinScripts.get(skin);
+		else if(inEditor && ChartingState.instance!=null)
+			skinScript = ChartingState.instance.noteskinScripts.get(skin);
+	
+		if (skinScript != null && skinScript is FunkinHScript){
+			var skinScript:FunkinHScript = cast skinScript;
+			skinScript.executeFunc("ReloadNoteSkin", [this], this);
 		}
 	
 		addCustomNote(type);

@@ -1,0 +1,9 @@
+{
+	"directory": "fatality",
+	"defaultZoom": 0.66,
+	"isPixelStage": false,
+
+	"boyfriend": [441, 375],
+	"girlfriend": [115, 5],
+	"opponent": [160, 77]
+}

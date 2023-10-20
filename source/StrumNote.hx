@@ -102,61 +102,61 @@ class StrumNote extends NoteObject
 			isQuant = false; 
 		}
 	
-		switch (ClientPrefs.noteType) {
-			case 'Scalable':
-				frames = Paths.getSparrowAtlas('noteSkin/ScalableNOTE_assets');
-				useRGBColors = true;
-				loadStrumAnims();
-			default:
-				switch (texture)
+		switch (texture)
+		{
+			case 'pixel':
+				loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'));
+				width = width / 4;
+				height = height / 5;
+				loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'), true, Math.floor(width), Math.floor(height));
+	
+				antialiasing = false;
+				useRGBColors = false;
+				setGraphicSize(Std.int(width * PlayState.daPixelZoom));
+				updateHitbox();
+	
+				// animation.add('green', [6]);
+				// animation.add('red', [7]);
+				// animation.add('blue', [5]);
+				// animation.add('purple', [4]);
+				switch (Math.abs(noteData) % 4)
 				{
-					case 'pixel':
-						loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'));
-						width = width / 4;
-						height = height / 5;
-						loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'), true, Math.floor(width), Math.floor(height));
-			
-						antialiasing = false;
-						useRGBColors = false;
-						setGraphicSize(Std.int(width * PlayState.daPixelZoom));
-						updateHitbox();
-			
-						// animation.add('green', [6]);
-						// animation.add('red', [7]);
-						// animation.add('blue', [5]);
-						// animation.add('purple', [4]);
-						switch (Math.abs(noteData) % 4)
-						{
-							case 0:
-								animation.add('static', [0]);
-								animation.add('pressed', [4, 8], 12, false);
-								animation.add('confirm', [12, 16], 24, false);
-							case 1:
-								animation.add('static', [1]);
-								animation.add('pressed', [5, 9], 12, false);
-								animation.add('confirm', [13, 17], 24, false);
-							case 2:
-								animation.add('static', [2]);
-								animation.add('pressed', [6, 10], 12, false);
-								animation.add('confirm', [14, 18], 12, false);
-							case 3:
-								animation.add('static', [3]);
-								animation.add('pressed', [7, 11], 12, false);
-								animation.add('confirm', [15, 19], 24, false);
-						}
+					case 0:
+						animation.add('static', [0]);
+						animation.add('pressed', [4, 8], 12, false);
+						animation.add('confirm', [12, 16], 24, false);
+					case 1:
+						animation.add('static', [1]);
+						animation.add('pressed', [5, 9], 12, false);
+						animation.add('confirm', [13, 17], 24, false);
+					case 2:
+						animation.add('static', [2]);
+						animation.add('pressed', [6, 10], 12, false);
+						animation.add('confirm', [14, 18], 12, false);
+					case 3:
+						animation.add('static', [3]);
+						animation.add('pressed', [7, 11], 12, false);
+						animation.add('confirm', [15, 19], 24, false);
+				}
+			default:
+				switch (ClientPrefs.noteType) {
+					case 'Scalable':
+						frames = Paths.getSparrowAtlas('noteSkin/ScalableNOTE_assets');
+						useRGBColors = true;
+						loadStrumAnims();
 					default:
 						frames = Paths.getSparrowAtlas('noteSkin/NOTE_assets');
 						useRGBColors = true;
 						loadStrumAnims();
 				}
+		}
 
-				if (PlayState.instance != null)
-					skinScript = PlayState.instance.noteskinScripts.get(texture);
-			
-				if (skinScript != null && skinScript is FunkinHScript){
-					var skinScript:FunkinHScript = cast skinScript;
-					skinScript.executeFunc("ReloadStrumsSkin", [this], this);
-				}
+		if (PlayState.instance != null)
+			skinScript = PlayState.instance.noteskinScripts.get(texture);
+	
+		if (skinScript != null && skinScript is FunkinHScript){
+			var skinScript:FunkinHScript = cast skinScript;
+			skinScript.executeFunc("ReloadStrumsSkin", [this], this);
 		}
 			
 		defScale.copyFrom(scale);

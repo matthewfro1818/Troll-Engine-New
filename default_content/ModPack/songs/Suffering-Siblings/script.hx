@@ -81,7 +81,7 @@ function opponentNoteHit(note:Note, field:PlayField) {
     var random = FlxG.random.float(-20, 20);
     var random2 = FlxG.random.float(-20, 20);
 
-    if (game.healthBar.percent > 19.95 && !note.isSustainNote && !game.disableMechanics) {
+    if (game.health > 0.3 && !note.isSustainNote && !game.disableMechanics) {
         game.health -= 0.03;
     }
     if (note.noteType == "Glitch Note") {

@@ -361,7 +361,7 @@ class Paths
 
 		if (bitmap != null)
 		{
-			if (!localTrackedAssets.contains(file))localTrackedAssets.push(file);
+			localTrackedAssets.push(file);
 			if (allowGPU && ClientPrefs.cacheOnGPU)
 			{
 				var texture:RectangleTexture = FlxG.stage.context3D.createRectangleTexture(bitmap.width, bitmap.height, BGRA, true);
@@ -514,7 +514,7 @@ class Paths
 	}
 
 	/** returns a FlxRuntimeShader but with file names lol **/ 
-	public static function newShader(fragFile:String = null, vertFile:String = null):FlxRuntimeShader
+	public static function getShader(fragFile:String = null, vertFile:String = null):FlxRuntimeShader
 	{
 		try{				
 			return new FlxRuntimeShader(
@@ -584,7 +584,7 @@ class Paths
 			if (!currentTrackedSounds.exists(file))
 				currentTrackedSounds.set(file, Sound.fromFile(file));
 			
-			if (!localTrackedAssets.contains(key))localTrackedAssets.push(key);
+			localTrackedAssets.push(key);
 			return currentTrackedSounds.get(file);
 		}
 		#end

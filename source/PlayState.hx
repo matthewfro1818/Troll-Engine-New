@@ -357,6 +357,7 @@ class PlayState extends MusicBeatState
 
 	public var cameraSpeed:Float = 1;
 	public var defaultCamZoom:Float = 1;
+	public var defaultHudZoom:Float = 1;
 
 	public var sectionCamera = new FlxPoint(); // Default camera focus point
 	public var customCamera = new FlxPoint(); // Used for the 'Camera Follow Pos' event
@@ -818,6 +819,7 @@ class PlayState extends MusicBeatState
 		
 		if (hud == null){
 			switch(ClientPrefs.etternaHUD){
+				case "Sacorg": hud = new SacHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
 				case "Kade": hud = new KadeHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
 				case 'Advanced': hud = new AdvancedHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
 				case 'ITG': hud = new hud.ITGHUD(boyfriend.healthIcon, dad.healthIcon, SONG.song, stats);
@@ -1014,6 +1016,7 @@ class PlayState extends MusicBeatState
 		////
 		callOnAllScripts('onCreatePost');
 
+		add(ratingTxtGroup);
 		if (ClientPrefs.etternaHUD != "ITG")
 			add(comboNumGroup);
 		else
@@ -1022,7 +1025,6 @@ class PlayState extends MusicBeatState
 		add(strumLineNotes);
 		add(playfields);
 		add(notefields);
-		add(ratingTxtGroup);
 		add(timingTxt);
 		add(grpNoteSplashes);
 
@@ -1552,11 +1554,11 @@ class PlayState extends MusicBeatState
 
 			var soundName:Null<String> = introSnds[swagCounter];
 			if (soundName != null){
-				var snd:FlxSound; 
+				var snd:FlxSound = null; 
 				snd = FlxG.sound.play(Paths.sound(soundName + introSoundsSuffix), 0.6, false, null, true, ()->{
 					if (countdownSnd == snd) countdownSnd = null;
 				});
-				snd.effect = ClientPrefs.ruin ? sndEffect : null;
+				//snd.effect = ClientPrefs.ruin ? sndEffect : null;
 				countdownSnd = snd;
 			}
 
@@ -1810,26 +1812,26 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		AL.filteri(sndFilter, AL.FILTER_TYPE, AL.FILTER_NULL);
+		/*AL.filteri(sndFilter, AL.FILTER_TYPE, AL.FILTER_NULL);
  		if(ClientPrefs.ruin){
 			AL.effecti(sndEffect, AL.EFFECT_TYPE, AL.EFFECT_REVERB);
 			AL.effectf(sndEffect, AL.REVERB_DECAY_TIME, 5);
 			AL.effectf(sndEffect, AL.REVERB_GAIN, 0.75);
 			AL.effectf(sndEffect, AL.REVERB_DIFFUSION, 0.5);
 		}else
-			AL.effecti(sndEffect, AL.EFFECT_TYPE, AL.EFFECT_NULL);
+			AL.effecti(sndEffect, AL.EFFECT_TYPE, AL.EFFECT_NULL);*/
 		
 
 		for (track in tracks){
-			track.effect = ClientPrefs.ruin?sndEffect:null;
+			//track.effect = ClientPrefs.ruin?sndEffect:null;
 			track.filter = null;
 			track.pitch = playbackRate;
 		}
 
 		inst.filter = null;
 		vocals.filter = null;
-		inst.effect = ClientPrefs.ruin?sndEffect:null;
-		vocals.effect = ClientPrefs.ruin?sndEffect:null;
+		//inst.effect = ClientPrefs.ruin?sndEffect:null;
+		//vocals.effect = ClientPrefs.ruin?sndEffect:null;
 		
 		inst.pitch = playbackRate;
 		vocals.pitch = playbackRate;
@@ -2080,7 +2082,7 @@ class PlayState extends MusicBeatState
 
 				for (susNote in 0...Math.floor(swagNote.sustainLength / Conductor.stepCrochet))
 				{
-					var sustainNote:Note = new Note(daStrumTime + Conductor.stepCrochet * (susNote + 1), daNoteData, oldNote, true);
+					var sustainNote:Note = new Note(daStrumTime + Conductor.stepCrochet * (susNote + 1), daNoteData, oldNote, true, gottaHitNote ? arrowSkinbf : arrowSkindad);
 					sustainNote.mustPress = gottaHitNote;
 					sustainNote.gfNote = swagNote.gfNote;
 					sustainNote.noteType = type;
@@ -2677,14 +2679,14 @@ class PlayState extends MusicBeatState
 				lerpVal
 			);
 			camHUD.zoom = FlxMath.lerp(
-				1,
+				defaultHudZoom,
 				camHUD.zoom,
 				lerpVal
 			);
 
 		}
-		camOverlay.zoom = camHUD.zoom;
-		camOverlay.angle = camHUD.angle;
+		//camOverlay.zoom = camHUD.zoom;
+		//camOverlay.angle = camHUD.angle;
 
 		if(noteHits.length > 0){
 			while (noteHits.length > 0 && (noteHits[0] + 2000) < Conductor.songPosition)

@@ -1,0 +1,116 @@
+{
+	"song": {
+		"events": [
+			[
+				3840,
+				[
+					[
+						"Set Cam Zoom",
+						"0.6",
+						"7"
+					],
+					[
+						"Play Animation",
+						"Intro",
+						"dad"
+					]
+				]
+			],
+			[
+				103680,
+				[
+					[
+						"Set Cam Zoom",
+						"0.5",
+						"7"
+					],
+					[
+						"Cam Zoom Interval",
+						"16",
+						""
+					]
+				]
+			],
+			[
+				119040,
+				[
+					[
+						"Cam Zoom Interval",
+						"2",
+						""
+					]
+				]
+			],
+			[
+				134400,
+				[
+					[
+						"Cam Zoom Interval",
+						"99999",
+						""
+					]
+				]
+			],
+			[
+				148800,
+				[
+					[
+						"Set Cam Zoom",
+						"0.9",
+						"3"
+					]
+				]
+			],
+			[
+				165120,
+				[
+					[
+						"Set Cam Zoom",
+						"0.5",
+						"5"
+					]
+				]
+			],
+			[
+				172800,
+				[
+					[
+						"Cam Zoom Interval",
+						"2",
+						""
+					]
+				]
+			],
+			[
+				241920,
+				[
+					[
+						"Cam Zoom Interval",
+						"4",
+						""
+					]
+				]
+			],
+			[
+				257280,
+				[
+					[
+						"Cam Zoom Interval",
+						"2",
+						""
+					]
+				]
+			],
+			[
+				264960,
+				[
+					[
+						"Cam Zoom Interval",
+						"1",
+						""
+					]
+				]
+			]
+		]
+	}
+}
