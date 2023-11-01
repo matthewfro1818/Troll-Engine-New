@@ -1,5 +1,6 @@
 package shadertoy;
 
+import flixel.addons.display.FlxRuntimeShader;
 import flixel.input.mouse.FlxMouse;
 
 

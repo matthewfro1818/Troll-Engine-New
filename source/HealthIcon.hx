@@ -12,13 +12,13 @@ class HealthIcon extends FlxSprite
 	private var isPlayer:Bool = false;
 	private var char:String = '';
 
-	public function new(char:String = 'bf', isPlayer:Bool = false, ?allowGPU:Bool = true)
+	public function new(char:String = 'bf', isPlayer:Bool = false)
 	{
 		super();
 
 		this.isPlayer = isPlayer;
 
-		changeIcon(char, allowGPU);
+		changeIcon(char);
 
 		scrollFactor.set();
 	}
@@ -43,14 +43,14 @@ class HealthIcon extends FlxSprite
 	}
 
 	private var iconOffsets:Array<Float> = [0, 0];
-	public function changeIcon(char:String, ?allowGPU:Bool = true) {
+	public function changeIcon(char:String) {
 		var file:Null<FlxGraphic> = Paths.image('icons/$char');
 
 		if(file == null)
-			file = Paths.image('icons/icon-$char', allowGPU); // psych compat
+			file = Paths.image('icons/icon-$char'); // psych compat
 
 		if(file == null) 
-			file = Paths.image('icons/face', allowGPU); // Prevents crash from missing icon
+			file = Paths.image('icons/face'); // Prevents crash from missing icon
 			
 		changeIconGraphic(file);
 		this.char = char;

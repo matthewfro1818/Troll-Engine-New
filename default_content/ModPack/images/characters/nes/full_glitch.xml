@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='utf-8'?>
+<TextureAtlas imagePath="full_glitch.png">
+<SubTexture name="tlsonic idle0000" x="324" y="54" width="43" height="53" frameX="-36" frameY="-12" frameWidth="80" frameHeight="61" />
+<SubTexture name="tlsonic idle0001" x="274" y="110" width="43" height="54" frameX="-36" frameY="-11" frameWidth="80" frameHeight="61" />
+<SubTexture name="tlsonic idle0002" x="274" y="164" width="41" height="54" frameX="-37" frameY="-11" frameWidth="80" frameHeight="61" />
+<SubTexture name="tlsonic idle0003" x="172" y="190" width="42" height="55" frameX="-36" frameY="-10" frameWidth="80" frameHeight="61" />
+<SubTexture name="tlsonic idle0004" x="44" y="190" width="43" height="56" frameX="-35" frameY="-9" frameWidth="80" frameHeight="61" />
+<SubTexture name="tlsonic down0000" x="386" y="0" width="47" height="51" frameX="-34" frameY="-14" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0001" x="272" y="301" width="45" height="52" frameX="-35" frameY="-13" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0002" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0003" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0004" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0005" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0006" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0007" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0008" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0009" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0010" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0011" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0012" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0013" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0014" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0015" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic down0016" x="324" y="107" width="44" height="53" frameX="-35" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0000" x="324" y="160" width="43" height="53" frameX="-32" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0001" x="324" y="213" width="41" height="53" frameX="-33" frameY="-12" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0002" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0003" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0004" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0005" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0006" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0007" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0008" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0009" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0010" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0011" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0012" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0013" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0014" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0015" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic left0016" x="0" y="247" width="42" height="54" frameX="-32" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0000" x="42" y="247" width="43" height="54" frameX="-40" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0001" x="85" y="247" width="42" height="54" frameX="-40" frameY="-11" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0002" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0003" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0004" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0005" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0006" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0007" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0008" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0009" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0010" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0011" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0012" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0013" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0014" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0015" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic right0016" x="214" y="190" width="42" height="55" frameX="-39" frameY="-10" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0000" x="169" y="120" width="39" height="58" frameX="-38" frameY="-7" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0001" x="233" y="0" width="41" height="57" frameX="-37" frameY="-8" frameWidth="80" frameHeight="61" />
+<SubTexture name="tlsonic up0002" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0003" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0004" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0005" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0006" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0007" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0008" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0009" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0010" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0011" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0012" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0013" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0014" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0015" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic up0016" x="233" y="57" width="41" height="56" frameX="-37" frameY="-9" frameWidth="80" frameHeight="60" />
+<SubTexture name="tlsonic glitch5 idle0000" x="60" y="354" width="64" height="32" frameX="-36" frameY="-53" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0001" x="0" y="0" width="140" height="120" frameX="0" frameY="0" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0002" x="90" y="120" width="79" height="60" frameX="-26" frameY="-24" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0003" x="0" y="0" width="140" height="120" frameX="0" frameY="0" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0004" x="0" y="120" width="45" height="70" frameX="-46" frameY="-16" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0005" x="0" y="0" width="140" height="120" frameX="0" frameY="0" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0006" x="274" y="0" width="50" height="55" frameX="-41" frameY="-30" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0007" x="0" y="0" width="140" height="120" frameX="0" frameY="0" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0008" x="0" y="190" width="44" height="57" frameX="-45" frameY="-28" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0009" x="87" y="190" width="43" height="56" frameX="-45" frameY="-29" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 loop0000" x="130" y="190" width="42" height="56" frameX="-46" frameY="-29" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 loop0001" x="87" y="190" width="43" height="56" frameX="-45" frameY="-29" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 down0000" x="0" y="354" width="60" height="48" frameX="-37" frameY="-37" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 down0001" x="0" y="301" width="50" height="53" frameX="-43" frameY="-32" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 down0002" x="317" y="301" width="47" height="52" frameX="-44" frameY="-33" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 down0003" x="50" y="301" width="44" height="53" frameX="-45" frameY="-32" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 left0000" x="94" y="301" width="67" height="53" frameX="-29" frameY="-32" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 left0001" x="161" y="301" width="58" height="53" frameX="-34" frameY="-32" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 left0002" x="219" y="301" width="53" height="53" frameX="-38" frameY="-32" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 left0003" x="127" y="247" width="42" height="54" frameX="-42" frameY="-31" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 right0000" x="169" y="247" width="63" height="54" frameX="-49" frameY="-31" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 right0001" x="232" y="247" width="57" height="54" frameX="-43" frameY="-31" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 right0002" x="324" y="0" width="62" height="54" frameX="-40" frameY="-31" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 right0003" x="274" y="55" width="42" height="55" frameX="-49" frameY="-30" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 up0000" x="140" y="0" width="41" height="76" frameX="-46" frameY="-9" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 up0001" x="45" y="120" width="45" height="65" frameX="-44" frameY="-20" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 up0002" x="181" y="0" width="52" height="71" frameX="-42" frameY="-14" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 up0003" x="233" y="113" width="41" height="56" frameX="-47" frameY="-29" frameWidth="120" frameHeight="100" />
+</TextureAtlas>

@@ -47,7 +47,6 @@ class Note extends NoteObject
 	public var noteScript:FunkinScript;
 	public var skinScript:FunkinScript;
 
-
 	public static var quants:Array<Int> = [
 		4, // quarter note
 		8, // eight
@@ -74,13 +73,21 @@ class Note extends NoteObject
 	public var noteDiff:Float = 1000;
 
 	// quant shit
+	public var row:Int = 0;
+
 	public var quant:Int = 4;
 	public var extraData:Map<String, Dynamic> = [];
 	public var isQuant:Bool = false; // mainly for color swapping, so it changes color depending on which set (quants or regular notes)
 	
 	// basic stuff
 	public var beat:Float = 0;
-	public var strumTime:Float = 0;
+	public var strumTime(default, set):Float = 0;
+
+	function set_strumTime(val:Float)
+	{
+		row = Conductor.secsToRow(val);
+		return strumTime = val;
+	}
 	public var visualTime:Float = 0;
 	public var mustPress:Bool = false;
 	@:isVar
@@ -318,6 +325,7 @@ class Note extends NoteObject
 		
 		if(noteData > -1 && noteType != value) {
 			noteScript = null;
+			skinScript = null;
 			switch(value) {
 				case 'Hurt Note':
 					ignoreNote = mustPress;
@@ -370,7 +378,10 @@ class Note extends NoteObject
 		this.prevNote = (prevNote==null) ? this : prevNote;
 		this.isSustainNote = sustainNote;
 		this.inEditor = inEditor;
-		this.style = style;
+		if (noteData > -1)
+		{
+			this.style = style;
+		}
 
 		if (canQuant && ClientPrefs.noteSkin == 'Quants'){
 			if(prevNote != null && isSustainNote)
@@ -522,7 +533,7 @@ class Note extends NoteObject
 				updateHitbox();
 			
 				antialiasing = false;
-				usesDefaultColours = false;
+				//usesDefaultColours = false;
 				pixelNote = true;
 			default:
 				switch (ClientPrefs.noteType) {

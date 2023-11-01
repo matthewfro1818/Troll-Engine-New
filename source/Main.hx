@@ -167,28 +167,6 @@ class Main extends Sprite
 		untyped __global__.__hxcpp_set_critical_error_handler(onCrash);
 		#end
 		#end
-
-		
-		// shader coords fix
-		FlxG.signals.gameResized.add(function (w, h) {
-				if (FlxG.cameras != null) {
-				for (cam in FlxG.cameras.list) {
-					@:privateAccess
-					if (cam != null && cam._filters != null)
-						resetSpriteCache(cam.flashSprite);
-				}
-				}
-
-				if (FlxG.game != null)
-				resetSpriteCache(FlxG.game);
-			});
-		}
-
-		static function resetSpriteCache(sprite:Sprite):Void {
-			@:privateAccess {
-					sprite.__cacheBitmap = null;
-				sprite.__cacheBitmapData = null;
-			}
 	}
 
 	#if CRASH_HANDLER

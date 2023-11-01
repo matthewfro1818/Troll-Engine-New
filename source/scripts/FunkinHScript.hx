@@ -21,6 +21,8 @@ import scripts.Globals.*;
 
 import object.*;
 
+using StringTools;
+
 class FunkinHScript extends FunkinScript
 {
 	public static final parser:Parser = new Parser();
@@ -208,6 +210,7 @@ class FunkinHScript extends FunkinScript
 		set("Song", Song);
 		
 		set("BGSprite", BGSprite);
+		set("RatingSprite", PlayState.RatingSprite);
 
 		set("Note", Note);
 		set("NoteObject", NoteObject);
@@ -425,13 +428,18 @@ class FunkinHScript extends FunkinScript
 @:noScripting // honestly we could prob use the scripting thing to override shit instead
 class HScriptState extends MusicBeatState
 {
+	var file:String = '';
     public function new(fileName:String, ?additionalVars:Map<String, Any>)
 	{
 		super(false); // false because the whole point of this state is its scripted lol
 
+		file = fileName;
 		for (filePath in Paths.getFolders("states"))
 		{
 			var name = filePath + fileName;
+			if (!name.endsWith(".hx"))
+				name += ".hx";
+			trace(filePath, name);
 			if (!Paths.exists(name)) continue;
 			// some shortcuts
 			var variables = new Map<String, Dynamic>();
@@ -491,6 +499,12 @@ class HScriptState extends MusicBeatState
 
     override function update(e)
 	{
+		if (FlxG.keys.justPressed.F7)
+			if (FlxG.keys.pressed.CONTROL)
+				FlxG.switchState(new FreeplayState());
+			else
+				FlxG.switchState(new HScriptState(file));
+
 		if (script.call("onUpdate", [e]) == Globals.Function_Stop)
 			return;
 

@@ -1,0 +1,89 @@
+{
+	"animations": [
+		{
+			"loop": false,
+			"offsets": [
+				3,
+				-20
+			],
+			"anim": "singDOWN",
+			"fps": 24,
+			"name": "tlsonic glitch5 down",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [
+				15,
+				0
+			],
+			"anim": "singLEFT",
+			"fps": 24,
+			"name": "tlsonic glitch5 left",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [
+				-5,
+				10
+			],
+			"anim": "singUP",
+			"fps": 24,
+			"name": "tlsonic glitch5 up",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [
+				-25,
+				0
+			],
+			"anim": "singRIGHT",
+			"fps": 24,
+			"name": "tlsonic glitch5 right",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [
+				0,
+				0
+			],
+			"anim": "danceLeft",
+			"fps": 24,
+			"name": "tlsonic glitch5 idle",
+			"indices": []
+		},
+		{
+			"loop": false,
+			"offsets": [
+				0,
+				0
+			],
+			"anim": "danceRight",
+			"fps": 24,
+			"name": "tlsonic glitch5 loop",
+			"indices": []
+		}
+	],
+	"no_antialiasing": true,
+	"image": "characters/nes/tlsonic glitch",
+	"position": [
+		20,
+		80
+	],
+	"healthicon": "top_sonic_icons",
+	"flip_x": false,
+	"healthbar_colors": [
+		0,
+		42,
+		136
+	],
+	"camera_position": [
+		-700,
+		-240
+	],
+	"sing_duration": 4,
+	"scale": 7.99999999999999
+}

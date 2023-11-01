@@ -196,8 +196,21 @@ class Character extends FlxSprite
 				// new death
 				deathName = json.death_name != null ? json.death_name : curCharacter;
 				scriptName = json.script_name != null ? json.script_name : curCharacter;
+				var spriteType = "sparrow";
+				// sparrow
+				// packer
+				// texture
+				#if MODS_ALLOWED
+				var modTxtToFind:String = Paths.modFolders('images/' + json.image + '.txt');
+				var txtToFind:String = Paths.getPath('images/' + json.image + '.txt', TEXT);
 
-				var useAtlas:Bool = false;
+				if (Paths.exists(modTxtToFind) || Paths.exists(txtToFind))
+				#else
+				if (Paths.exists(Paths.getPath('images/' + json.image + '.txt', TEXT)))
+				#end
+				{
+					spriteType = "packer";
+				}
 
 				#if MODS_ALLOWED
 				var modAnimToFind:String = Paths.modFolders('images/' + json.image + '/Animation.json');
@@ -208,13 +221,20 @@ class Character extends FlxSprite
 				if (Paths.exists(Paths.getPath('images/' + json.image + '/Animation.json', TEXT)))
 				#end
 				{
-					useAtlas = true;
+					spriteType = "texture";
 				}
 
-				if(!useAtlas)
-					frames = Paths.getAtlas(json.image);
-				else
-					frames = AtlasFrameMaker.construct(json.image);
+				switch (spriteType)
+				{
+					case "packer":
+						frames = Paths.getPackerAtlas(json.image);
+
+					case "sparrow":
+						frames = Paths.getSparrowAtlas(json.image);
+
+					case "texture":
+						frames = AtlasFrameMaker.construct(json.image);
+				}
 				imageFile = json.image;
 
 				jsonScale = json.scale;
@@ -329,6 +349,8 @@ class Character extends FlxSprite
 
 	override function update(elapsed:Float)
 	{
+		if (callOnScripts("onCharacterUpdate", [elapsed]) == Globals.Function_Stop)
+			return;
 		if(!debugMode && animation.curAnim != null)
 		{
 			if(animTimer > 0){
@@ -408,6 +430,7 @@ class Character extends FlxSprite
 				}
 			}
 		}
+		callOnScripts("onCharacterUpdatePost", [elapsed]);
 	}
 
 	public var danced:Bool = false;

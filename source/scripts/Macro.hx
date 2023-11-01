@@ -520,7 +520,8 @@ class Macro {
 
 							for (filePath in Paths.getFolders($v{folder}))
                             {
-                                var file = filePath + "extension/" + $v{className} + ".hscript";
+								// TODO: make this an array so you can have mutliple extensions lol
+                                var file = filePath + "extension/" + $v{className} + ".hx";
                                 if (Paths.exists(file))
                                 {
                                     script = scripts.FunkinHScript.fromFile(file, $v{className}, defaultVars);

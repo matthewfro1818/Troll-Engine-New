@@ -85,7 +85,6 @@ class ColorSwap
 		shader.flashColor.value = [1, 1, 1, 1];
 		shader.daAlpha.value = [1];
 		shader.flash.value = [0];
-		shader.awesomeOutline.value = [false];
 	}
 }
 
@@ -98,7 +97,6 @@ class ColorSwapShader extends FlxShader
 		uniform float daAlpha;
 		uniform float flash;
 		uniform vec4 flashColor;
-		uniform bool awesomeOutline;
 
 		const float offset = 1.0 / 128.0;
 		vec3 normalizeColor(vec3 color)
@@ -128,9 +126,43 @@ class ColorSwapShader extends FlxShader
 			return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 		}
 
+        vec4 colorMult(vec4 color){
+            if (!hasTransform)
+			{
+				return color;
+			}
+
+			if (color.a == 0.0)
+			{
+				return vec4(0.0, 0.0, 0.0, 0.0);
+			}
+
+			if (!hasColorTransform)
+			{
+				return color * openfl_Alphav;
+			}
+
+			color = vec4(color.rgb / color.a, color.a);
+
+			mat4 colorMultiplier = mat4(0);
+			colorMultiplier[0][0] = openfl_ColorMultiplierv.x;
+			colorMultiplier[1][1] = openfl_ColorMultiplierv.y;
+			colorMultiplier[2][2] = openfl_ColorMultiplierv.z;
+			colorMultiplier[3][3] = openfl_ColorMultiplierv.w;
+
+			color = clamp(openfl_ColorOffsetv + (color * colorMultiplier), 0.0, 1.0);
+
+			if (color.a > 0.0)
+			{
+				return vec4(color.rgb * color.a * openfl_Alphav, color.a * openfl_Alphav);
+			}
+
+            return vec4(0.0, 0.0, 0.0, 0.0);
+        }
+
 		void main()
 		{
-			vec4 color = flixel_texture2D(bitmap, openfl_TextureCoordv);
+			vec4 color = texture2D(bitmap, openfl_TextureCoordv);
 
 			vec4 swagColor = vec4(rgb2hsv(vec3(color[0], color[1], color[2])), color[3]);
 
@@ -150,42 +182,12 @@ class ColorSwapShader extends FlxShader
 
 			color = vec4(hsv2rgb(vec3(swagColor[0], swagColor[1], swagColor[2])), swagColor[3]);
 
-			if (awesomeOutline)
-			{
-				 // Outline bullshit?
-				vec2 size = vec2(3, 3);
-
-				if (color.a <= 0.5) {
-					float w = size.x / openfl_TextureSize.x;
-					float h = size.y / openfl_TextureSize.y;
-					
-					if (flixel_texture2D(bitmap, vec2(openfl_TextureCoordv.x + w, openfl_TextureCoordv.y)).a != 0.
-					|| flixel_texture2D(bitmap, vec2(openfl_TextureCoordv.x - w, openfl_TextureCoordv.y)).a != 0.
-					|| flixel_texture2D(bitmap, vec2(openfl_TextureCoordv.x, openfl_TextureCoordv.y + h)).a != 0.
-					|| flixel_texture2D(bitmap, vec2(openfl_TextureCoordv.x, openfl_TextureCoordv.y - h)).a != 0.)
-						color = vec4(1.0, 1.0, 1.0, 1.0);
-				}
-			}
 			if(flash != 0.0){
-				color = mix(color,flashColor,flash) * color.a;
+				color = mix(color, flashColor, flash) * color.a;
 			}
 			color *= daAlpha;
-			gl_FragColor = color;
+			gl_FragColor = colorMult(color);
 
-			/* 
-			if (color.a > 0.5)
-				gl_FragColor = color;
-			else
-			{
-				float a = flixel_texture2D(bitmap, vec2(openfl_TextureCoordv + offset, openfl_TextureCoordv.y)).a +
-						  flixel_texture2D(bitmap, vec2(openfl_TextureCoordv, openfl_TextureCoordv.y - offset)).a +
-						  flixel_texture2D(bitmap, vec2(openfl_TextureCoordv - offset, openfl_TextureCoordv.y)).a +
-						  flixel_texture2D(bitmap, vec2(openfl_TextureCoordv, openfl_TextureCoordv.y + offset)).a;
-				if (color.a < 1.0 && a > 0.0)
-					gl_FragColor = vec4(0.0, 0.0, 0.0, 0.8);
-				else
-					gl_FragColor = color;
-			} */
 		}')
 	public function new()
 	{

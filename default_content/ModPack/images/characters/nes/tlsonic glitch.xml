@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<TextureAtlas imagePath="tlsonic glitch.png">
+<SubTexture name="tlsonic glitch5 idle0000" x="40" y="184" width="44" height="12" frameX="-36" frameY="-53" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0001" x="0" y="0" width="120" height="100" frameX="0" frameY="0" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0002" x="25" y="100" width="59" height="40" frameX="-26" frameY="-24" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0003" x="0" y="0" width="120" height="100" frameX="0" frameY="0" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0004" x="0" y="100" width="25" height="50" frameX="-46" frameY="-16" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0005" x="0" y="0" width="120" height="100" frameX="0" frameY="0" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0006" x="173" y="0" width="30" height="35" frameX="-41" frameY="-30" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0007" x="0" y="0" width="120" height="100" frameX="0" frameY="0" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0008" x="84" y="100" width="24" height="37" frameX="-45" frameY="-28" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 idle0009" x="108" y="100" width="23" height="36" frameX="-45" frameY="-29" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 loop0000" x="131" y="100" width="22" height="36" frameX="-46" frameY="-29" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 loop0001" x="108" y="100" width="23" height="36" frameX="-45" frameY="-29" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 down0000" x="0" y="184" width="40" height="28" frameX="-37" frameY="-37" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 down0001" x="173" y="104" width="30" height="33" frameX="-43" frameY="-32" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 down0002" x="203" y="66" width="27" height="32" frameX="-44" frameY="-33" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 down0003" x="122" y="150" width="24" height="33" frameX="-45" frameY="-32" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 left0000" x="146" y="150" width="47" height="33" frameX="-29" frameY="-32" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 left0001" x="203" y="0" width="38" height="33" frameX="-34" frameY="-32" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 left0002" x="203" y="33" width="33" height="33" frameX="-38" frameY="-32" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 left0003" x="173" y="70" width="22" height="34" frameX="-42" frameY="-31" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 right0000" x="0" y="150" width="43" height="34" frameX="-49" frameY="-31" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 right0001" x="43" y="150" width="37" height="34" frameX="-43" frameY="-31" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 right0002" x="80" y="150" width="42" height="34" frameX="-40" frameY="-31" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 right0003" x="173" y="35" width="22" height="35" frameX="-49" frameY="-30" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 up0000" x="120" y="0" width="21" height="56" frameX="-46" frameY="-9" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 up0001" x="141" y="51" width="25" height="45" frameX="-44" frameY="-20" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 up0002" x="141" y="0" width="32" height="51" frameX="-42" frameY="-14" frameWidth="120" frameHeight="100" />
+<SubTexture name="tlsonic glitch5 up0003" x="120" y="56" width="21" height="36" frameX="-47" frameY="-29" frameWidth="120" frameHeight="100" />
+</TextureAtlas>

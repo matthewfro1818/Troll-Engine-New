@@ -49,8 +49,7 @@ class MainMenuState extends MusicBeatState
 	static function get_displayedVersion(){
 		return 'v${engineVersion}${(beta?("-" + betaVersion):"")}';
 	}
-	static function get_betaVersion()
-	{
+	static function get_betaVersion(){
 		return beta ? betaVersion : "0";
 	}
 	final optionShit:Array<String> = [
@@ -177,7 +176,9 @@ class MainMenuState extends MusicBeatState
 		engineWatermark = new FlxText(0, 0, 0, 'Troll Engine');
 		engineWatermark.setFormat(Paths.font("Bold Normal Text.ttf"), 16, Main.outOfDate?FlxColor.RED:FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
 		add(engineWatermark);
-		#if debug
+		#if (tgt && final)
+		engineWatermark.text += " | Tails Gets Trolled v" + lime.app.Application.current.meta.get('version');
+		#elseif debug
 		engineWatermark.text += ' [${Sowy.getBuildDate()}]';
 		#else
 		engineWatermark.text += ' $displayedVersion';

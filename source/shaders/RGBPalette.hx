@@ -137,7 +137,7 @@ class RGBPaletteShader extends FlxShader {
 		uniform bool enabled;
 
 		vec4 flixel_texture2DCustom(sampler2D bitmap, vec2 coord) {
-			vec4 color = flixel_texture2D(bitmap, coord);
+			vec4 color = texture2D(bitmap, coord);
 			if (!hasTransform) {
 				return color;
 			}

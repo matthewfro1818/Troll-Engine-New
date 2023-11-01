@@ -80,7 +80,8 @@ class DiscordClient
 		
 		"lonely-looser",
 		"hammerhead",
-		"all-hail-the-king",
+		"fear-the-pumpkin-king", 
+		"you-cant-consent",
 
 		"presentless-fox",
 		"no-grinches",

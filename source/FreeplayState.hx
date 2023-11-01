@@ -679,7 +679,7 @@ class FreeplayCategory extends flixel.group.FlxSpriteGroup{
 	public var buttonArray:Array<FreeplaySongButton> = [];
 	public var positionArray:Array<Array<FreeplaySongButton>> = [];
 
-	var titleText:FlxText;
+	public var titleText:FlxText;
 
 	public function new(?X = 0, ?Y = 0, ?TitleText:FlxText)
 	{

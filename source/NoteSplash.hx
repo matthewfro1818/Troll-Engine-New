@@ -1,5 +1,7 @@
 package;
 
+import scripts.FunkinHScript;
+import scripts.Globals;
 import shaders.RGBPalette;
 import flixel.util.FlxColor;
 import flixel.FlxG;
@@ -27,14 +29,33 @@ class NoteSplash extends NoteObject
 		animOffsets = new Map<String, Array<Dynamic>>();
 		#end
 
-		noteType = type;
-		noteData = data;
 		rgbShader = new RGBPalette();
 		rgbShader.enabled = true;
-		rgbShader.r = redColor;
-		rgbShader.g = 0xffffff;
-		rgbShader.b = 0xffffff;
 
+		setupNoteSplash(x,y,type,data,redColor,greenColor,blueColor);
+		visible = false;
+	}
+
+	function callOnHScripts(event:String, ?args:Array<Dynamic>, ?vars:Map<String, Dynamic>, ignoreStops = false, ?exclusions:Array<String>):Dynamic
+	{
+		if (FlxG.state == PlayState.instance)
+			return PlayState.instance.callOnScripts(event, args, ignoreStops, exclusions, PlayState.instance.hscriptArray, vars);
+		else
+			return Globals.Function_Continue;
+	}
+
+	public function setupNoteSplash(x:Float = 0, y:Float = 0, type:String, data:Int, redColor:FlxColor = 0, greenColor:FlxColor = 0, blueColor:FlxColor = 0,
+			?note:Note){
+		visible = true;
+
+		setPosition(x, y);
+		noteType = type;
+		noteData = data;
+
+		rgbShader.r = redColor;
+		rgbShader.g = greenColor;
+		rgbShader.b = blueColor;
+		
 		switch (noteType)
 		{
 			default:
@@ -73,6 +94,8 @@ class NoteSplash extends NoteObject
 				}
 		}
 
+		playStatePlay();
+
 		shader = rgbShader.shader;
 		alpha = 0.6;
 	}
@@ -97,9 +120,9 @@ class NoteSplash extends NoteObject
 		}
 	}
 
-	override function update(elapsed:Float) 
+	override function update(elapsed:Float)
 	{
-		if(animation.curAnim != null && animation.curAnim.finished) 
+		if (animation.curAnim == null || animation.curAnim.finished)
 			kill();
 
 		super.update(elapsed);

@@ -1,0 +1,9 @@
+Just Zooms
+Value 1: zoom
+Value 2: if blank, it will smoothly zoom regularly
+the higher the number is the slower it will zoom in. 
+If you then want to return the cam back to normal then 
+put the zoom as the same zoom found in the stage 
+JSON file
+
+

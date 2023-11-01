@@ -1,6 +1,5 @@
 package;
 
-import shaders.AmongUsColorSwapShader;
 import flixel.addons.transition.FlxTransitionableState;
 import flixel.group.FlxGroup;
 import flixel.input.gamepad.FlxGamepad;
@@ -8,6 +7,7 @@ import flixel.math.*;
 import flixel.tweens.*;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import shaders.ColorSwap;
 
 using StringTools;
 #if discord_rpc
@@ -31,7 +31,7 @@ class TitleState extends MusicBeatState
 
 	static var logoBl:RandomTitleLogo;
 	static var titleText:FlxSprite;
-	static var swagShader:AmongUsColorSwapShader = null;
+	static var swagShader:ColorSwap = null;
 	static var bg:Stage;
 
 	static var loaded = false;
@@ -47,10 +47,8 @@ class TitleState extends MusicBeatState
 	public var camFollow = new FlxPoint(640, 360);
 	public var camFollowPos = new FlxObject(640, 360, 1, 1);
 	
-	static public function load()
+	static public function getRandomStage()
 	{
-		curWacky = FlxG.random.getObject(getIntroTextShit());
-		
 		// Set up a stage list
 		var stages:Array<Array<String>> = []; // [stage name, mod directory]
 		
@@ -66,7 +64,14 @@ class TitleState extends MusicBeatState
 		}
 		#end
 
-		var randomStage = FlxG.random.getObject(stages); // Get a random stage from the list
+		return FlxG.random.getObject(stages); // Get a random stage from the list
+	}
+
+	static public function load()
+	{
+		curWacky = FlxG.random.getObject(getIntroTextShit());
+
+		var randomStage = getRandomStage();
 
 		if (randomStage != null){
 			Paths.currentModDirectory = randomStage[1];
@@ -74,13 +79,13 @@ class TitleState extends MusicBeatState
 		}
 
 		// Random logoooo
-		swagShader = new AmongUsColorSwapShader();
+		swagShader = new ColorSwap();
 
 		logoBl = new RandomTitleLogo();
 		logoBl.scrollFactor.set();
 		logoBl.screenCenter(XY);
 		
-		logoBl.shader = swagShader;
+		logoBl.shader = swagShader.shader;
 
 		//
 		titleText = new FlxSprite(140, 576);

@@ -32,7 +32,6 @@ class StrumNote extends NoteObject
 	}	
 	public var isQuant:Bool = false;
 	public var rgbShader:RGBPalette;
-	public var currentRed:FlxColor;
 	public var pixelStrums:Bool = false;
 	public var resetAnim:Float = 0;
 	public var direction:Float = 90;//plan on doing scroll directions soon -bb
@@ -73,9 +72,6 @@ class StrumNote extends NoteObject
 		noteData = leData;
 		// trace(noteData);
 
-		currentRed = 0xffffff;
-		if (skin == '' || skin == null)
-			skin = 'NOTE_assets';
 		texture = skin; // Load texture and anims
 
 		scrollFactor.set();
@@ -84,12 +80,6 @@ class StrumNote extends NoteObject
 	public function reloadNote()
 	{
 		isQuant = false;
-	
-		if (texture == null || texture.length < 1)
-		{
-			texture = 'noteSkin/QUANTNOTE_assets';
-		}
-	
 		var lastAnim:String = null;
 		if(animation.curAnim != null) lastAnim = animation.curAnim.name;
 	
@@ -111,7 +101,7 @@ class StrumNote extends NoteObject
 				loadGraphic(Paths.image('noteSkin/PIXEL_NOTE_assets'), true, Math.floor(width), Math.floor(height));
 	
 				antialiasing = false;
-				useRGBColors = false;
+				useRGBColors = true;
 				setGraphicSize(Std.int(width * PlayState.daPixelZoom));
 				updateHitbox();
 	
