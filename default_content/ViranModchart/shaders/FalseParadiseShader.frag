@@ -1,6 +1,5 @@
-
-	@:glFragmentSource("
-    #pragma header
+@:glFragmentSource("
+#pragma header
 // https://www.shadertoy.com/view/fsdGz4
 // false paradise background for Schmovin' Mod Test by 4mbr0s3 2
 // I couldn't find the exact shader in ZGameEditor so I thought it'd be fun to recreate it from scratch 
@@ -93,8 +92,3 @@ void main()
     // Output to screen
     gl_FragColor = vec4(final);
 }")
-	public function new()
-	{
-		super();
-	}
-}
