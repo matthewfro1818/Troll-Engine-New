@@ -1,3 +1,6 @@
+
+	@:glFragmentSource("
+    
     uniform vec2 iResolution;
     uniform float iTime;
     #pragma header
@@ -387,4 +390,4 @@
         // Done.
         gl_FragColor = vec4(sqrt(min(col, 1.)), 1.0) * vec4(69., 153., 165., 255.) / 255.;
         
-    }
+    }")
