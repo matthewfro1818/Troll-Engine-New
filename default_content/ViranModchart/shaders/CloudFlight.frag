@@ -1,5 +1,4 @@
-
-	@:glFragmentSource("
+    @:glFragmentSource("
     
     uniform vec2 iResolution;
     uniform float iTime;
